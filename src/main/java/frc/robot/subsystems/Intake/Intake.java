@@ -1,108 +1,157 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.subsystems.Intake;
+
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+// import frc.robot.util.ArmVisualizer3d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Voltage;
+
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Second;
+import static edu.wpi.first.units.Units.Volts;
 
 import java.util.function.Supplier;
 
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
-
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
-import frc.robot.subsystems.Shooter.ShooterSpeed;
+import org.littletonrobotics.junction.Logger;
 
 public class Intake extends SubsystemBase {
+	private final IntakeIO io;
+	private final IntakeIOInputsAutoLogged inputs;
+	// private final ArmVisualizer3d armVisualizer;
 
-  private final TalonFX intake;
-  private final VelocityVoltage control = new VelocityVoltage(0).withEnableFOC(true);
+	public Intake(IntakeIO io) {
+		this.io = io;
+		this.inputs = new IntakeIOInputsAutoLogged();
+		//this.armVisualizer = new ArmVisualizer3d(getName(), new Translation3d(0,0.378-0.044,0.184), Rotation2d.fromDegrees(0));
+		// this.armVisualizer = new ArmVisualizer3d(getName(), new Translation3d(0,0.333375,0.196815), Rotation2d.fromDegrees(0));
+	}
 
-  public Intake() {
-    intake = new TalonFX(0);
-    this.setupMotor();
-  }
+	@Override
+	public void periodic() {
+		io.updateInputs(inputs);
+		Logger.processInputs("Intake", inputs);
 
-  private void setupMotor(){
-    var intakeMotorConfig = new TalonFXConfiguration();
-    intakeMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    intakeMotorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-    intakeMotorConfig.Voltage.PeakForwardVoltage = 0; //needs to be a constant
-    intakeMotorConfig.Voltage.PeakReverseVoltage = 0; //needs to be constant
+		// armVisualizer.setArmAngle(inputs.pivotPosition);
+		// armVisualizer.publish();
+	}
 
-    intakeMotorConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-    intakeMotorConfig.CurrentLimits.StatorCurrentLimit = 0; //needs to be value
-    intakeMotorConfig.CurrentLimits.SupplyCurrentLowerTime = 0; //needs to be value, not sure if SupplyCurrentLowerTime is correct
+	public Command setWheelVoltage(Supplier<Voltage> voltage) {
+		return Commands.runOnce(() -> io.setWheelVoltage(voltage.get()), this);
+	}
 
-    //defines PID and other values
 
-    intake.getConfigurator().apply(intakeMotorConfig);
-  }
+	public Command setWheelVelocity(Supplier<AngularVelocity> velocity) {
+		return Commands.runOnce(() -> io.setWheelVelocitySetpoint(velocity.get()), this);
+	}
 
-  private double toRPM(double rps){
-    return rps * 60.0;
-  }
+	public boolean atPosition() {
+		return inputs.pivotPosition.minus(inputs.pivotDesiredPosition).abs(Degrees) < 2;
+	}
 
-  private double toRPS(double rpm){
-    return rpm / 60.0;
-  }
+	public Command setPivotPosition(Supplier<Angle> position) {
+		return Commands.runOnce(() -> io.setPivotPosition(position.get()), this);
+	}
 
-  /* public Command setVelocityFromDistance(DoubleSupplier distance) {
-		return 
-			Commands.runOnce(
-				() -> {
-					RobotContainer.setState(State.REVVING);
-				},
-				this
-			).andThen(this.setVelocity(() -> RANGE_TABLE.get(distance.getAsDouble())));
-  } */
+	public Command setPivotPositionSetpoint(Supplier<Angle> position) {
+		return Commands.runOnce(() -> io.setPivotPositionSetpoint(position.get()), this);
+	}
 
-  public Command setVelocity(Supplier<IntakeSpeed> intakeSpeed){
-    return
-      Commands.runOnce(() -> {
-        double motorSpeed = intakeSpeed.get().motorSpeed;
-        this.intake.setControl(this.control.withVelocity(this.toRPS(motorSpeed)));
-      }, this);
-  }
+	public Command setPivotVoltage(Supplier<Voltage> volts) {
+		return Commands.runOnce(() -> io.setPivotVoltage(volts.get()), this);
+	}
 
-  public Command intake(){
-    return
-      this.setVelocity(
-        () -> {
-          double intakeSpeed = SmartDashboard.getNumber("intake/motorSpeed", 0);
-          return new IntakeSpeed(intakeSpeed);
-        }
-      )
-      .andThen(
-        new WaitUntilCommand(() -> !ProximitySensor.getInstance().hasObject()) //somehow import proximity sensor
-      );
-  }
+	public Command setPivotVoltageDirect(Supplier<Voltage> volts) {
+		return Commands.runOnce(() -> io.setPivotVoltageDirect(volts.get()), this);
+	}
 
-  public boolean isReady(){
-    boolean isReady = Math.abs(toRPM(intake.getClosedLoopError().getValueAsDouble())) < 0; //needs value
-    return isReady;
-  }
+	public Angle getPivotPosition() {
+		return inputs.pivotPosition;
+	}
 
-  public Command intakeIn() {
-    return this.setVelocity(() -> new IntakeSpeed(0)); // need values
-  }
+	public Command sysIdRoutinePivot() {
+		SysIdRoutine routine = new SysIdRoutine(
+			new SysIdRoutine.Config(
+				Volts.per(Second).of(0.25),
+				Volts.of(1),
+				null,
+				(state) -> Logger.recordOutput(
+					"SysId/intake-pivot", state.toString()
+				)
+			),
+			new SysIdRoutine.Mechanism(
+				io::setPivotVoltage,
+				log -> {
+					Logger.recordOutput("SysId/intake-pivot/Voltage", inputs.pivotAppliedVolts);
+					Logger.recordOutput("SysId/intake-pivot/Position", inputs.pivotPosition);
+					Logger.recordOutput("SysId/intake-pivot/Velocity", inputs.pivotVelocity);
+					log.motor("intake-pivot")
+						.voltage(inputs.pivotAppliedVolts)
+						.angularPosition(inputs.pivotPosition)
+						.angularVelocity(inputs.pivotVelocity);
+				}, 
+				this)
+		);
 
-  public Command stop(){
-    return this.setVelocity(() -> new IntakeSpeed(0));
-  }
 
-  @Override
-  public void periodic() {
-    double targetMotorSpeed = toRPM(intake.getClosedLoopReference().getValueAsDouble());
-    double measuredMotorSpeed = toRPM(intake.getVelocity().getValueAsDouble());
-    double speedError = toRPM(intake.getClosedLoopError().getValueAsDouble());
+		Command routineCommand = new SequentialCommandGroup(
+			routine.dynamic(Direction.kReverse).until(() -> inputs.pivotPosition.lte(Degrees.of(20))),
+			Commands.waitSeconds(5),
+			routine.dynamic(Direction.kForward).until(() -> inputs.pivotPosition.gte(Degrees.of(90))),
+			Commands.waitSeconds(5),
+			routine.quasistatic(Direction.kReverse).until(() -> inputs.pivotPosition.lte(Degrees.of(20))),
+			Commands.waitSeconds(5),
+			routine.quasistatic(Direction.kForward).until(() -> inputs.pivotPosition.gte(Degrees.of(90)))
+		);
+		
 
-    //logging stuff
-  }
+		return routineCommand;
+	}
+	public Command sysIdRoutineWheel() {
+		SysIdRoutine routine = new SysIdRoutine(
+			new SysIdRoutine.Config(
+				Volts.of(0.2).per(Second),
+				Volts.of(1),
+				null,
+				(state) -> Logger.recordOutput(
+					"SysId/intake-wheel", state.toString()
+				)
+			),
+			new SysIdRoutine.Mechanism(
+				io::setWheelVoltage,
+				log -> {
+					Logger.recordOutput("SysId/intake-wheel/Voltage", inputs.wheelAppliedVolts);
+					Logger.recordOutput("SysId/intake-wheel/Velocity", inputs.wheelVelocity);
+					Logger.recordOutput("SysId/intake-wheel/Position", inputs.wheelPosition);
+					log.motor("intake-wheel")
+						.voltage(inputs.wheelAppliedVolts)
+						.angularPosition(inputs.wheelPosition)
+						.angularVelocity(inputs.wheelVelocity);
+				}, 
+				this)
+		);
+
+
+		Command routineCommand = new SequentialCommandGroup(
+			routine.dynamic(Direction.kReverse),
+			Commands.waitSeconds(1),
+			routine.dynamic(Direction.kForward),
+			Commands.waitSeconds(1),
+			routine.quasistatic(Direction.kReverse),
+			Commands.waitSeconds(1),
+			routine.quasistatic(Direction.kForward)
+		);
+		return routineCommand;
+	}
+
+	public void enabledInit() {
+		this.io.enabledInit();
+	}
+
 }

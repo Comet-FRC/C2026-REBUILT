@@ -39,3 +39,4 @@ public class ShooterSpeed implements Interpolatable<ShooterSpeed> {
         return ShooterSpeed :: interpolate;
     }
 }
+
