@@ -1,85 +1,113 @@
-package frc.robot.subsystems.Shooter;
+// // Copyright (c) FIRST and other WPILib contributors.
+// // Open Source Software; you can modify and/or share it under the terms of
+// // the WPILib BSD license file in the root directory of this project.
 
-import static edu.wpi.first.units.Units.Second;
-import static edu.wpi.first.units.Units.Volts;
+// package frc.robot.subsystems.Shooter;
 
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Voltage;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-// import frc.robot.util.ArmVisualizer3d;
-import java.util.function.Supplier;
-import org.littletonrobotics.junction.Logger;
+// import java.util.function.DoubleSupplier;
+// import java.util.function.Supplier;
 
-public class Shooter extends SubsystemBase {
-  private final ShooterIO io;
-  private final ShooterIOInputsAutoLogged inputs;
-  // private final ArmVisualizer3d armVisualizer;
+// import com.ctre.phoenix6.configs.TalonFXConfiguration;
+// import com.ctre.phoenix6.controls.VelocityVoltage;
+// import com.ctre.phoenix6.hardware.TalonFX;
+// import com.ctre.phoenix6.signals.InvertedValue;
+// import com.ctre.phoenix6.signals.NeutralModeValue;
 
-  public Shooter(ShooterIO io) {
-    this.io = io;
-    this.inputs = new ShooterIOInputsAutoLogged();
-    // this.armVisualizer = new ArmVisualizer3d(getName(), new Translation3d(0,0.378-0.044,0.184),
-    // Rotation2d.fromDegrees(0));
-    // this.armVisualizer = new ArmVisualizer3d(getName(), new Translation3d(0,0.333375,0.196815),
-    // Rotation2d.fromDegrees(0));
-  }
+// import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+// import edu.wpi.first.wpilibj2.command.Command;
+// import edu.wpi.first.wpilibj2.command.Commands;
+// import edu.wpi.first.wpilibj2.command.SubsystemBase;
+// import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 
-  @Override
-  public void periodic() {
-    io.updateInputs(inputs);
-    Logger.processInputs("Shooter", inputs);
+// public class Shooter extends SubsystemBase {
 
-    // armVisualizer.setArmAngle(inputs.pivotPosition);
-    // armVisualizer.publish();
-  }
+//   private final TalonFX shooter;
+//   private final VelocityVoltage control = new VelocityVoltage(0).withEnableFOC(true);
 
-  public Command setWheelVoltage(Supplier<Voltage> voltage) {
-    return Commands.runOnce(() -> io.setWheelVoltage(voltage.get()), this);
-  }
+//   //double motorSpeed;
 
-  public Command setWheelVelocity(Supplier<AngularVelocity> velocity) {
-    return Commands.runOnce(() -> io.setWheelVelocitySetpoint(velocity.get()), this);
-  }
+//   public Shooter() {
+//     shooter = new TalonFX(0);
+//     this.setupMotor();
+//   }
 
-  public Command sysIdRoutineWheel() {
-    SysIdRoutine routine =
-        new SysIdRoutine(
-            new SysIdRoutine.Config(
-                Volts.of(0.2).per(Second),
-                Volts.of(1),
-                null,
-                (state) -> Logger.recordOutput("SysId/shooter-wheel", state.toString())),
-            new SysIdRoutine.Mechanism(
-                io::setWheelVoltage,
-                log -> {
-                  Logger.recordOutput("SysId/shooter-wheel/Voltage", inputs.wheelAppliedVolts);
-                  Logger.recordOutput("SysId/shooter-wheel/Velocity", inputs.wheelVelocity);
-                  Logger.recordOutput("SysId/shooter-wheel/Position", inputs.wheelPosition);
-                  log.motor("shooter-wheel")
-                      .voltage(inputs.wheelAppliedVolts)
-                      .angularPosition(inputs.wheelPosition)
-                      .angularVelocity(inputs.wheelVelocity);
-                },
-                this));
+//   private void setupMotor(){
+//     var shooterMotorConfig = new TalonFXConfiguration();
+//     shooterMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+//     shooterMotorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+//     shooterMotorConfig.Voltage.PeakForwardVoltage = 0; //needs to be a constant
+//     shooterMotorConfig.Voltage.PeakReverseVoltage = 0; //needs to be a constant
 
-    Command routineCommand =
-        new SequentialCommandGroup(
-            routine.dynamic(Direction.kReverse),
-            Commands.waitSeconds(1),
-            routine.dynamic(Direction.kForward),
-            Commands.waitSeconds(1),
-            routine.quasistatic(Direction.kReverse),
-            Commands.waitSeconds(1),
-            routine.quasistatic(Direction.kForward));
-    return routineCommand;
-  }
+//     shooterMotorConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+//     shooterMotorConfig.CurrentLimits.StatorCurrentLimit = 0; //needs to be a value
+//     shooterMotorConfig.CurrentLimits.SupplyCurrentLowerTime = 0; //needs to be a value, not sure
+// if SupplyCurrentLowerTime is correct
 
-  public void enabledInit() {
-    this.io.enabledInit();
-  }
-}
+//     //defines PID and other values
+
+//     shooter.getConfigurator().apply(shooterMotorConfig);
+//   }
+
+//   private double toRPM(double rps){
+//     return rps * 60.0;
+//   }
+
+//   private double toRPS(double rpm){
+//     return rpm / 60.0;
+//   }
+
+//   /* public Command setVelocityFromDistance(DoubleSupplier distance) {
+// 		return
+// 			Commands.runOnce(
+// 				() -> {
+// 					RobotContainer.setState(State.REVVING);
+// 				},
+// 				this
+// 			).andThen(this.setVelocity(() -> RANGE_TABLE.get(distance.getAsDouble())));
+//   } */
+
+//   public Command setVelocity(Supplier<ShooterSpeed> shooterSpeed){
+//     return
+//       Commands.runOnce(() -> {
+//         double motorSpeed = shooterSpeed.get().motorSpeed;
+//         this.shooter.setControl(this.control.withVelocity(this.toRPS(motorSpeed)));
+//       }, this);
+//   }
+
+//   public Command shoot(){
+//     return
+//       this.setVelocity(
+//         () -> {
+//           double shooterSpeed = SmartDashboard.getNumber("shooter/motorSpeed", 0);
+//           return new ShooterSpeed(shooterSpeed);
+//         }
+//       )
+//       .andThen(
+//         new WaitUntilCommand(() -> !ProximitySensor.getInstance().hasObject()) //somehow import
+// proximity sensor
+//       );
+//   }
+
+//   public boolean isReady(){
+//     boolean isReady = Math.abs(toRPM(shooter.getClosedLoopError().getValueAsDouble())) < 0;
+// //needs value
+//     return isReady;
+//   }
+
+//   public Command eject() {
+//     return this.setVelocity(() -> new ShooterSpeed(0)); // need values
+//   }
+
+//   public Command stop(){
+//     return this.setVelocity(() -> new ShooterSpeed(0));
+//   }
+
+//   @Override
+//   public void periodic() {
+//     double targetMotorSpeed = toRPM(shooter.getClosedLoopReference().getValueAsDouble());
+//     double measuredMotorSpeed = toRPM(shooter.getVelocity().getValueAsDouble());
+//     double speedError = toRPM(shooter.getClosedLoopError().getValueAsDouble());
+
+//     //logging stuff
+//   }
+// }
