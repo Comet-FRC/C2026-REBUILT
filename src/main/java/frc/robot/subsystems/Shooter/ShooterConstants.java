@@ -1,14 +1,14 @@
-package frc.robot.subsystems.Intake;
+package frc.robot.subsystems.Shooter;
 
 import static edu.wpi.first.units.Units.*;
 
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
-// TODO: Change all of this to be specific to our intake
 import edu.wpi.first.units.measure.Mass;
 
-public final class IntakeConstants {
-  public static final int INTAKE_MOTOR_ID = 15;
+// TODO: Change all of this to be specific to our shooter
+public final class ShooterConstants {
+  public static final int SHOOTER_MOTOR_ID = 15;
   public static final int PIVOT_MOTOR_ID = 16;
 
   public static final Angle STARTING_ANGLE = Degrees.of(96.0);

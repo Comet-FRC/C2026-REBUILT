@@ -27,12 +27,20 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.Intake.Intake;
+import frc.robot.subsystems.Intake.IntakeIO;
+import frc.robot.subsystems.Intake.IntakeIOSim;
+import frc.robot.subsystems.Intake.IntakeIOSpark;
+import frc.robot.subsystems.Shooter.Shooter;
+import frc.robot.subsystems.Shooter.ShooterIO;
+import frc.robot.subsystems.Shooter.ShooterIOSim;
+import frc.robot.subsystems.Shooter.ShooterIOSpark;
 import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.vision.*;
+import frc.robot.util.controller.CometLogitechController;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeCoralOnFly;
@@ -48,10 +56,12 @@ public class RobotContainer {
   // Subsystems
   private final Vision vision;
   private final Drive drive;
+  private final Intake intake;
+  private final Shooter shooter;
   private SwerveDriveSimulation driveSimulation = null;
 
   // Controller
-  private final CommandXboxController controller = new CommandXboxController(0);
+  private final CometLogitechController controller = new CometLogitechController(0);
 
   // Dashboard inputs
   private final SendableChooser<Command> autoChooser;
@@ -74,6 +84,8 @@ public class RobotContainer {
                 drive,
                 new VisionIOLimelight(VisionConstants.camera0Name, drive::getRotation),
                 new VisionIOLimelight(VisionConstants.camera1Name, drive::getRotation));
+        intake = new Intake(new IntakeIOSpark());
+        shooter = new Shooter(new ShooterIOSpark());
         break;
 
       case SIM:
@@ -97,6 +109,8 @@ public class RobotContainer {
                     camera0Name, robotToCamera0, driveSimulation::getSimulatedDriveTrainPose),
                 new VisionIOPhotonVisionSim(
                     camera1Name, robotToCamera1, driveSimulation::getSimulatedDriveTrainPose));
+        intake = new Intake(new IntakeIOSim());
+        shooter = new Shooter(new ShooterIOSim());
         break;
 
       default:
@@ -110,6 +124,8 @@ public class RobotContainer {
                 new ModuleIO() {},
                 (robotPose) -> {});
         vision = new Vision(drive, new VisionIO() {}, new VisionIO() {});
+        intake = new Intake(new IntakeIO() {});
+        shooter = new Shooter(new ShooterIO() {});
         break;
     }
 
@@ -182,6 +198,8 @@ public class RobotContainer {
 
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+
+    controller.y().whileTrue(this.shooter.sysIdRoutineWheel());
 
     // Example Coral Placement Code
     // TODO: delete these code for your own project

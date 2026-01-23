@@ -1,4 +1,4 @@
-package frc.robot.subsystems.Intake;
+package frc.robot.subsystems.Shooter;
 
 import static edu.wpi.first.units.Units.*;
 
@@ -9,9 +9,9 @@ import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import org.littletonrobotics.junction.AutoLog;
 
-public interface IntakeIO {
+public interface ShooterIO {
   @AutoLog
-  public static class IntakeIOInputs {
+  public static class ShooterIOInputs {
     public Angle wheelPosition = Radians.of(0);
     public AngularVelocity wheelVelocity = RadiansPerSecond.of(0);
     public AngularVelocity wheelDesiredVelocity = RadiansPerSecond.of(0);
@@ -20,16 +20,16 @@ public interface IntakeIO {
     public Current wheelSupplyCurrent = Amps.of(0);
     public Temperature wheelMotorTemperature = Celsius.of(0);
 
-    public Angle pivotDesiredPositionSetpoint = Radians.of(0);
+    /* public Angle pivotDesiredPositionSetpoint = Radians.of(0);
     public Angle pivotDesiredPosition = Radians.of(0);
     public AngularVelocity pivotVelocity = RadiansPerSecond.of(0);
     public Angle pivotPosition = Radians.of(0);
     public Voltage pivotAppliedVolts = Volts.of(0);
     public Current pivotSupplyCurrent = Amps.of(0);
-    public Temperature pivotTemperature = Celsius.of(0);
+    public Temperature pivotTemperature = Celsius.of(0);*/
   }
 
-  public default void updateInputs(IntakeIOInputs inputs) {}
+  public default void updateInputs(ShooterIOInputs inputs) {}
 
   public default void stopWheel() {}
 
@@ -38,14 +38,6 @@ public interface IntakeIO {
   public default void setWheelVelocitySetpoint(AngularVelocity velocity) {}
 
   public default void setWheelVoltage(Voltage volts) {}
-
-  public default void setPivotPosition(Angle position) {}
-
-  public default void setPivotPositionSetpoint(Angle position) {}
-
-  public default void setPivotVoltage(Voltage volts) {}
-
-  public default void setPivotVoltageDirect(Voltage volts) {}
 
   public default void enabledInit() {}
 }

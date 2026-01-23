@@ -1,4 +1,4 @@
-package frc.robot.subsystems.Shooter;
+/*package frc.robot.subsystems.Shooter;
 
 import edu.wpi.first.math.interpolation.Interpolatable;
 import edu.wpi.first.math.interpolation.Interpolator;
@@ -34,9 +34,8 @@ public class ShooterSpeed implements Interpolatable<ShooterSpeed> {
         ShooterSpeed interpolated = this.sum(delta.product(t));
         return interpolated;
     }
-    
+
     static Interpolator<ShooterSpeed> getInterpolator() {
         return ShooterSpeed :: interpolate;
     }
-}
-
+}*/
