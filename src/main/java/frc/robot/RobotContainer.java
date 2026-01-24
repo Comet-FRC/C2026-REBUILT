@@ -30,12 +30,15 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.Intake.Intake;
-import frc.robot.subsystems.Intake.IntakeIO;
-import frc.robot.subsystems.Intake.IntakeIOSim;
-import frc.robot.subsystems.Intake.IntakeIOSpark;
-// import frc.robot.subsystems.Shooter.Shooter;
+import frc.robot.subsystems.Kicker.Kicker;
+import frc.robot.subsystems.Kicker.KickerIO;
+import frc.robot.subsystems.Kicker.KickerIOSim;
+import frc.robot.subsystems.Kicker.KickerIOSpark;
 import frc.robot.subsystems.drive.*;
+import frc.robot.subsystems.indexer.Indexer;
+import frc.robot.subsystems.indexer.IndexerIO;
+import frc.robot.subsystems.indexer.IndexerIOSim;
+import frc.robot.subsystems.indexer.IndexerIOSpark;
 import frc.robot.subsystems.vision.*;
 import frc.robot.util.controller.CometLogitechController;
 import org.ironmaple.simulation.SimulatedArena;
@@ -53,8 +56,8 @@ public class RobotContainer {
   // Subsystems
   private final Vision vision;
   private final Drive drive;
-  private final Intake intake;
-  // private final Shooter shooter;
+  private final Kicker kicker;
+  private final Indexer indexer;
   private SwerveDriveSimulation driveSimulation = null;
 
   // Controller
@@ -81,8 +84,8 @@ public class RobotContainer {
                 drive,
                 new VisionIOLimelight(VisionConstants.camera0Name, drive::getRotation),
                 new VisionIOLimelight(VisionConstants.camera1Name, drive::getRotation));
-        intake = new Intake(new IntakeIOSpark());
-        // shooter = new Shooter(new ShooterIOSpark());
+        kicker = new Kicker(new KickerIOSpark());
+        indexer = new Indexer(new IndexerIOSpark());
         break;
 
       case SIM:
@@ -106,8 +109,8 @@ public class RobotContainer {
                     camera0Name, robotToCamera0, driveSimulation::getSimulatedDriveTrainPose),
                 new VisionIOPhotonVisionSim(
                     camera1Name, robotToCamera1, driveSimulation::getSimulatedDriveTrainPose));
-        intake = new Intake(new IntakeIOSim());
-        // shooter = new Shooter(new ShooterIOSim());
+        kicker = new Kicker(new KickerIOSim());
+        indexer = new Indexer(new IndexerIOSim());
         break;
 
       default:
@@ -121,8 +124,8 @@ public class RobotContainer {
                 new ModuleIO() {},
                 (robotPose) -> {});
         vision = new Vision(drive, new VisionIO() {}, new VisionIO() {});
-        intake = new Intake(new IntakeIO() {});
-        // shooter = new Shooter(new ShooterIO() {});
+        kicker = new Kicker(new KickerIO() {});
+        indexer = new Indexer(new IndexerIO() {});
         break;
     }
 
@@ -196,7 +199,9 @@ public class RobotContainer {
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    // controller.y().whileTrue(this.shooter.sysIdRoutineWheel());
+    // kicker sim button code test
+    controller.y().whileTrue(this.kicker.topSysId());
+    controller.y().whileTrue(this.kicker.bottomSysId());
 
     // Example Coral Placement Code
     // TODO: delete these code for your own project
