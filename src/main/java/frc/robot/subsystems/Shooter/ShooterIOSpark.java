@@ -26,7 +26,6 @@ public class ShooterIOSpark implements ShooterIO {
 
   private final SparkMax wheelMotor =
       new SparkMax(ShooterConstants.SHOOTER_MOTOR_ID, MotorType.kBrushless);
-  private final SparkMax pivotMotor =
       new SparkMax(ShooterConstants.PIVOT_MOTOR_ID, MotorType.kBrushless);
 
   private final ArmFeedforward pivotFF =
