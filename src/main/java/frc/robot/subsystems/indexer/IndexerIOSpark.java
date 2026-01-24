@@ -92,7 +92,7 @@ public class IndexerIOSpark implements IndexerIO {
         .d(SmartDashboard.getNumber("Indexer/topD", 0));
     motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
-    motor.getClosedLoopController().setReference(velocityRadiansPerSecond, ControlType.kVelocity);
+    motor.getClosedLoopController().setSetpoint(velocityRadiansPerSecond, ControlType.kVelocity);
 
     // System.out.println("topD: " + topMotor.configAccessor.closedLoop.getD());
 

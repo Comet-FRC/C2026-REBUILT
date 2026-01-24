@@ -34,10 +34,7 @@ import frc.robot.subsystems.Intake.Intake;
 import frc.robot.subsystems.Intake.IntakeIO;
 import frc.robot.subsystems.Intake.IntakeIOSim;
 import frc.robot.subsystems.Intake.IntakeIOSpark;
-import frc.robot.subsystems.Shooter.Shooter;
-import frc.robot.subsystems.Shooter.ShooterIO;
-import frc.robot.subsystems.Shooter.ShooterIOSim;
-import frc.robot.subsystems.Shooter.ShooterIOSpark;
+// import frc.robot.subsystems.Shooter.Shooter;
 import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.vision.*;
 import frc.robot.util.controller.CometLogitechController;
@@ -57,7 +54,7 @@ public class RobotContainer {
   private final Vision vision;
   private final Drive drive;
   private final Intake intake;
-  private final Shooter shooter;
+  // private final Shooter shooter;
   private SwerveDriveSimulation driveSimulation = null;
 
   // Controller
@@ -85,7 +82,7 @@ public class RobotContainer {
                 new VisionIOLimelight(VisionConstants.camera0Name, drive::getRotation),
                 new VisionIOLimelight(VisionConstants.camera1Name, drive::getRotation));
         intake = new Intake(new IntakeIOSpark());
-        shooter = new Shooter(new ShooterIOSpark());
+        // shooter = new Shooter(new ShooterIOSpark());
         break;
 
       case SIM:
@@ -110,7 +107,7 @@ public class RobotContainer {
                 new VisionIOPhotonVisionSim(
                     camera1Name, robotToCamera1, driveSimulation::getSimulatedDriveTrainPose));
         intake = new Intake(new IntakeIOSim());
-        shooter = new Shooter(new ShooterIOSim());
+        // shooter = new Shooter(new ShooterIOSim());
         break;
 
       default:
@@ -125,7 +122,7 @@ public class RobotContainer {
                 (robotPose) -> {});
         vision = new Vision(drive, new VisionIO() {}, new VisionIO() {});
         intake = new Intake(new IntakeIO() {});
-        shooter = new Shooter(new ShooterIO() {});
+        // shooter = new Shooter(new ShooterIO() {});
         break;
     }
 
@@ -199,7 +196,7 @@ public class RobotContainer {
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    controller.y().whileTrue(this.shooter.sysIdRoutineWheel());
+    // controller.y().whileTrue(this.shooter.sysIdRoutineWheel());
 
     // Example Coral Placement Code
     // TODO: delete these code for your own project
