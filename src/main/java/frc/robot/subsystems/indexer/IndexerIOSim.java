@@ -17,7 +17,7 @@ public class IndexerIOSim implements IndexerIO {
       new FlywheelSim(
           DCMotor.getNEO(1),
           IndexerConstants.GEAR_RATIO,
-          0.004); // Assuming small moment of inertia for roller
+          0.004); 
 
   private final ProfiledPIDController rollerPID =
       new ProfiledPIDController(

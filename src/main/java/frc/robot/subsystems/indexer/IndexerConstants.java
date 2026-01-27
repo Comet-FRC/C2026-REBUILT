@@ -1,7 +1,5 @@
 package frc.robot.subsystems.indexer;
 
-import static edu.wpi.first.units.Units.*;
-
 public final class IndexerConstants {
   public static final int INDEXER_MOTOR_ID = 15;
 

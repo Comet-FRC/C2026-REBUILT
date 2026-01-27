@@ -64,10 +64,6 @@ public class Intake extends SubsystemBase {
     return Commands.runOnce(() -> io.setPivotVoltage(volts.get()), this);
   }
 
-  public Command setPivotVoltageDirect(Supplier<Voltage> volts) {
-    return Commands.runOnce(() -> io.setPivotVoltageDirect(volts.get()), this);
-  }
-
   public Angle getPivotPosition() {
     return inputs.pivotPosition;
   }
