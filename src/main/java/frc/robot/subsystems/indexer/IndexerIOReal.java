@@ -46,7 +46,7 @@ public class IndexerIOReal implements IndexerIO {
   @Override
   public void updateInputs(IndexerIOInputs inputs) {
     inputs.rollerVelocity =
-        RadiansPerSecond.of(rollerMotor.getEncoder().getVelocity() * IndexerConstants.GEAR_RATIO);
+        RadiansPerSecond.of(rollerMotor.getEncoder().getVelocity());
     inputs.rollerAppliedVolts = Volts.of(rollerMotor.getAppliedOutput() * 12);
     inputs.rollerSupplyCurrent = Amps.of(rollerMotor.getOutputCurrent());
     inputs.rollerMotorTemperature = Celsius.of(rollerMotor.getMotorTemperature());

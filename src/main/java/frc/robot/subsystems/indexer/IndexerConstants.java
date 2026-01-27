@@ -7,7 +7,7 @@ public final class IndexerConstants {
 
   // MAX Planetary 4:1 reduction
   public static final double GEAR_RATIO = 4.0;
-  public static final double WHEEL_CONVERSION_FACTOR = Math.PI * 1 / GEAR_RATIO;
+  public static final double WHEEL_CONVERSION_FACTOR = 2 * Math.PI * 1 / GEAR_RATIO;
 
   // PID gains for roller speed control
   public static final double ROLLER_kP = 0.001;

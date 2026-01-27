@@ -14,7 +14,7 @@ public final class IntakeConstants {
   public static final Angle STARTING_ANGLE = Degrees.of(96.0);
 
   public static final double WHEEL_CONVERSION_FACTOR = 2 * Math.PI * (18.0 / 24.0);
-  public static final double PIVOT_CONVERSION_FACTOR = 2 * Math.PI;
+  public static final double PIVOT_CONVERSION_FACTOR = 2 * Math.PI * (1.0 / 45.0);
 
   public static final double PIVOT_kP = 10;
   public static final double PIVOT_kI = 0;
