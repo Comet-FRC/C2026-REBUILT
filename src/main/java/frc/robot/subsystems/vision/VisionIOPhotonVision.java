@@ -13,11 +13,12 @@
 
 package frc.robot.subsystems.vision;
 
-import static frc.robot.subsystems.vision.VisionConstants.aprilTagLayout;
+import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import frc.robot.subsystems.vision.VisionConstants.Camera;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,15 +30,17 @@ public class VisionIOPhotonVision implements VisionIO {
   protected final PhotonCamera camera;
   protected final Transform3d robotToCamera;
 
+  boolean initCompleted = false;
+
   /**
    * Creates a new VisionIOPhotonVision.
    *
    * @param name The configured name of the camera.
    * @param rotationSupplier The 3D position of the camera relative to the robot.
    */
-  public VisionIOPhotonVision(String name, Transform3d robotToCamera) {
-    camera = new PhotonCamera(name);
-    this.robotToCamera = robotToCamera;
+  public VisionIOPhotonVision(Camera camera) {
+    this.camera = new PhotonCamera(camera.hardwareName);
+    this.robotToCamera = camera.getRobotToCam();
   }
 
   @Override
@@ -127,5 +130,29 @@ public class VisionIOPhotonVision implements VisionIO {
     for (int id : tagIds) {
       inputs.tagIds[i++] = id;
     }
+
+    if (!initCompleted) {
+
+      inputs.latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d());
+
+      PoseObservation[] poseObservationsInit = {
+        new PoseObservation(
+            0,
+            Pose3d.kZero,
+            Double.POSITIVE_INFINITY,
+            0,
+            Double.POSITIVE_INFINITY,
+            PoseObservationType.INIT)
+      };
+      inputs.poseObservations = poseObservationsInit;
+
+      int[] tagIdsInit = {0};
+      inputs.tagIds = tagIdsInit;
+    }
+  }
+
+  @Override
+  public void initCompleted() {
+    this.initCompleted = true;
   }
 }
