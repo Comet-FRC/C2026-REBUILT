@@ -2,78 +2,79 @@ package frc.robot.subsystems.indexer;
 
 import static edu.wpi.first.units.Units.*;
 
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Voltage;
-import edu.wpi.first.wpilibj.RobotState;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import org.littletonrobotics.junction.AutoLogOutput;
+import java.util.function.Supplier;
+
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+
 public class Indexer extends SubsystemBase {
-  private final IndexerIO io;
-  private final IndexerIOInputsAutoLogged inputs = new IndexerIOInputsAutoLogged();
+	public final IndexerIO io;
+	public final IndexerIOInputsAutoLogged inputs;
 
-  public Indexer(IndexerIO io) {
-    this.io = io;
-  }
+	public Indexer(IndexerIO IndexerIO) {
+		this.io = IndexerIO;
+		this.inputs = new IndexerIOInputsAutoLogged();
+	}
 
-  @Override
-  public void periodic() {
-    io.updateInputs(inputs);
-    Logger.processInputs("Indexer", inputs);
-  }
+	@Override
+	public void periodic() {
+		io.updateInputs(inputs);
+		Logger.processInputs("Indexer", inputs);
+	}
 
-  @Override
-  public void simulationPeriodic() {}
+	public Command stop() {
+		return Commands.run(() -> io.setRollerVelocitySetpoint(RadiansPerSecond.of(0)), this);
+	}
 
-  @Override
-  public void enabledInit() {
-    io.enabledInit();
-  }
+	public Command setRollerVelocity(Supplier<AngularVelocity> speed) {
+		return Commands.runOnce(() -> io.setRollerVelocitySetpoint(speed.get()), this);
+	}
 
-  public void setRollerVelocity(AngularVelocity velocity) {
-    io.setRollerVelocitySetpoint(velocity);
-  }
+	public Command setRollerVoltage(Supplier<Voltage> volts) {
+		return Commands.runOnce(() -> io.setRollerVoltage(volts.get()), this);
+	}
 
-  public void setRollerVoltage(Voltage volts) {
-    io.setRollerVoltage(volts);
-  }
+	public Command rollerSysId() {
+		SysIdRoutine routine = new SysIdRoutine(
+			new SysIdRoutine.Config(
+				null,
+				Volts.of(4),
+				null,
+				(state) -> Logger.recordOutput(
+					"SysId/indexer-roller", state.toString()
+				)
+			),
+			new SysIdRoutine.Mechanism(
+				io::setRollerVoltage,
+				log -> {
+					Logger.recordOutput("SysId/indexer-roller/Voltage", inputs.rollerAppliedVolts);
+					Logger.recordOutput("SysId/indexer-roller/Velocity", inputs.rollerVelocity);
+					Logger.recordOutput("SysId/indexer-roller/Position", inputs.rollerPosition);
+					log.motor("indexer-roller")
+						.voltage(inputs.rollerAppliedVolts)
+						.angularPosition(inputs.rollerPosition)
+						.angularVelocity(inputs.rollerVelocity);
+				}, 
+				this)
+		);
 
-  public void stop() {
-    io.stopRoller();
-  }
-
-  @AutoLogOutput(key = "Indexer/RollerVelocity")
-  public AngularVelocity getRollerVelocity() {
-    return inputs.rollerVelocity;
-  }
-
-  @AutoLogOutput(key = "Indexer/RollerVelocitySetpoint")
-  public AngularVelocity getRollerVelocitySetpoint() {
-    return inputs.rollerVelocitySetpoint;
-  }
-
-  @AutoLogOutput(key = "Indexer/RollerAppliedVolts")
-  public Voltage getRollerAppliedVolts() {
-    return inputs.rollerAppliedVolts;
-  }
-
-  @AutoLogOutput(key = "Indexer/RollerSupplyCurrent")
-  public double getRollerSupplyCurrent() {
-    return inputs.rollerSupplyCurrent.in(Amps);
-  }
-
-  @AutoLogOutput(key = "Indexer/RollerTemperature")
-  public double getRollerTemperature() {
-    return inputs.rollerMotorTemperature.in(Celsius);
-  }
-
-  public Command setRollerVelocityCommand(AngularVelocity velocity) {
-    return this.run(() -> setRollerVelocity(velocity));
-  }
-
-  public Command stopCommand() {
-    return this.run(this::stop);
-  }
+		Command routineCommand = new SequentialCommandGroup(
+			routine.dynamic(Direction.kForward),
+			Commands.waitSeconds(3),
+			routine.dynamic(Direction.kReverse),
+			Commands.waitSeconds(3),
+			routine.quasistatic(Direction.kForward),
+			Commands.waitSeconds(3),
+			routine.quasistatic(Direction.kReverse)
+		);
+		return routineCommand;
+	}
 }

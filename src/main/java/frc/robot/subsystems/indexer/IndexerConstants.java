@@ -1,11 +1,16 @@
 package frc.robot.subsystems.indexer;
 
+
 public final class IndexerConstants {
   public static final int INDEXER_MOTOR_ID = 15;
 
   // MAX Planetary 4:1 reduction
   public static final double GEAR_RATIO = 4.0;
   public static final double WHEEL_CONVERSION_FACTOR = 2 * Math.PI * 1 / GEAR_RATIO;
+
+  // Wheel moment of inertia (1.250" diameter, 0.170 lbs per wheel)
+  public static final double WHEEL_MOMENT_OF_INERTIA = 9.71e-6;
+
 
   // PID gains for roller speed control
   public static final double ROLLER_kP = 0.001;

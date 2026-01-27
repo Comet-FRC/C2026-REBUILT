@@ -12,12 +12,12 @@ import org.littletonrobotics.junction.AutoLog;
 public interface IndexerIO {
   @AutoLog
   public static class IndexerIOInputs {
-		public AngularVelocity rollerVelocity = RadiansPerSecond.of(0);
-		public AngularVelocity rollerDesiredVelocity = RadiansPerSecond.of(0);
-		public Angle rollerPosition = Radians.of(0);
-		public Voltage rollerAppliedVoltage = Volts.of(0);
-		public Current rollerSupplyCurrent = Amps.of(0);
-		public Temperature rollerTemperature = Celsius.of(0);
+    public AngularVelocity rollerVelocity = RadiansPerSecond.of(0);
+    public AngularVelocity rollerDesiredVelocity = RadiansPerSecond.of(0);
+    public Angle rollerPosition = Radians.of(0);
+    public Voltage rollerAppliedVolts = Volts.of(0);
+    public Current rollerSupplyCurrent = Amps.of(0);
+    public Temperature rollerTemperature = Celsius.of(0);
   }
 
   public default void updateInputs(IndexerIOInputs inputs) {}

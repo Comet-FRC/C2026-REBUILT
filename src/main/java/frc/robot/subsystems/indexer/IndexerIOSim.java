@@ -1,79 +1,83 @@
+// CopytopMotor (c) 2024 FRC 6328
+// http://github.com/Mechanical-Advantage
+//
+// Use of this source code is governed by an MIT-style
+// license that can be found in the LICENSE file at
+// the root directory of this project.
+
 package frc.robot.subsystems.indexer;
 
 import static edu.wpi.first.units.Units.*;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N2;
+import edu.wpi.first.math.system.LinearSystem;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.wpilibj.simulation.FlywheelSim;
+import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
-import org.littletonrobotics.junction.Logger;
+import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
 public class IndexerIOSim implements IndexerIO {
-  private final FlywheelSim rollerSim =
-      new FlywheelSim(
-          DCMotor.getNEO(1),
-          IndexerConstants.GEAR_RATIO,
-          0.004); 
+  private final DCMotorSim rollerMotor = configureRollerMotor();
 
-  private final ProfiledPIDController rollerPID =
-      new ProfiledPIDController(
+  private static DCMotorSim configureRollerMotor() {
+    DCMotor rollerGearbox = DCMotor.getNEO(1);
+    LinearSystem<N2, N1, N2> wheelPlant =
+        LinearSystemId.createDCMotorSystem(
+            rollerGearbox,
+            IndexerConstants.WHEEL_MOMENT_OF_INERTIA,
+            IndexerConstants.WHEEL_CONVERSION_FACTOR);
+    return new DCMotorSim(wheelPlant, rollerGearbox);
+  }
+
+  private final PIDController rollerPID =
+      new PIDController(
           IndexerConstants.ROLLER_SIM_kP,
           IndexerConstants.ROLLER_SIM_kI,
-          IndexerConstants.ROLLER_SIM_kD,
-          new TrapezoidProfile.Constraints(2 * Math.PI, Math.PI));
+          IndexerConstants.ROLLER_SIM_kD);
 
-  private final MutVoltage rollerDesiredVoltage = Volts.mutable(0);
   private boolean rollerVoltageMode = false;
 
   @Override
   public void updateInputs(IndexerIOInputs inputs) {
-    rollerSim.update(0.02); // Update with 20ms dt
+    rollerMotor.update(0.02);
 
-    inputs.rollerVelocity = RadiansPerSecond.of(rollerSim.getAngularVelocityRadPerSec());
-    inputs.rollerAppliedVolts = rollerDesiredVoltage.copy();
-    inputs.rollerSupplyCurrent =
-        Amps.of(rollerSim.getCurrentDrawAmps()); // Returns current in amps
+    runLoopControl();
 
-    if (rollerVoltageMode) {
-      inputs.rollerVelocitySetpoint = inputs.rollerVelocity;
+    inputs.rollerPosition = rollerMotor.getAngularPosition();
+    inputs.rollerVelocity = rollerMotor.getAngularVelocity();
+    inputs.rollerDesiredVelocity = RadiansPerSecond.of(rollerPID.getSetpoint());
+    inputs.rollerAppliedVolts = Volts.of(rollerMotor.getInputVoltage());
+    inputs.rollerSupplyCurrent = Amps.of(rollerMotor.getCurrentDrawAmps());
+  }
+
+  private void runLoopControl() {
+    if (!rollerVoltageMode) {
+
+      rollerMotor.setInputVoltage(
+          rollerPID.calculate(rollerMotor.getAngularVelocity().in(RadiansPerSecond))
+          // +
+          // rollerFF.calculate(rollerPID.getSetpoint())
+          );
     }
-
-    inputs.rollerDesiredVelocity = RadiansPerSecond.of(rollerPID.getSetpoint().position);
-
-    Logger.recordOutput("Indexer/SimVelocity", inputs.rollerVelocity.in(RadiansPerSecond));
   }
 
   @Override
-  public void stopRoller() {
-    rollerVoltageMode = true;
-    rollerDesiredVoltage.mut_replace(0, Volts);
-    rollerSim.setInputVoltage(0);
-  }
-
-  @Override
-  public void setRollerVelocitySetpoint(AngularVelocity velocity) {
-    rollerVoltageMode = false;
-    rollerPID.setGoal(velocity.in(RadiansPerSecond));
-
-    double pidOutput =
-        rollerPID.calculate(rollerSim.getAngularVelocityRadPerSec());
-    rollerDesiredVoltage.mut_replace(MathUtil.clamp(pidOutput, -12, 12), Volts);
-    rollerSim.setInputVoltage(rollerDesiredVoltage.in(Volts));
+  public void setRollerVelocitySetpoint(AngularVelocity rollerVelocity) {
+    this.rollerVoltageMode = false;
+    this.rollerPID.setSetpoint(rollerVelocity.in(RadiansPerSecond));
   }
 
   @Override
   public void setRollerVoltage(Voltage volts) {
-    rollerVoltageMode = true;
-    rollerDesiredVoltage.mut_replace(MathUtil.clamp(volts.in(Volts), -12, 12), Volts);
-    rollerSim.setInputVoltage(rollerDesiredVoltage.in(Volts));
+    this.rollerVoltageMode = true;
+    this.rollerMotor.setInputVoltage(volts.in(Volts));
   }
 
   @Override
-  public void enabledInit() {
-    rollerPID.reset(rollerSim.getAngularVelocityRadPerSec());
+  public void stopRoller() {
+    this.setRollerVoltage(Volts.of(0.0));
   }
 }
