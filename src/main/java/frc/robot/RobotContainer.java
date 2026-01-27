@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.*;
+import frc.robot.subsystems.intake.*;
 import frc.robot.subsystems.vision.*;
 import frc.robot.subsystems.vision.VisionConstants.Camera;
 import frc.robot.util.controller.CometLogitechController;
@@ -44,6 +45,7 @@ public class RobotContainer {
   // Subsystems
   private final Vision vision;
   private final Drive drive;
+  private final Intake intake;
   private SwerveDriveSimulation driveSimulation = null;
 
   // Controller
@@ -71,6 +73,7 @@ public class RobotContainer {
                 new VisionIOPhotonVision(Camera.FrontApriltag),
                 new VisionIOPhotonVision(Camera.BackApriltag),
                 new VisionIOLimelight(VisionConstants.camera0Name, drive::getRotation));
+        this.intake = new Intake(new IntakeIOReal());
         break;
 
       case SIM:
@@ -94,6 +97,7 @@ public class RobotContainer {
                     camera0Name, robotToCamera0, driveSimulation::getSimulatedDriveTrainPose),
                 new VisionIOPhotonVisionSim(
                     camera1Name, robotToCamera1, driveSimulation::getSimulatedDriveTrainPose));
+        intake = new Intake(new IntakeIOSim());
         break;
 
       default:
@@ -107,6 +111,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 (robotPose) -> {});
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        intake = new Intake(new IntakeIO() {});
         break;
     }
 
