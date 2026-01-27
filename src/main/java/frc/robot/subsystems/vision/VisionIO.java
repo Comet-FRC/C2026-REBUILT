@@ -19,7 +19,7 @@ import org.littletonrobotics.junction.AutoLog;
 
 public interface VisionIO {
   @AutoLog
-  class VisionIOInputs {
+  public static class VisionIOInputs {
     public boolean connected = false;
     public TargetObservation latestTargetObservation =
         new TargetObservation(new Rotation2d(), new Rotation2d());
@@ -28,10 +28,10 @@ public interface VisionIO {
   }
 
   /** Represents the angle to a simple target, not used for pose estimation. */
-  record TargetObservation(Rotation2d tx, Rotation2d ty) {}
+  public static record TargetObservation(Rotation2d tx, Rotation2d ty) {}
 
   /** Represents a robot pose sample used for pose estimation. */
-  record PoseObservation(
+  public static record PoseObservation(
       double timestamp,
       Pose3d pose,
       double ambiguity,
@@ -39,11 +39,14 @@ public interface VisionIO {
       double averageTagDistance,
       PoseObservationType type) {}
 
-  enum PoseObservationType {
+  public static enum PoseObservationType {
     MEGATAG_1,
     MEGATAG_2,
-    PHOTONVISION
+    PHOTONVISION,
+    INIT
   }
 
-  default void updateInputs(VisionIOInputs inputs) {}
+  public default void updateInputs(VisionIOInputs inputs) {}
+
+  public default void initCompleted() {}
 }
