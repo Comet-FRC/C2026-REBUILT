@@ -23,8 +23,7 @@ public class IntakeIOSim implements IntakeIO {
   private static DCMotorSim configureWheelMotor() {
     DCMotor wheelGearbox = DCMotor.getNEO(1);
     LinearSystem<N2, N1, N2> wheelPlant =
-        LinearSystemId.createDCMotorSystem(
-            wheelGearbox, IntakeConstants.WHEEL_MOI, IntakeConstants.WHEEL_CONVERSION_FACTOR);
+        LinearSystemId.createDCMotorSystem(wheelGearbox, IntakeConstants.WHEEL_MOI, (18.0 / 24.0));
     return new DCMotorSim(wheelPlant, wheelGearbox);
   }
 

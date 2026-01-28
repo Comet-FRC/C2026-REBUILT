@@ -13,6 +13,8 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -26,6 +28,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.*;
+import frc.robot.subsystems.indexer.*;
 import frc.robot.subsystems.intake.*;
 import frc.robot.subsystems.vision.*;
 import frc.robot.subsystems.vision.VisionConstants.Camera;
@@ -46,6 +49,7 @@ public class RobotContainer {
   private final Vision vision;
   private final Drive drive;
   private final Intake intake;
+  private final Indexer indexer;
   private SwerveDriveSimulation driveSimulation = null;
 
   // Controller
@@ -74,6 +78,7 @@ public class RobotContainer {
                 new VisionIOPhotonVision(Camera.BackApriltag),
                 new VisionIOLimelight(VisionConstants.camera0Name, drive::getRotation));
         this.intake = new Intake(new IntakeIOReal());
+        this.indexer = new Indexer(new IndexerIOReal());
         break;
 
       case SIM:
@@ -98,6 +103,7 @@ public class RobotContainer {
                 new VisionIOPhotonVisionSim(
                     camera1Name, robotToCamera1, driveSimulation::getSimulatedDriveTrainPose));
         intake = new Intake(new IntakeIOSim());
+        indexer = new Indexer(new IndexerIOSim());
         break;
 
       default:
@@ -112,6 +118,7 @@ public class RobotContainer {
                 (robotPose) -> {});
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         intake = new Intake(new IntakeIO() {});
+        indexer = new Indexer(new IndexerIO() {});
         break;
     }
 
@@ -166,6 +173,11 @@ public class RobotContainer {
 
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+
+    controller.y().whileTrue(
+        Commands.parallel(
+            this.intake.setWheelVoltage(() -> Volts.of(5.0)),
+            this.indexer.setRollerVoltage(() -> Volts.of(5.0))));
   }
 
   /**
