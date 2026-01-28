@@ -35,9 +35,9 @@ public class IntakeIOSim implements IntakeIO {
             IntakeConstants.LENGTH.in(Meters), IntakeConstants.MASS.in(Kilograms)),
         IntakeConstants.LENGTH.in(Meters),
         -0.5,
-        IntakeConstants.STARTING_ANGLE.in(Radians) + 0.5,
+        IntakeConstants.STOW_ANGLE.in(Radians) + 0.5,
         true,
-        IntakeConstants.STARTING_ANGLE.in(Radians),
+        IntakeConstants.STOW_ANGLE.in(Radians),
         IntakeConstants.PIVOT_ENCODER_DISTANCE_PER_PULSE,
         0);
   }
@@ -69,7 +69,7 @@ public class IntakeIOSim implements IntakeIO {
   private boolean wheelVoltageMode = false;
 
   public IntakeIOSim() {
-    this.setPivotPositionSetpoint(IntakeConstants.STARTING_ANGLE);
+    this.setPivotPositionSetpoint(IntakeConstants.STOW_ANGLE);
   }
 
   @Override

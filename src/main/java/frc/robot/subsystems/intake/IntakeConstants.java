@@ -11,7 +11,8 @@ public final class IntakeConstants {
   public static final int PIVOT_LEADER_ID = 13;
   public static final int PIVOT_FOLLOWER_ID = 14;
 
-  public static final Angle STARTING_ANGLE = Degrees.of(96.0);
+  public static final Angle STOW_ANGLE = Degrees.of(96.0);
+  public static final Angle INTAKING_ANGLE = Degrees.of(40.0);
   public static final double GEAR_RATIO = 45.0;
 
   public static final double WHEEL_CONVERSION_FACTOR = 2 * Math.PI * (18.0 / 24.0);

@@ -13,7 +13,6 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
@@ -32,6 +31,7 @@ import frc.robot.subsystems.indexer.*;
 import frc.robot.subsystems.intake.*;
 import frc.robot.subsystems.vision.*;
 import frc.robot.subsystems.vision.VisionConstants.Camera;
+import frc.robot.util.LoggedTunableNumber;
 import frc.robot.util.controller.CometLogitechController;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -54,6 +54,10 @@ public class RobotContainer {
 
   // Controller
   private final CometLogitechController controller = new CometLogitechController(0);
+
+  // Tunable values
+  private final LoggedTunableNumber intakeWheelVolts =
+      new LoggedTunableNumber("Intake/WheelVolts", 5.0);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -142,8 +146,26 @@ public class RobotContainer {
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
+    setupDefaultCommands();
     // Configure the button bindings
     configureButtonBindings();
+  }
+
+  private void setupDefaultCommands() {
+    this.drive.setDefaultCommand(
+        DriveCommands.joystickDrive(
+            drive,
+            () -> -controller.getLeftY(),
+            () -> -controller.getLeftX(),
+            () -> -controller.getRightX()));
+
+    this.intake.setDefaultCommand(
+        Commands.run(
+            () -> {
+              this.intake.setIntakeState(
+                  IntakeConstants.INTAKING_ANGLE, Volts.of(intakeWheelVolts.get()));
+            },
+            this.intake));
   }
 
   /**
@@ -153,14 +175,6 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    // Default command, normal field-relative drive
-    drive.setDefaultCommand(
-        DriveCommands.joystickDrive(
-            drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
-
     // Lock to 0° when A button is held
     controller
         .a()
@@ -174,10 +188,12 @@ public class RobotContainer {
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    controller.y().whileTrue(
-        Commands.parallel(
-            this.intake.setWheelVoltage(() -> Volts.of(5.0)),
-            this.indexer.setRollerVoltage(() -> Volts.of(5.0))));
+    controller
+        .y()
+        .whileTrue(
+            Commands.parallel(
+                this.intake.setWheelVoltage(() -> Volts.of(5.0)),
+                this.indexer.setRollerVoltage(() -> Volts.of(5.0))));
   }
 
   /**

@@ -34,7 +34,11 @@ public class IntakeIOReal implements IntakeIO {
 
   private void configureWheelMotor() {
     SparkMaxConfig config = new SparkMaxConfig();
-    config.inverted(false).idleMode(IdleMode.kCoast).smartCurrentLimit(30);
+    config
+        .inverted(false)
+        .idleMode(IdleMode.kCoast)
+        .smartCurrentLimit(20) // Lower current limit for battery efficiency
+        .voltageCompensation(11.5); // Consistent behavior as battery drains
     config
         .encoder
         .positionConversionFactor(IntakeConstants.WHEEL_CONVERSION_FACTOR)
@@ -62,7 +66,11 @@ public class IntakeIOReal implements IntakeIO {
             .withNeutralMode(NeutralModeValue.Brake)
             .withInverted(InvertedValue.Clockwise_Positive);
     cfg.CurrentLimits =
-        new CurrentLimitsConfigs().withSupplyCurrentLimit(40).withSupplyCurrentLimitEnable(true);
+        new CurrentLimitsConfigs()
+            .withSupplyCurrentLimit(30) // Lower for battery efficiency
+            .withSupplyCurrentLimitEnable(true);
+    cfg.Voltage.PeakForwardVoltage = 11.5; // Voltage compensation
+    cfg.Voltage.PeakReverseVoltage = -11.5;
     cfg.Slot0.kP = IntakeConstants.PIVOT_kP;
     cfg.Slot0.kI = IntakeConstants.PIVOT_kI;
     cfg.Slot0.kD = IntakeConstants.PIVOT_kD;
@@ -79,10 +87,10 @@ public class IntakeIOReal implements IntakeIO {
 
     pivotLeader.getConfigurator().apply(cfg);
     pivotFollower.setControl(new Follower(pivotLeader.getDeviceID(), MotorAlignmentValue.Opposed));
-    pivotLeader.setPosition(Units.radiansToRotations(IntakeConstants.STARTING_ANGLE.in(Radians)));
+    pivotLeader.setPosition(Units.radiansToRotations(IntakeConstants.STOW_ANGLE.in(Radians)));
   }
 
-  private double pivotDesiredPositionRad = IntakeConstants.STARTING_ANGLE.in(Radians);
+  private double pivotDesiredPositionRad = IntakeConstants.STOW_ANGLE.in(Radians);
   private final MotionMagicVoltage motionMagicRequest = new MotionMagicVoltage(0);
   private final VoltageOut voltageRequest = new VoltageOut(0);
 
@@ -90,8 +98,7 @@ public class IntakeIOReal implements IntakeIO {
     configureWheelMotor();
     configurePivotMotors();
     pivotLeader.setControl(
-        motionMagicRequest.withPosition(
-            IntakeConstants.STARTING_ANGLE.in(Radians) / (2.0 * Math.PI)));
+        motionMagicRequest.withPosition(IntakeConstants.STOW_ANGLE.in(Radians) / (2.0 * Math.PI)));
     wheelPID.reset(0);
   }
 
@@ -161,7 +168,7 @@ public class IntakeIOReal implements IntakeIO {
   }
 
   @Override
-  public void setPivotPosition(Angle position) {
+  public void setPivotPositionSetpoint(Angle position) {
     pivotVoltageMode = false;
     pivotDesiredPositionRad = position.in(Radians);
   }

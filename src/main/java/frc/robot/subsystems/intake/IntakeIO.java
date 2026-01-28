@@ -38,8 +38,6 @@ public interface IntakeIO {
 
   public default void setWheelVoltage(Voltage volts) {}
 
-  public default void setPivotPosition(Angle position) {}
-
   public default void setPivotPositionSetpoint(Angle position) {}
 
   public default void setPivotVoltage(Voltage volts) {}

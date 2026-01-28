@@ -51,11 +51,6 @@ public class Intake extends SubsystemBase {
   public boolean atPosition() {
     return inputs.pivotPosition.minus(inputs.pivotDesiredPosition).abs(Degrees) < 2;
   }
-
-  public Command setPivotPosition(Supplier<Angle> position) {
-    return Commands.runOnce(() -> io.setPivotPosition(position.get()), this);
-  }
-
   public Command setPivotPositionSetpoint(Supplier<Angle> position) {
     return Commands.runOnce(() -> io.setPivotPositionSetpoint(position.get()), this);
   }
@@ -66,6 +61,12 @@ public class Intake extends SubsystemBase {
 
   public Angle getPivotPosition() {
     return inputs.pivotPosition;
+  }
+
+  /** Sets both the pivot position setpoint and wheel voltage at once. */
+  public void setIntakeState(Angle pivotPosition, Voltage wheelVoltage) {
+    io.setPivotPositionSetpoint(pivotPosition);
+    io.setWheelVoltage(wheelVoltage);
   }
 
   public Command sysIdRoutinePivot() {
