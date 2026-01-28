@@ -54,7 +54,7 @@ public class IndexerIOReal implements IndexerIO {
   @Override
   public void updateInputs(IndexerIOInputs inputs) {
     if (rollerVoltageMode) {
-      this.rollerMotor.setVoltage(rollerDesiredVoltage.in(Volts));
+      rollerMotor.setVoltage(rollerDesiredVoltage.copy());
     }
 
     inputs.rollerVelocity = RadiansPerSecond.of(rollerMotor.getEncoder().getVelocity());

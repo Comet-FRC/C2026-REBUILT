@@ -51,6 +51,7 @@ public class Intake extends SubsystemBase {
   public boolean atPosition() {
     return inputs.pivotPosition.minus(inputs.pivotDesiredPosition).abs(Degrees) < 2;
   }
+
   public Command setPivotPositionSetpoint(Supplier<Angle> position) {
     return Commands.runOnce(() -> io.setPivotPositionSetpoint(position.get()), this);
   }

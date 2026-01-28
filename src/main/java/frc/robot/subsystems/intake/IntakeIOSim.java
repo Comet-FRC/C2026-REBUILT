@@ -15,6 +15,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
+import frc.robot.util.LoggedTunableNumber;
 
 public class IntakeIOSim implements IntakeIO {
   private final DCMotorSim wheelMotor = configureWheelMotor();
@@ -30,7 +31,7 @@ public class IntakeIOSim implements IntakeIO {
   private static SingleJointedArmSim configurePivotMotor() {
     return new SingleJointedArmSim(
         DCMotor.getKrakenX60Foc(2),
-        IntakeConstants.PIVOT_CONVERSION_FACTOR,
+        IntakeConstants.GEAR_RATIO,
         SingleJointedArmSim.estimateMOI(
             IntakeConstants.LENGTH.in(Meters), IntakeConstants.MASS.in(Kilograms)),
         IntakeConstants.LENGTH.in(Meters),
@@ -41,6 +42,32 @@ public class IntakeIOSim implements IntakeIO {
         IntakeConstants.PIVOT_ENCODER_DISTANCE_PER_PULSE,
         0);
   }
+
+  // Tunable PID values for wheel
+  private final LoggedTunableNumber wheelKp =
+      new LoggedTunableNumber("IntakeSim/Wheel/kP", IntakeConstants.WHEEL_SIM_kP);
+  private final LoggedTunableNumber wheelKi =
+      new LoggedTunableNumber("IntakeSim/Wheel/kI", IntakeConstants.WHEEL_SIM_kI);
+  private final LoggedTunableNumber wheelKd =
+      new LoggedTunableNumber("IntakeSim/Wheel/kD", IntakeConstants.WHEEL_SIM_kD);
+
+  // Tunable PID values for pivot
+  private final LoggedTunableNumber pivotKp =
+      new LoggedTunableNumber("IntakeSim/Pivot/kP", IntakeConstants.PIVOT_SIM_kP);
+  private final LoggedTunableNumber pivotKi =
+      new LoggedTunableNumber("IntakeSim/Pivot/kI", IntakeConstants.PIVOT_SIM_kI);
+  private final LoggedTunableNumber pivotKd =
+      new LoggedTunableNumber("IntakeSim/Pivot/kD", IntakeConstants.PIVOT_SIM_kD);
+
+  // Tunable FF values for pivot
+  private final LoggedTunableNumber pivotKs =
+      new LoggedTunableNumber("IntakeSim/Pivot/kS", IntakeConstants.PIVOT_SIM_kS);
+  private final LoggedTunableNumber pivotKg =
+      new LoggedTunableNumber("IntakeSim/Pivot/kG", IntakeConstants.PIVOT_SIM_kG);
+  private final LoggedTunableNumber pivotKv =
+      new LoggedTunableNumber("IntakeSim/Pivot/kV", IntakeConstants.PIVOT_SIM_kV);
+  private final LoggedTunableNumber pivotKa =
+      new LoggedTunableNumber("IntakeSim/Pivot/kA", IntakeConstants.PIVOT_SIM_kA);
 
   private final PIDController wheelPID =
       new PIDController(
@@ -54,7 +81,7 @@ public class IntakeIOSim implements IntakeIO {
       new PIDController(
           IntakeConstants.PIVOT_SIM_kP, IntakeConstants.PIVOT_SIM_kI, IntakeConstants.PIVOT_SIM_kD);
 
-  private final ArmFeedforward pivotFF =
+  private ArmFeedforward pivotFF =
       new ArmFeedforward(
           IntakeConstants.PIVOT_SIM_kS,
           IntakeConstants.PIVOT_SIM_kG,
@@ -72,8 +99,43 @@ public class IntakeIOSim implements IntakeIO {
     this.setPivotPositionSetpoint(IntakeConstants.STOW_ANGLE);
   }
 
+  private void updateTunableValues() {
+    // Update wheel PID if changed
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        (values) -> {
+          wheelPID.setPID(values[0], values[1], values[2]);
+        },
+        wheelKp,
+        wheelKi,
+        wheelKd);
+
+    // Update pivot PID if changed
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        (values) -> {
+          pivotPID.setPID(values[0], values[1], values[2]);
+        },
+        pivotKp,
+        pivotKi,
+        pivotKd);
+
+    // Update pivot FF if changed (must recreate since ArmFeedforward is immutable)
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        (values) -> {
+          pivotFF = new ArmFeedforward(values[0], values[1], values[2], values[3]);
+        },
+        pivotKs,
+        pivotKg,
+        pivotKv,
+        pivotKa);
+  }
+
   @Override
   public void updateInputs(IntakeIOInputs inputs) {
+    updateTunableValues();
+
     wheelMotor.update(0.02);
     pivotMotor.update(0.02);
 

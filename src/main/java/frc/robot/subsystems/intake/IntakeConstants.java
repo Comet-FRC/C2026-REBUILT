@@ -18,20 +18,21 @@ public final class IntakeConstants {
   public static final double WHEEL_CONVERSION_FACTOR = 2 * Math.PI * (18.0 / 24.0);
   public static final double PIVOT_CONVERSION_FACTOR = 2 * Math.PI * (1.0 / GEAR_RATIO);
 
+  public static final double PIVOT_SIM_kP = 50;
+  public static final double PIVOT_SIM_kI = 0;
+  public static final double PIVOT_SIM_kD = 0.01;
+  public static final double PIVOT_SIM_kS = 0.3;
+  public static final double PIVOT_SIM_kG = 1.0;
+  public static final double PIVOT_SIM_kV = 0.069055;
+  public static final double PIVOT_SIM_kA = 0.24078;
+
   public static final double PIVOT_kP = 10;
   public static final double PIVOT_kI = 0;
   public static final double PIVOT_kD = 0;
-  public static final double PIVOT_SIM_kP = 88.636;
-  public static final double PIVOT_SIM_kI = 0;
-  public static final double PIVOT_SIM_kD = 6.458;
-  public static final double PIVOT_kS = 0.36769;
+  public static final double PIVOT_kS = 0.3;
   public static final double PIVOT_kG = 0.25887;
   public static final double PIVOT_kV = 0.56944;
   public static final double PIVOT_kA = 0.058227;
-  public static final double PIVOT_SIM_kS = 1.024;
-  public static final double PIVOT_SIM_kG = 7.7827;
-  public static final double PIVOT_SIM_kV = 0.069055;
-  public static final double PIVOT_SIM_kA = 0.24078;
 
   public static final double WHEEL_kP = 0.001;
   public static final double WHEEL_kI = 0;

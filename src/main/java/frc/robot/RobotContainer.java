@@ -59,6 +59,9 @@ public class RobotContainer {
   private final LoggedTunableNumber intakeWheelVolts =
       new LoggedTunableNumber("Intake/WheelVolts", 5.0);
 
+  private final LoggedTunableNumber indexerRollerVolts =
+      new LoggedTunableNumber("Indexer/RollerVolts", 5.0);
+
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
 
@@ -166,6 +169,8 @@ public class RobotContainer {
                   IntakeConstants.INTAKING_ANGLE, Volts.of(intakeWheelVolts.get()));
             },
             this.intake));
+    this.indexer.setDefaultCommand(
+        this.indexer.setRollerVoltage(() -> Volts.of(indexerRollerVolts.get())));
   }
 
   /**
