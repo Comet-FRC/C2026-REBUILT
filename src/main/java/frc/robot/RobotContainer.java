@@ -29,6 +29,7 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.indexer.*;
 import frc.robot.subsystems.intake.*;
+import frc.robot.subsystems.kicker.*;
 import frc.robot.subsystems.vision.*;
 import frc.robot.subsystems.vision.VisionConstants.Camera;
 import frc.robot.util.LoggedTunableNumber;
@@ -50,6 +51,7 @@ public class RobotContainer {
   private final Drive drive;
   private final Intake intake;
   private final Indexer indexer;
+  private final Kicker kicker;
   private SwerveDriveSimulation driveSimulation = null;
 
   // Controller
@@ -57,10 +59,10 @@ public class RobotContainer {
 
   // Tunable values
   private final LoggedTunableNumber intakeWheelVolts =
-      new LoggedTunableNumber("Intake/WheelVolts", 5.0);
+      new LoggedTunableNumber("Intake/WheelVolts", 0.0);
 
   private final LoggedTunableNumber indexerRollerVolts =
-      new LoggedTunableNumber("Indexer/RollerVolts", 5.0);
+      new LoggedTunableNumber("Indexer/RollerVolts", 0.0);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -86,6 +88,7 @@ public class RobotContainer {
                 new VisionIOLimelight(VisionConstants.camera0Name, drive::getRotation));
         this.intake = new Intake(new IntakeIOReal());
         this.indexer = new Indexer(new IndexerIOReal());
+        this.kicker = new Kicker(new KickerIOReal());
         break;
 
       case SIM:
@@ -111,6 +114,7 @@ public class RobotContainer {
                     camera1Name, robotToCamera1, driveSimulation::getSimulatedDriveTrainPose));
         intake = new Intake(new IntakeIOSim());
         indexer = new Indexer(new IndexerIOSim());
+        kicker = new Kicker(new KickerIOSim());
         break;
 
       default:
@@ -126,6 +130,7 @@ public class RobotContainer {
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         intake = new Intake(new IntakeIO() {});
         indexer = new Indexer(new IndexerIO() {});
+        kicker = new Kicker(new KickerIO() {});
         break;
     }
 
@@ -169,8 +174,11 @@ public class RobotContainer {
                   IntakeConstants.INTAKING_ANGLE, Volts.of(intakeWheelVolts.get()));
             },
             this.intake));
+
     this.indexer.setDefaultCommand(
         this.indexer.setRollerVoltage(() -> Volts.of(indexerRollerVolts.get())));
+
+    this.kicker.setDefaultCommand(this.kicker.setVoltage(() -> Volts.of(0.0)));
   }
 
   /**
@@ -198,7 +206,15 @@ public class RobotContainer {
         .whileTrue(
             Commands.parallel(
                 this.intake.setWheelVoltage(() -> Volts.of(5.0)),
-                this.indexer.setRollerVoltage(() -> Volts.of(5.0))));
+                this.indexer.setRollerVoltage(() -> Volts.of(5.0)),
+                this.kicker.setVoltage(() -> Volts.of(5.0))));
+    controller
+        .b()
+        .whileTrue(
+            Commands.parallel(
+                this.intake.setWheelVoltage(() -> Volts.of(5.0)),
+                this.indexer.setRollerVoltage(() -> Volts.of(5.0)),
+                this.kicker.setVoltage(() -> Volts.of(5.0))));
   }
 
   /**

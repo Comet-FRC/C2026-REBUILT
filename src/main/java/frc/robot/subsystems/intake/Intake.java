@@ -41,7 +41,7 @@ public class Intake extends SubsystemBase {
   }
 
   public Command setWheelVoltage(Supplier<Voltage> voltage) {
-    return Commands.runOnce(() -> io.setWheelVoltage(voltage.get()), this);
+    return Commands.run(() -> io.setWheelVoltage(voltage.get()), this);
   }
 
   public Command setWheelVelocity(Supplier<AngularVelocity> velocity) {

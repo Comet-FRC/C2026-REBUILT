@@ -37,7 +37,7 @@ public class Indexer extends SubsystemBase {
   }
 
   public Command setRollerVoltage(Supplier<Voltage> volts) {
-    return Commands.runOnce(() -> io.setRollerVoltage(volts.get()), this);
+    return Commands.run(() -> io.setRollerVoltage(volts.get()), this);
   }
 
   public Command rollerSysId() {

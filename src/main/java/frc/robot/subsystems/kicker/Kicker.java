@@ -37,7 +37,7 @@ public class Kicker extends SubsystemBase {
   }
 
   public Command setVoltage(Supplier<Voltage> volts) {
-    return Commands.runOnce(() -> io.setVoltage(volts.get()), this);
+    return Commands.run(() -> io.setVoltage(volts.get()), this);
   }
 
   public Command sysId() {
