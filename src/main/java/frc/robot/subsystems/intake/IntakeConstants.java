@@ -7,7 +7,8 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Mass;
 
 public final class IntakeConstants {
-  public static final int INTAKE_MOTOR_ID = 12;
+  public static final int INTAKE_LEADER_ID = 12;
+  public static final int INTAKE_FOLLOWER_ID = 12; // change this idk ids
   public static final int PIVOT_LEADER_ID = 13;
   public static final int PIVOT_FOLLOWER_ID = 14;
 

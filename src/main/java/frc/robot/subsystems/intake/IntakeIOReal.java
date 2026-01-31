@@ -29,21 +29,38 @@ import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
 
 public class IntakeIOReal implements IntakeIO {
-  private final SparkMax wheelMotor =
-      new SparkMax(IntakeConstants.INTAKE_MOTOR_ID, MotorType.kBrushless);
+  private final SparkMax wheelLeader =
+      new SparkMax(IntakeConstants.INTAKE_LEADER_ID, MotorType.kBrushless);
+  private final SparkMax wheelFollower =
+      new SparkMax(IntakeConstants.INTAKE_FOLLOWER_ID, MotorType.kBrushless);
 
   private void configureWheelMotor() {
-    SparkMaxConfig config = new SparkMaxConfig();
-    config
+    SparkMaxConfig leaderConfig = new SparkMaxConfig();
+    leaderConfig
         .inverted(false)
         .idleMode(IdleMode.kCoast)
         .smartCurrentLimit(20) // Lower current limit for battery efficiency
         .voltageCompensation(11.5); // Consistent behavior as battery drains
-    config
+    leaderConfig
         .encoder
         .positionConversionFactor(IntakeConstants.WHEEL_CONVERSION_FACTOR)
         .velocityConversionFactor(IntakeConstants.WHEEL_CONVERSION_FACTOR / 60.0);
-    wheelMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    wheelLeader.configure(
+        leaderConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+    SparkMaxConfig followerConfig = new SparkMaxConfig();
+    followerConfig
+        .inverted(true)
+        .idleMode(IdleMode.kCoast)
+        .smartCurrentLimit(20) // Lower current limit for battery efficiency
+        .voltageCompensation(11.5); // Consistent behavior as battery drains
+    followerConfig
+        .encoder
+        .positionConversionFactor(IntakeConstants.WHEEL_CONVERSION_FACTOR)
+        .velocityConversionFactor(IntakeConstants.WHEEL_CONVERSION_FACTOR / 60.0);
+    followerConfig.follow(wheelLeader);
+    wheelFollower.configure(
+        leaderConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
   private final ProfiledPIDController wheelPID =
@@ -116,21 +133,22 @@ public class IntakeIOReal implements IntakeIO {
     }
 
     if (wheelVoltageMode) {
-      wheelMotor.setVoltage(wheelDesiredVoltage.copy());
-      wheelPID.reset(wheelMotor.getEncoder().getVelocity());
+      wheelLeader.setVoltage(wheelDesiredVoltage.copy());
+      wheelPID.reset(wheelLeader.getEncoder().getVelocity());
     } else {
-      double pid = wheelPID.calculate(wheelMotor.getEncoder().getVelocity());
+      double pid = wheelPID.calculate(wheelLeader.getEncoder().getVelocity());
       double volts = MathUtil.clamp(pid, -12.0, 12.0);
-      wheelMotor.setVoltage(Volts.of(volts));
+      wheelLeader.setVoltage(Volts.of(volts));
     }
 
-    inputs.wheelPosition = Radians.of(wheelMotor.getEncoder().getPosition());
-    inputs.wheelVelocity = RadiansPerSecond.of(wheelMotor.getEncoder().getVelocity());
+    inputs.wheelPosition = Radians.of(wheelLeader.getEncoder().getPosition());
+    inputs.wheelVelocity = RadiansPerSecond.of(wheelLeader.getEncoder().getVelocity());
     inputs.wheelDesiredVelocity = RadiansPerSecond.of(wheelPID.getGoal().position);
     inputs.wheelVelocitySetpoint = RadiansPerSecond.of(wheelPID.getSetpoint().position);
-    inputs.wheelAppliedVolts = Volts.of(wheelMotor.getAppliedOutput() * wheelMotor.getBusVoltage());
-    inputs.wheelSupplyCurrent = Amps.of(wheelMotor.getOutputCurrent());
-    inputs.wheelMotorTemperature = Celsius.of(wheelMotor.getMotorTemperature());
+    inputs.wheelAppliedVolts =
+        Volts.of(wheelLeader.getAppliedOutput() * wheelLeader.getBusVoltage());
+    inputs.wheelSupplyCurrent = Amps.of(wheelLeader.getOutputCurrent());
+    inputs.wheelMotorTemperature = Celsius.of(wheelLeader.getMotorTemperature());
 
     inputs.pivotPosition =
         Radians.of(Units.rotationsToRadians(pivotLeader.getPosition().getValueAsDouble()));
@@ -145,7 +163,7 @@ public class IntakeIOReal implements IntakeIO {
   // methods to control wheel motor
   @Override
   public void stopWheel() {
-    wheelMotor.setVoltage(0);
+    wheelLeader.setVoltage(0);
   }
 
   @Override
@@ -157,7 +175,7 @@ public class IntakeIOReal implements IntakeIO {
   @Override
   public void setWheelVelocitySetpoint(AngularVelocity velocity) {
     wheelVoltageMode = false;
-    wheelPID.reset(wheelMotor.getEncoder().getVelocity());
+    wheelPID.reset(wheelLeader.getEncoder().getVelocity());
     wheelPID.setGoal(velocity.in(RadiansPerSecond));
   }
 
@@ -181,7 +199,7 @@ public class IntakeIOReal implements IntakeIO {
 
   @Override
   public void enabledInit() {
-    wheelPID.reset(wheelMotor.getEncoder().getVelocity());
+    wheelPID.reset(wheelLeader.getEncoder().getVelocity());
 
     if (!pivotVoltageMode) {
       pivotLeader.setControl(
