@@ -53,7 +53,6 @@ public class RobotContainer {
   private final Intake intake;
   private final Indexer indexer;
   private final Kicker kicker;
-  private final Turret turret;
   private SwerveDriveSimulation driveSimulation = null;
 
   // Controller
@@ -91,7 +90,6 @@ public class RobotContainer {
         this.intake = new Intake(new IntakeIOReal());
         this.indexer = new Indexer(new IndexerIOReal());
         this.kicker = new Kicker(new KickerIOReal());
-        this.turret = new Turret(new TurretIOTalonFX());
         break;
 
       case SIM:
@@ -118,7 +116,6 @@ public class RobotContainer {
         intake = new Intake(new IntakeIOSim());
         indexer = new Indexer(new IndexerIOSim());
         kicker = new Kicker(new KickerIOSim());
-        turret = new Turret(new TurretIOSim());
         break;
 
       default:
@@ -135,7 +132,6 @@ public class RobotContainer {
         intake = new Intake(new IntakeIO() {});
         indexer = new Indexer(new IndexerIO() {});
         kicker = new Kicker(new KickerIO() {});
-        turret = new Turret(new TurretIO() {});
         break;
     }
 
@@ -184,9 +180,6 @@ public class RobotContainer {
         this.indexer.setRollerVoltage(() -> Volts.of(indexerRollerVolts.get())));
 
     this.kicker.setDefaultCommand(this.kicker.setVoltage(() -> Volts.of(0.0)));
-
-    // Turret default: continuously track alliance wall, compensating for robot rotation
-    this.turret.setDefaultCommand(this.turret.trackAllianceWall(drive::getRotation));
   }
 
   /**
@@ -237,7 +230,7 @@ public class RobotContainer {
   public void resetSimulation() {
     if (Constants.currentMode != Constants.Mode.SIM) return;
 
-    driveSimulation.setSimulationWorldPose(new Pose2d(3, 3, new Rotation2d()));
+    driveSimulation.setSimulationWorldPose(new Pose2d(2, 2, new Rotation2d()));
     SimulatedArena.getInstance().resetFieldForAuto();
   }
 
