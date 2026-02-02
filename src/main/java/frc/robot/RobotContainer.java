@@ -202,6 +202,10 @@ public class RobotContainer {
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
+    //reset Gyro
+    controller.a().onTrue(Commands.runOnce(() -> drive.resetHeadingWithAlliance(), drive)
+			.ignoringDisable(true));
+            
     controller
         .y()
         .whileTrue(
