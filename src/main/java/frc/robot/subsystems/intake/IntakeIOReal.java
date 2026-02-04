@@ -2,6 +2,8 @@ package frc.robot.subsystems.intake;
 
 import static edu.wpi.first.units.Units.*;
 
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
+
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -75,6 +77,10 @@ public class IntakeIOReal implements IntakeIO {
 
   private final TalonFX pivotLeader = new TalonFX(IntakeConstants.PIVOT_LEADER_ID);
   private final TalonFX pivotFollower = new TalonFX(IntakeConstants.PIVOT_FOLLOWER_ID);
+
+  // REV Through Bore Encoder (Duty Cycle)
+  private final DutyCycleEncoder throughBoreEncoder =
+      new DutyCycleEncoder(IntakeConstants.THROUGH_BORE_ENCODER_DIO);
 
   private void configurePivotMotors() {
     TalonFXConfiguration cfg = new TalonFXConfiguration();
@@ -158,6 +164,10 @@ public class IntakeIOReal implements IntakeIO {
     inputs.pivotAppliedVolts = pivotLeader.getMotorVoltage().getValue();
     inputs.pivotSupplyCurrent = pivotLeader.getSupplyCurrent().getValue();
     inputs.pivotTemperature = pivotLeader.getDeviceTemp().getValue();
+
+    // Read Through Bore Encoder
+    inputs.throughBoreEncoderPosition = throughBoreEncoder.get();
+    inputs.throughBoreEncoderConnected = throughBoreEncoder.isConnected();
   }
 
   // methods to control wheel motor

@@ -26,6 +26,10 @@ public interface IntakeIO {
     public Voltage pivotAppliedVolts = Volts.of(0);
     public Current pivotSupplyCurrent = Amps.of(0);
     public Temperature pivotTemperature = Celsius.of(0);
+
+    // REV Through Bore Encoder (Duty Cycle)
+    public double throughBoreEncoderPosition = 0.0; // Value 0-1 for one full rotation
+    public boolean throughBoreEncoderConnected = false;
   }
 
   public default void updateInputs(IntakeIOInputs inputs) {}

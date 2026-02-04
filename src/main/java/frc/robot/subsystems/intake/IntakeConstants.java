@@ -12,6 +12,9 @@ public final class IntakeConstants {
   public static final int PIVOT_LEADER_ID = 13;
   public static final int PIVOT_FOLLOWER_ID = 14;
 
+  // REV Through Bore Encoder (Duty Cycle) on intake axle
+  public static final int THROUGH_BORE_ENCODER_DIO = 0;
+
   public static final Angle STOW_ANGLE = Degrees.of(96.0);
   public static final Angle INTAKING_ANGLE = Degrees.of(40.0);
   public static final double GEAR_RATIO =
