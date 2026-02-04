@@ -4,8 +4,8 @@ public final class KickerConstants {
   public static final int LEFT_MOTOR_ID = 16;
   public static final int RIGHT_MOTOR_ID = 17;
 
-  // MAX Planetary 4:1 reduction, 18T to 18T (1:1 external)
-  public static final double GEAR_RATIO = 4.0;
+  // Two stacked 4:1 MAX Planetaries (16:1), 18T to 18T (1:1 external)
+  public static final double GEAR_RATIO = 16.0;
   public static final double WHEEL_CONVERSION_FACTOR = 2 * Math.PI * 1 / GEAR_RATIO;
 
   // Wheel moment of inertia (estimate, adjust as needed)
