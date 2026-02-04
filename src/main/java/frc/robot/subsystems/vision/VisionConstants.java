@@ -25,14 +25,18 @@ import java.util.function.Supplier;
 public class VisionConstants {
   // AprilTag layout
   public static AprilTagFieldLayout aprilTagLayout =
-      AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
+      AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
   // Robot to camera transforms
   // (Not used by Limelight, configure in web UI instead)
   public static Transform3d robotToCamera0 = // left camera
-      new Transform3d(-9.944988, 9.848857, 7.862498, new Rotation3d(0.0, 65, 110));
+      new Transform3d(
+          new Translation3d(Inches.of(-9.944988), Inches.of(9.848857), Inches.of(7.862498)),
+          new Rotation3d(Degrees.of(0), Degrees.of(-25), Degrees.of(250)));
   public static Transform3d robotToCamera1 = // right camera
-      new Transform3d(-9.944988, -9.848857, 7.862498, new Rotation3d(0.0, 65, 250));
+      new Transform3d(
+          new Translation3d(Inches.of(-9.944988), Inches.of(-9.848857), Inches.of(7.862498)),
+          new Rotation3d(Degrees.of(0), Degrees.of(-65), Degrees.of(110)));
 
   public static String camera0Name = "camera_0";
   public static String camera1Name = "camera_1";

@@ -14,7 +14,8 @@ public final class IntakeConstants {
 
   public static final Angle STOW_ANGLE = Degrees.of(96.0);
   public static final Angle INTAKING_ANGLE = Degrees.of(40.0);
-  public static final double GEAR_RATIO = 40.0; // 4:1 MaxPlanetary × 4:1 MaxPlanetary × 2.5 belt (14T→35T)
+  public static final double GEAR_RATIO =
+      40.0; // 4:1 MaxPlanetary × 4:1 MaxPlanetary × 2.5 belt (14T→35T)
 
   public static final double WHEEL_CONVERSION_FACTOR = 2 * Math.PI * (18.0 / 24.0);
   public static final double PIVOT_CONVERSION_FACTOR = 2 * Math.PI * (1.0 / GEAR_RATIO);
