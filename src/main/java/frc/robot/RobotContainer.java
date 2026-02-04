@@ -30,7 +30,7 @@ import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.indexer.*;
 import frc.robot.subsystems.intake.*;
 import frc.robot.subsystems.kicker.*;
-import frc.robot.subsystems.turret.*;
+// import frc.robot.subsystems.turret.*;
 import frc.robot.subsystems.vision.*;
 import frc.robot.subsystems.vision.VisionConstants.Camera;
 import frc.robot.util.LoggedTunableNumber;
@@ -202,10 +202,12 @@ public class RobotContainer {
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    //reset Gyro
-    controller.a().onTrue(Commands.runOnce(() -> drive.resetHeadingWithAlliance(), drive)
-			.ignoringDisable(true));
-            
+    // reset Gyro
+    controller
+        .a()
+        .onTrue(
+            Commands.runOnce(() -> drive.resetHeadingWithAlliance(), drive).ignoringDisable(true));
+
     controller
         .y()
         .whileTrue(
