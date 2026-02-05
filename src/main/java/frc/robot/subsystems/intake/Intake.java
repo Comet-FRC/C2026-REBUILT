@@ -57,7 +57,7 @@ public class Intake extends SubsystemBase {
   }
 
   public Command setPivotVoltage(Supplier<Voltage> volts) {
-    return Commands.runOnce(() -> io.setPivotVoltage(volts.get()), this);
+    return Commands.run(() -> io.setPivotVoltage(volts.get()), this);
   }
 
   public Angle getPivotPosition() {
