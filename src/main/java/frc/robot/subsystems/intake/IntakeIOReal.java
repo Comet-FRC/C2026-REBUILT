@@ -2,8 +2,6 @@ package frc.robot.subsystems.intake;
 
 import static edu.wpi.first.units.Units.*;
 
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
-
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -29,6 +27,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
 
 public class IntakeIOReal implements IntakeIO {
   private final SparkMax wheelLeader =

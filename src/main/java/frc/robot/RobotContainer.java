@@ -112,7 +112,12 @@ public class RobotContainer {
                 new VisionIOPhotonVisionSim(
                     camera0Name, robotToCamera0, driveSimulation::getSimulatedDriveTrainPose),
                 new VisionIOPhotonVisionSim(
-                    camera1Name, robotToCamera1, driveSimulation::getSimulatedDriveTrainPose));
+                    camera1Name, robotToCamera1, driveSimulation::getSimulatedDriveTrainPose),
+                // limelight camera added as photonvision sim
+                new VisionIOPhotonVisionSim(
+                    limelightCameraName,
+                    robotTolimelightCamera,
+                    driveSimulation::getSimulatedDriveTrainPose));
         intake = new Intake(new IntakeIOSim());
         indexer = new Indexer(new IndexerIOSim());
         kicker = new Kicker(new KickerIOSim());

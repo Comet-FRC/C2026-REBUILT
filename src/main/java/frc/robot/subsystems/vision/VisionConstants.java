@@ -32,14 +32,25 @@ public class VisionConstants {
   public static Transform3d robotToCamera0 = // left camera
       new Transform3d(
           new Translation3d(Inches.of(-9.944988), Inches.of(9.848857), Inches.of(7.862498)),
-          new Rotation3d(Degrees.of(0), Degrees.of(-25), Degrees.of(250)));
+          new Rotation3d(Degrees.of(0), Degrees.of(-25), Degrees.of(100)));
   public static Transform3d robotToCamera1 = // right camera
       new Transform3d(
           new Translation3d(Inches.of(-9.944988), Inches.of(-9.848857), Inches.of(7.862498)),
-          new Rotation3d(Degrees.of(0), Degrees.of(-65), Degrees.of(110)));
+          new Rotation3d(Degrees.of(0), Degrees.of(-25), Degrees.of(200)));
+  public static Transform3d robotTolimelightCamera = // limelight Transform3d created
+      new Transform3d(
+          new Translation3d(
+              Inches.of(-9.944988),
+              Inches.of(-9.848857),
+              Inches.of(7.862498)), // values need to be changed probably
+          new Rotation3d(
+              Degrees.of(0),
+              Degrees.of(-25),
+              Degrees.of(200))); // values need to be changed probably
 
   public static String camera0Name = "camera_0";
   public static String camera1Name = "camera_1";
+  public static String limelightCameraName = "limelight"; // limelight string name
 
   // Basic filtering thresholds
   public static double maxAmbiguity = 0.2;
