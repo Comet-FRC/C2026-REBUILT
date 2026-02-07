@@ -48,8 +48,6 @@ public class IntakeIOReal implements IntakeIO {
         .velocityConversionFactor(IntakeConstants.WHEEL_CONVERSION_FACTOR / 60.0);
     wheelLeader.configure(
         leaderConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-  
   }
 
   private final ProfiledPIDController wheelPID =
