@@ -181,13 +181,13 @@ public class RobotContainer {
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
 
-    this.intake.setDefaultCommand(
-        Commands.run(
-            () -> {
-              this.intake.setIntakeState(
-                  IntakeConstants.INTAKING_ANGLE, Volts.of(intakeWheelVolts.get()));
-            },
-            this.intake));
+    // this.intake.setDefaultCommand(
+    //     Commands.run(
+    //         () -> {
+    //           this.intake.setIntakeState(
+    //               IntakeConstants.INTAKING_ANGLE, Volts.of(intakeWheelVolts.get()));
+    //         },
+    //         this.intake));
 
     this.indexer.setDefaultCommand(
         this.indexer.setRollerVoltage(() -> Volts.of(indexerRollerVolts.get())));

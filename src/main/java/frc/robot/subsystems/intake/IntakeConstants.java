@@ -38,10 +38,18 @@ public final class IntakeConstants {
   public static final double PIVOT_SIM_kV = 0.069055;
   public static final double PIVOT_SIM_kA = 0.24078;
 
-  public static final double PIVOT_kP = 10;
+  //TUNING: 
+  // SET P I and D to 0
+  // MOVE INTAKE TO 45 DEGREES
+  // INCREASE kG UNTIL IT HOLDS POSITION
+  // SET kS to 0
+  //
+
+
+  public static final double PIVOT_kP = 0;
   public static final double PIVOT_kI = 0;
   public static final double PIVOT_kD = 0;
-  public static final double PIVOT_kS = 0.3;
+  public static final double PIVOT_kS = 0; //Not really used with intakes
   public static final double PIVOT_kG = 0.25887;
   public static final double PIVOT_kV = 0.56944;
   public static final double PIVOT_kA = 0.058227;

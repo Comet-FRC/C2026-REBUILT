@@ -17,6 +17,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import frc.robot.util.LoggedTunableNumber;
 
 public class IntakeIOReal implements IntakeIO {
   // Wheel motors (SparkMax + NEO)
@@ -87,6 +88,12 @@ public class IntakeIOReal implements IntakeIO {
           IntakeConstants.PIVOT_kD,
           new TrapezoidProfile.Constraints(2 * Math.PI, Math.PI)); // rad/s, rad/s^2
 
+  // Tunable PID gains for on-the-fly tuning
+  private static final LoggedTunableNumber pivotKp =
+      new LoggedTunableNumber("Intake/Pivot/kP", IntakeConstants.PIVOT_kP);
+  private static final LoggedTunableNumber pivotKd =
+      new LoggedTunableNumber("Intake/Pivot/kD", IntakeConstants.PIVOT_kD);
+
   private final ArmFeedforward pivotFeedforward =
       new ArmFeedforward(
           IntakeConstants.PIVOT_kS,
@@ -102,6 +109,8 @@ public class IntakeIOReal implements IntakeIO {
   private double pivotDesiredPositionRad = IntakeConstants.STOW_ANGLE.in(Radians);
 
   public IntakeIOReal() {
+    //TODO: Check if encoder is inverted
+    throughBoreEncoder.setInverted(true);
     configureWheelMotor();
     configurePivotMotors();
     wheelPID.reset(0);
@@ -118,6 +127,12 @@ public class IntakeIOReal implements IntakeIO {
   @Override
   public void updateInputs(IntakeIOInputs inputs) {
     double currentPivotPositionRad = getThroughBorePositionRad();
+
+    // Update PID gains if tunable values changed
+    if (pivotKp.hasChanged(hashCode()) || pivotKd.hasChanged(hashCode())) {
+      pivotPID.setP(pivotKp.get());
+      pivotPID.setD(pivotKd.get());
+    }
 
     // Pivot control
     if (pivotVoltageMode) {
