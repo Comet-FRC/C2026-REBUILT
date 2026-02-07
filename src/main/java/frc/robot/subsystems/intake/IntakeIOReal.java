@@ -109,7 +109,7 @@ public class IntakeIOReal implements IntakeIO {
   private double pivotDesiredPositionRad = IntakeConstants.STOW_ANGLE.in(Radians);
 
   public IntakeIOReal() {
-    //TODO: Check if encoder is inverted
+    // TODO: Check if encoder is inverted
     throughBoreEncoder.setInverted(true);
     configureWheelMotor();
     configurePivotMotors();

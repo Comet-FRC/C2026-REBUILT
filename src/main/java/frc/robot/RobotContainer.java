@@ -231,13 +231,14 @@ public class RobotContainer {
                 this.intake.setWheelVoltage(() -> Volts.of(5.0)),
                 this.indexer.setRollerVoltage(() -> Volts.of(5.0)),
                 this.kicker.setVoltage(() -> Volts.of(5.0))));
+    // outtake
     controller
         .b()
         .whileTrue(
             Commands.parallel(
-                this.intake.setWheelVoltage(() -> Volts.of(5.0)),
-                this.indexer.setRollerVoltage(() -> Volts.of(5.0)),
-                this.kicker.setVoltage(() -> Volts.of(5.0))));
+                this.intake.setWheelVoltage(() -> Volts.of(-5.0)),
+                this.indexer.setRollerVoltage(() -> Volts.of(-5.0)),
+                this.kicker.setVoltage(() -> Volts.of(-5.0))));
   }
 
   /**

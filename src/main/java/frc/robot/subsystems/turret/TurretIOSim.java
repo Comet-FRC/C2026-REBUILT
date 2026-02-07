@@ -78,8 +78,7 @@ public class TurretIOSim implements TurretIO {
 
   private void runLoopControl() {
     if (!voltageMode) {
-      double pidOutput =
-          turretPID.calculate(turretMotor.getAngularPosition().in(Radians));
+      double pidOutput = turretPID.calculate(turretMotor.getAngularPosition().in(Radians));
       double ffOutput = turretFF.calculate(turretPID.getSetpoint());
       turretMotor.setInputVoltage(pidOutput + ffOutput);
     }
@@ -104,6 +103,6 @@ public class TurretIOSim implements TurretIO {
 
   @Override
   public void resetPosition(Angle position) {
-    turretMotor.setAngle(position);
+    turretMotor.setAngle(position.in(Radians));
   }
 }

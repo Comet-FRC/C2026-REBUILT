@@ -55,8 +55,8 @@ public class Turret extends SubsystemBase {
 
   /** Check if turret is at setpoint (within tolerance) */
   public boolean atSetpoint(Angle tolerance) {
-    double error = Math.abs(
-        inputs.turretPosition.in(Radians) - inputs.turretDesiredPosition.in(Radians));
+    double error =
+        Math.abs(inputs.turretPosition.in(Radians) - inputs.turretDesiredPosition.in(Radians));
     return error < tolerance.in(Radians);
   }
 

@@ -68,12 +68,9 @@ public class TurretIOReal implements TurretIO {
     inputs.turretVelocity = RadiansPerSecond.of(getTurretVelocity());
     inputs.turretDesiredPosition = Radians.of(turretPID.getGoal().position);
     inputs.turretPositionSetpoint = Radians.of(turretPID.getSetpoint().position);
-    inputs.turretAppliedVolts =
-        Volts.of(turretMotor.getMotorVoltage().getValueAsDouble());
-    inputs.turretSupplyCurrent =
-        Amps.of(turretMotor.getSupplyCurrent().getValueAsDouble());
-    inputs.turretTemperature =
-        Celsius.of(turretMotor.getDeviceTemp().getValueAsDouble());
+    inputs.turretAppliedVolts = Volts.of(turretMotor.getMotorVoltage().getValueAsDouble());
+    inputs.turretSupplyCurrent = Amps.of(turretMotor.getSupplyCurrent().getValueAsDouble());
+    inputs.turretTemperature = Celsius.of(turretMotor.getDeviceTemp().getValueAsDouble());
   }
 
   private double getTurretPosition() {
