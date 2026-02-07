@@ -16,6 +16,11 @@ public final class IntakeConstants {
 
   // REV Through Bore Encoder (Duty Cycle) on intake axle
   public static final int THROUGH_BORE_ENCODER_DIO = 0;
+  // Offset to calibrate the encoder (in radians)
+  // Adjust this so that when the intake is at 90°, the encoder reads 90°
+  // Formula: OFFSET = (desired angle in radians) - (raw encoder reading in radians)
+  // Formula OFFSET = 1.5708 - throughBoreEncoderPositionRad
+  public static final double THROUGH_BORE_ENCODER_OFFSET_RAD = 0.0;
 
   public static final Angle STOW_ANGLE = Degrees.of(96.0);
   public static final Angle INTAKING_ANGLE = Degrees.of(40.0);

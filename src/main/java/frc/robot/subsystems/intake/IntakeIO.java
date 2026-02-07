@@ -29,6 +29,7 @@ public interface IntakeIO {
 
     // REV Through Bore Encoder (Duty Cycle)
     public double throughBoreEncoderPosition = 0.0; // Value 0-1 for one full rotation
+    public double throughBoreEncoderPositionRad = 0.0;
     public boolean throughBoreEncoderConnected = false;
   }
 
