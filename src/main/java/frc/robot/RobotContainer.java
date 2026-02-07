@@ -27,6 +27,10 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.*;
+import frc.robot.subsystems.flywheel.Flywheel;
+import frc.robot.subsystems.flywheel.FlywheelIO;
+import frc.robot.subsystems.flywheel.FlywheelIOReal;
+import frc.robot.subsystems.flywheel.FlywheelIOSim;
 import frc.robot.subsystems.indexer.*;
 import frc.robot.subsystems.intake.*;
 import frc.robot.subsystems.kicker.*;
@@ -53,6 +57,7 @@ public class RobotContainer {
   private final Intake intake;
   private final Indexer indexer;
   private final Kicker kicker;
+  private final Flywheel flywheel;
   private SwerveDriveSimulation driveSimulation = null;
 
   // Controller
@@ -90,6 +95,7 @@ public class RobotContainer {
         this.intake = new Intake(new IntakeIOReal());
         this.indexer = new Indexer(new IndexerIOReal());
         this.kicker = new Kicker(new KickerIOReal());
+        this.flywheel = new Flywheel(new FlywheelIOReal());
         break;
 
       case SIM:
@@ -121,6 +127,7 @@ public class RobotContainer {
         intake = new Intake(new IntakeIOSim());
         indexer = new Indexer(new IndexerIOSim());
         kicker = new Kicker(new KickerIOSim());
+        flywheel = new Flywheel(new FlywheelIOSim());
         break;
 
       default:
@@ -137,6 +144,7 @@ public class RobotContainer {
         intake = new Intake(new IntakeIO() {});
         indexer = new Indexer(new IndexerIO() {});
         kicker = new Kicker(new KickerIO() {});
+        flywheel = new Flywheel(new FlywheelIO() {});
         break;
     }
 
@@ -185,6 +193,9 @@ public class RobotContainer {
         this.indexer.setRollerVoltage(() -> Volts.of(indexerRollerVolts.get())));
 
     this.kicker.setDefaultCommand(this.kicker.setVoltage(() -> Volts.of(0.0)));
+
+    // attempt at setDefaultCommand for flywheel
+    this.flywheel.setDefaultCommand(this.flywheel.setWheelVoltage(() -> Volts.of(0.0)));
   }
 
   /**
