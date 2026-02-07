@@ -49,19 +49,7 @@ public class IntakeIOReal implements IntakeIO {
     wheelLeader.configure(
         leaderConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-    SparkMaxConfig followerConfig = new SparkMaxConfig();
-    followerConfig
-        .inverted(true)
-        .idleMode(IdleMode.kCoast)
-        .smartCurrentLimit(20) // Lower current limit for battery efficiency
-        .voltageCompensation(11.5); // Consistent behavior as battery drains
-    followerConfig
-        .encoder
-        .positionConversionFactor(IntakeConstants.WHEEL_CONVERSION_FACTOR)
-        .velocityConversionFactor(IntakeConstants.WHEEL_CONVERSION_FACTOR / 60.0);
-    followerConfig.follow(wheelLeader);
-    wheelFollower.configure(
-        leaderConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+  
   }
 
   private final ProfiledPIDController wheelPID =

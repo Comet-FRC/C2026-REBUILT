@@ -215,7 +215,7 @@ public class RobotContainer {
 
     controller
         .y()
-        .whileTrue(
+        .toggleOnTrue(
             Commands.parallel(
                 this.intake.setWheelVoltage(() -> Volts.of(5.0)),
                 this.indexer.setRollerVoltage(() -> Volts.of(5.0)),
