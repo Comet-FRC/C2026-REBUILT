@@ -2,17 +2,6 @@ package frc.robot.subsystems.intake;
 
 import static edu.wpi.first.units.Units.*;
 
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
-import com.ctre.phoenix6.configs.MotorOutputConfigs;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
-import com.ctre.phoenix6.controls.VoltageOut;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.GravityTypeValue;
-import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.MotorAlignmentValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -20,9 +9,9 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MutVoltage;
@@ -30,10 +19,19 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 
 public class IntakeIOReal implements IntakeIO {
+  // Wheel motors (SparkMax + NEO)
   private final SparkMax wheelLeader =
       new SparkMax(IntakeConstants.INTAKE_LEADER_ID, MotorType.kBrushless);
-  private final SparkMax wheelFollower =
-      new SparkMax(IntakeConstants.INTAKE_FOLLOWER_ID, MotorType.kBrushless);
+
+  // Pivot motors (SparkMax + NEO)
+  private final SparkMax pivotLeader =
+      new SparkMax(IntakeConstants.PIVOT_LEADER_ID, MotorType.kBrushless);
+  private final SparkMax pivotFollower =
+      new SparkMax(IntakeConstants.PIVOT_FOLLOWER_ID, MotorType.kBrushless);
+
+  // REV Through Bore Encoder (Duty Cycle) for pivot position feedback
+  private final DutyCycleEncoder throughBoreEncoder =
+      new DutyCycleEncoder(IntakeConstants.THROUGH_BORE_ENCODER_DIO);
 
   private void configureWheelMotor() {
     SparkMaxConfig leaderConfig = new SparkMaxConfig();
@@ -50,6 +48,31 @@ public class IntakeIOReal implements IntakeIO {
         leaderConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
+  private void configurePivotMotors() {
+    SparkMaxConfig leaderConfig = new SparkMaxConfig();
+    leaderConfig
+        .inverted(true) // Adjust as needed for your mechanism
+        .idleMode(IdleMode.kBrake)
+        .smartCurrentLimit(30) // Lower for battery efficiency
+        .voltageCompensation(11.5);
+    leaderConfig
+        .encoder
+        .positionConversionFactor(IntakeConstants.PIVOT_CONVERSION_FACTOR)
+        .velocityConversionFactor(IntakeConstants.PIVOT_CONVERSION_FACTOR / 60.0);
+    pivotLeader.configure(
+        leaderConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+    // Configure follower to follow leader in opposite direction
+    SparkMaxConfig followerConfig = new SparkMaxConfig();
+    followerConfig
+        .idleMode(IdleMode.kBrake)
+        .smartCurrentLimit(30)
+        .voltageCompensation(11.5)
+        .follow(pivotLeader, true); // true = inverted
+    pivotFollower.configure(
+        followerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+  }
+
   private final ProfiledPIDController wheelPID =
       new ProfiledPIDController(
           IntakeConstants.WHEEL_kP,
@@ -57,72 +80,58 @@ public class IntakeIOReal implements IntakeIO {
           IntakeConstants.WHEEL_kD,
           new TrapezoidProfile.Constraints(2 * Math.PI, Math.PI));
 
+  private final ProfiledPIDController pivotPID =
+      new ProfiledPIDController(
+          IntakeConstants.PIVOT_kP,
+          IntakeConstants.PIVOT_kI,
+          IntakeConstants.PIVOT_kD,
+          new TrapezoidProfile.Constraints(2 * Math.PI, Math.PI)); // rad/s, rad/s^2
+
+  private final ArmFeedforward pivotFeedforward =
+      new ArmFeedforward(
+          IntakeConstants.PIVOT_kS,
+          IntakeConstants.PIVOT_kG,
+          IntakeConstants.PIVOT_kV,
+          IntakeConstants.PIVOT_kA);
+
   private final MutVoltage wheelDesiredVoltage = Volts.mutable(0);
   private boolean wheelVoltageMode = false;
 
-  private final TalonFX pivotLeader = new TalonFX(IntakeConstants.PIVOT_LEADER_ID);
-  private final TalonFX pivotFollower = new TalonFX(IntakeConstants.PIVOT_FOLLOWER_ID);
-
-  // REV Through Bore Encoder (Duty Cycle)
-  private final DutyCycleEncoder throughBoreEncoder =
-      new DutyCycleEncoder(IntakeConstants.THROUGH_BORE_ENCODER_DIO);
-
-  private void configurePivotMotors() {
-    TalonFXConfiguration cfg = new TalonFXConfiguration();
-    cfg.MotorOutput =
-        new MotorOutputConfigs()
-            .withNeutralMode(NeutralModeValue.Brake)
-            .withInverted(InvertedValue.Clockwise_Positive);
-    cfg.CurrentLimits =
-        new CurrentLimitsConfigs()
-            .withSupplyCurrentLimit(30) // Lower for battery efficiency
-            .withSupplyCurrentLimitEnable(true);
-    cfg.Voltage.PeakForwardVoltage = 11.5; // Voltage compensation
-    cfg.Voltage.PeakReverseVoltage = -11.5;
-    cfg.Slot0.kP = IntakeConstants.PIVOT_kP;
-    cfg.Slot0.kI = IntakeConstants.PIVOT_kI;
-    cfg.Slot0.kD = IntakeConstants.PIVOT_kD;
-    cfg.Slot0.kS = IntakeConstants.PIVOT_kS;
-    cfg.Slot0.kG = IntakeConstants.PIVOT_kG;
-    cfg.Slot0.kV = IntakeConstants.PIVOT_kV;
-    cfg.Slot0.kA = IntakeConstants.PIVOT_kA;
-    cfg.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
-
-    var MotionMagicConfigs = cfg.MotionMagic;
-    MotionMagicConfigs.MotionMagicCruiseVelocity = Units.radiansToRotations(2 * Math.PI);
-    MotionMagicConfigs.MotionMagicAcceleration = Units.radiansToRotations(Math.PI); // rad/s^2
-    MotionMagicConfigs.MotionMagicJerk = Units.radiansToRotations(Math.PI); // rad/s^3
-
-    pivotLeader.getConfigurator().apply(cfg);
-    pivotFollower.setControl(new Follower(pivotLeader.getDeviceID(), MotorAlignmentValue.Opposed));
-    pivotLeader.setPosition(Units.radiansToRotations(IntakeConstants.STOW_ANGLE.in(Radians)));
-  }
-
+  private final MutVoltage pivotDesiredVoltage = Volts.mutable(0);
+  private boolean pivotVoltageMode = false;
   private double pivotDesiredPositionRad = IntakeConstants.STOW_ANGLE.in(Radians);
-  private final MotionMagicVoltage motionMagicRequest = new MotionMagicVoltage(0);
-  private final VoltageOut voltageRequest = new VoltageOut(0);
 
   public IntakeIOReal() {
     configureWheelMotor();
     configurePivotMotors();
-    pivotLeader.setControl(
-        motionMagicRequest.withPosition(IntakeConstants.STOW_ANGLE.in(Radians) / (2.0 * Math.PI)));
     wheelPID.reset(0);
+    pivotPID.reset(getThroughBorePositionRad());
+    pivotPID.setGoal(IntakeConstants.STOW_ANGLE.in(Radians));
   }
 
-  private final MutVoltage pivotDesiredVoltage = Volts.mutable(0);
-  private boolean pivotVoltageMode = false;
+  /** Get pivot position in radians from Through Bore Encoder */
+  private double getThroughBorePositionRad() {
+    // Convert 0-1 duty cycle to radians (0-2π), then apply offset as needed
+    return throughBoreEncoder.get() * 2.0 * Math.PI;
+  }
 
-  // update inputs
   @Override
   public void updateInputs(IntakeIOInputs inputs) {
+    double currentPivotPositionRad = getThroughBorePositionRad();
+
+    // Pivot control
     if (pivotVoltageMode) {
-      pivotLeader.setControl(voltageRequest.withOutput(pivotDesiredVoltage.in(Volts)));
+      pivotLeader.setVoltage(pivotDesiredVoltage.in(Volts));
     } else {
-      pivotLeader.setControl(
-          motionMagicRequest.withPosition(Units.radiansToRotations(pivotDesiredPositionRad)));
+      double pidOutput = pivotPID.calculate(currentPivotPositionRad);
+      double ffOutput =
+          pivotFeedforward.calculate(
+              pivotPID.getSetpoint().position, pivotPID.getSetpoint().velocity);
+      double totalVolts = MathUtil.clamp(pidOutput + ffOutput, -11.5, 11.5);
+      pivotLeader.setVoltage(totalVolts);
     }
 
+    // Wheel control
     if (wheelVoltageMode) {
       wheelLeader.setVoltage(wheelDesiredVoltage.copy());
       wheelPID.reset(wheelLeader.getEncoder().getVelocity());
@@ -132,6 +141,7 @@ public class IntakeIOReal implements IntakeIO {
       wheelLeader.setVoltage(Volts.of(volts));
     }
 
+    // Wheel inputs
     inputs.wheelPosition = Radians.of(wheelLeader.getEncoder().getPosition());
     inputs.wheelVelocity = RadiansPerSecond.of(wheelLeader.getEncoder().getVelocity());
     inputs.wheelDesiredVelocity = RadiansPerSecond.of(wheelPID.getGoal().position);
@@ -141,21 +151,20 @@ public class IntakeIOReal implements IntakeIO {
     inputs.wheelSupplyCurrent = Amps.of(wheelLeader.getOutputCurrent());
     inputs.wheelMotorTemperature = Celsius.of(wheelLeader.getMotorTemperature());
 
-    inputs.pivotPosition =
-        Radians.of(Units.rotationsToRadians(pivotLeader.getPosition().getValueAsDouble()));
+    // Pivot inputs (using Through Bore Encoder for position)
+    inputs.pivotPosition = Radians.of(currentPivotPositionRad);
     inputs.pivotDesiredPosition = Radians.of(pivotDesiredPositionRad);
-    inputs.pivotVelocity =
-        RadiansPerSecond.of(Units.rotationsToRadians(pivotLeader.getVelocity().getValueAsDouble()));
-    inputs.pivotAppliedVolts = pivotLeader.getMotorVoltage().getValue();
-    inputs.pivotSupplyCurrent = pivotLeader.getSupplyCurrent().getValue();
-    inputs.pivotTemperature = pivotLeader.getDeviceTemp().getValue();
+    inputs.pivotVelocity = RadiansPerSecond.of(pivotPID.getSetpoint().velocity);
+    inputs.pivotAppliedVolts =
+        Volts.of(pivotLeader.getAppliedOutput() * pivotLeader.getBusVoltage());
+    inputs.pivotSupplyCurrent = Amps.of(pivotLeader.getOutputCurrent());
+    inputs.pivotTemperature = Celsius.of(pivotLeader.getMotorTemperature());
 
-    // Read Through Bore Encoder
+    // Through Bore Encoder raw values
     inputs.throughBoreEncoderPosition = throughBoreEncoder.get();
     inputs.throughBoreEncoderConnected = throughBoreEncoder.isConnected();
   }
 
-  // methods to control wheel motor
   @Override
   public void stopWheel() {
     wheelLeader.setVoltage(0);
@@ -174,7 +183,6 @@ public class IntakeIOReal implements IntakeIO {
     wheelPID.setGoal(velocity.in(RadiansPerSecond));
   }
 
-  // methods to control pivot motor
   @Override
   public void stopPivot() {
     setPivotVoltage(Volts.of(0));
@@ -184,6 +192,7 @@ public class IntakeIOReal implements IntakeIO {
   public void setPivotPositionSetpoint(Angle position) {
     pivotVoltageMode = false;
     pivotDesiredPositionRad = position.in(Radians);
+    pivotPID.setGoal(pivotDesiredPositionRad);
   }
 
   @Override
@@ -195,10 +204,6 @@ public class IntakeIOReal implements IntakeIO {
   @Override
   public void enabledInit() {
     wheelPID.reset(wheelLeader.getEncoder().getVelocity());
-
-    if (!pivotVoltageMode) {
-      pivotLeader.setControl(
-          motionMagicRequest.withPosition(Units.radiansToRotations(pivotDesiredPositionRad)));
-    }
+    pivotPID.reset(getThroughBorePositionRad());
   }
 }

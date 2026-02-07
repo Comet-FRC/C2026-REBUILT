@@ -10,7 +10,7 @@ public final class IntakeConstants {
   // Intake wheel motors (SparkMax + NEO)
   public static final int INTAKE_LEADER_ID = 11;
   public static final int INTAKE_FOLLOWER_ID = 12;
-  // Intake pivot motors (TalonFX + Kraken)
+  // Intake pivot motors (SparkMax + NEO)
   public static final int PIVOT_LEADER_ID = 13;
   public static final int PIVOT_FOLLOWER_ID = 14;
 
