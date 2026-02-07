@@ -50,9 +50,9 @@ public final class IntakeConstants {
   public static final double PIVOT_kI = 0;
   public static final double PIVOT_kD = 0;
   public static final double PIVOT_kS = 0; //Not really used with intakes
-  public static final double PIVOT_kG = 0.25887;
-  public static final double PIVOT_kV = 0.56944;
-  public static final double PIVOT_kA = 0.058227;
+  public static final double PIVOT_kG = 0;
+  public static final double PIVOT_kV = 0;
+  public static final double PIVOT_kA = 0;
 
   public static final double WHEEL_kP = 0.001;
   public static final double WHEEL_kI = 0;
