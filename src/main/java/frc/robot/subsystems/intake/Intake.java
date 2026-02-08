@@ -5,7 +5,6 @@ import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -28,11 +27,10 @@ public class Intake extends SubsystemBase {
   public Intake(IntakeIO io) {
     this.io = io;
     this.inputs = new IntakeIOInputsAutoLogged();
-    // TODO: Adjust position to match your robot's intake pivot location (in meters)
-    // X = 0.165m forward (6.5"), Y = 0 (centered), Z = 0.178m height (7")
+    // Position: X = 0.165m forward (6.5"), Y = 0 (centered), Z = 0.178m height (7")
+    // Angle offset: Adjust to align visual with code angles (angle is negated in visualizer)
     this.armVisualizer =
-        new ArmVisualizer3d(
-            getName(), new Translation3d(0.165, 0, 0.178), Rotation2d.fromDegrees(0));
+        new ArmVisualizer3d(getName(), new Translation3d(0.165, 0, 0.178), Degrees.of(90));
   }
 
   @Override
