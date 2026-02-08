@@ -4,6 +4,9 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
 
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
@@ -13,22 +16,21 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-// import frc.robot.util.ArmVisualizer3d;
+import frc.robot.util.ArmVisualizer3d;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 public class Intake extends SubsystemBase {
   private final IntakeIO io;
   private final IntakeIOInputsAutoLogged inputs;
-  // private final ArmVisualizer3d armVisualizer;
+  private final ArmVisualizer3d armVisualizer;
 
   public Intake(IntakeIO io) {
     this.io = io;
     this.inputs = new IntakeIOInputsAutoLogged();
-    // this.armVisualizer = new ArmVisualizer3d(getName(), new Translation3d(0,0.378-0.044,0.184),
-    // Rotation2d.fromDegrees(0));
-    // this.armVisualizer = new ArmVisualizer3d(getName(), new Translation3d(0,0.333375,0.196815),
-    // Rotation2d.fromDegrees(0));
+    // TODO: Adjust position to match your robot's intake pivot location (in meters)
+    this.armVisualizer =
+        new ArmVisualizer3d(getName(), new Translation3d(0, 0, 0), Rotation2d.fromDegrees(0));
   }
 
   @Override
@@ -36,8 +38,8 @@ public class Intake extends SubsystemBase {
     io.updateInputs(inputs);
     Logger.processInputs("Intake", inputs);
 
-    // armVisualizer.setArmAngle(inputs.pivotPosition);
-    // armVisualizer.publish();
+    armVisualizer.setArmAngle(inputs.pivotPosition);
+    armVisualizer.publish();
   }
 
   public Command setWheelVoltage(Supplier<Voltage> voltage) {
@@ -62,6 +64,11 @@ public class Intake extends SubsystemBase {
 
   public Angle getPivotPosition() {
     return inputs.pivotPosition;
+  }
+
+  /** Returns the 3D pose of the intake for AdvantageScope component visualization. */
+  public Pose3d getComponentPose() {
+    return armVisualizer.getPose();
   }
 
   /** Sets both the pivot position setpoint and wheel voltage at once. */

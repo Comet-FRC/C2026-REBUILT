@@ -182,13 +182,13 @@ public class RobotContainer {
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
 
-    // this.intake.setDefaultCommand(
-    //     Commands.run(
-    //         () -> {
-    //           this.intake.setIntakeState(
-    //               IntakeConstants.INTAKING_ANGLE, Volts.of(intakeWheelVolts.get()));
-    //         },
-    //         this.intake));
+    this.intake.setDefaultCommand(
+        Commands.run(
+            () -> {
+              this.intake.setIntakeState(
+                  IntakeConstants.INTAKING_ANGLE, Volts.of(intakeWheelVolts.get()));
+            },
+            this.intake));
 
     this.indexer.setDefaultCommand(
         this.indexer.setRollerVoltage(() -> Volts.of(indexerRollerVolts.get())));
@@ -269,16 +269,27 @@ public class RobotContainer {
     Logger.recordOutput(
         "FieldSimulation/Algae", SimulatedArena.getInstance().getGamePiecesArrayByType("Algae"));
 
-    // AdvantageScope custom robot calibration poses
-    // Use these for calibration: set robot pose to "ZeroedRobotPose" and components to
-    // "ZeroedComponentPoses"
-    // Once calibrated, switch to actual mechanism poses
-    Logger.recordOutput("AdvantageScope/ZeroedRobotPose", new Pose2d());
-    Logger.recordOutput(
-        "AdvantageScope/ZeroedComponentPoses",
-        new Pose3d[] {
-          new Pose3d(), // Component 0 (Intake) - zeroed at origin
-          new Pose3d() // Component 1 (Shooter) - zeroed at origin
-        });
+    // AdvantageScope custom robot configuration
+    // Set to true for calibration (zeroed poses), false for real animation
+    final boolean CALIBRATION_MODE = true;
+
+    if (CALIBRATION_MODE) {
+      // CALIBRATION: Publish zeroed poses to align models at origin
+      Logger.recordOutput("AdvantageScope/RobotPose", new Pose2d());
+      Logger.recordOutput(
+          "AdvantageScope/ComponentPoses",
+          new Pose3d[] {
+            new Pose3d(), // Component 0 (Intake) - at origin
+            new Pose3d() // Component 1 (Shooter) - at origin
+          });
+    } else {
+      // NORMAL: Publish real component poses for animation
+      Logger.recordOutput(
+          "AdvantageScope/ComponentPoses",
+          new Pose3d[] {
+            intake.getComponentPose(), // Component 0 (Intake) - animated
+            new Pose3d() // Component 1 (Shooter) - static
+          });
+    }
   }
 }
