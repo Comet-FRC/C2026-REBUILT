@@ -18,6 +18,7 @@ import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
@@ -267,5 +268,17 @@ public class RobotContainer {
         "FieldSimulation/Coral", SimulatedArena.getInstance().getGamePiecesArrayByType("Coral"));
     Logger.recordOutput(
         "FieldSimulation/Algae", SimulatedArena.getInstance().getGamePiecesArrayByType("Algae"));
+
+    // AdvantageScope custom robot calibration poses
+    // Use these for calibration: set robot pose to "ZeroedRobotPose" and components to
+    // "ZeroedComponentPoses"
+    // Once calibrated, switch to actual mechanism poses
+    Logger.recordOutput("AdvantageScope/ZeroedRobotPose", new Pose2d());
+    Logger.recordOutput(
+        "AdvantageScope/ZeroedComponentPoses",
+        new Pose3d[] {
+          new Pose3d(), // Component 0 (Intake) - zeroed at origin
+          new Pose3d() // Component 1 (Shooter) - zeroed at origin
+        });
   }
 }
