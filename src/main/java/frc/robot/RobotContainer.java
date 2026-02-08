@@ -271,7 +271,7 @@ public class RobotContainer {
 
     // AdvantageScope custom robot configuration
     // Set to true for calibration (zeroed poses), false for real animation
-    final boolean CALIBRATION_MODE = true;
+    final boolean CALIBRATION_MODE = false;
 
     if (CALIBRATION_MODE) {
       // CALIBRATION: Publish zeroed poses to align models at origin

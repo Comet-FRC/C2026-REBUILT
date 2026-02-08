@@ -29,8 +29,10 @@ public class Intake extends SubsystemBase {
     this.io = io;
     this.inputs = new IntakeIOInputsAutoLogged();
     // TODO: Adjust position to match your robot's intake pivot location (in meters)
+    // X = 0.165m forward (6.5"), Y = 0 (centered), Z = 0.178m height (7")
     this.armVisualizer =
-        new ArmVisualizer3d(getName(), new Translation3d(0, 0, 0), Rotation2d.fromDegrees(0));
+        new ArmVisualizer3d(
+            getName(), new Translation3d(0.165, 0, 0.178), Rotation2d.fromDegrees(0));
   }
 
   @Override
