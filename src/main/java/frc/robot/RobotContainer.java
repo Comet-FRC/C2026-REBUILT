@@ -14,29 +14,37 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.*;
+import frc.robot.subsystems.flywheel.Flywheel;
+import frc.robot.subsystems.flywheel.FlywheelIO;
+import frc.robot.subsystems.flywheel.FlywheelIOReal;
+import frc.robot.subsystems.flywheel.FlywheelIOSim;
+import frc.robot.subsystems.indexer.*;
+import frc.robot.subsystems.intake.*;
+import frc.robot.subsystems.kicker.*;
+// import frc.robot.subsystems.turret.*;
 import frc.robot.subsystems.vision.*;
+import frc.robot.subsystems.vision.VisionConstants.Camera;
+import frc.robot.util.LoggedTunableNumber;
+import frc.robot.util.controller.CometLogitechController;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
-import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeCoralOnFly;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -48,13 +56,26 @@ public class RobotContainer {
   // Subsystems
   private final Vision vision;
   private final Drive drive;
+  private final Intake intake;
+  private final Indexer indexer;
+  private final Kicker kicker;
+  private final Flywheel flywheel;
   private SwerveDriveSimulation driveSimulation = null;
 
   // Controller
-  private final CommandXboxController controller = new CommandXboxController(0);
+  private final CometLogitechController controller = new CometLogitechController(0);
+
+  // Tunable values
+  private final LoggedTunableNumber intakeWheelVolts =
+      new LoggedTunableNumber("Intake/WheelVolts", 5.0);
+
+  private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 179.0);
+
+  private final LoggedTunableNumber indexerRollerVolts =
+      new LoggedTunableNumber("Indexer/RollerVolts", 0.0);
 
   // Dashboard inputs
-  private final SendableChooser<Command> autoChooser;
+  private final LoggedDashboardChooser<Command> autoChooser;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -64,16 +85,21 @@ public class RobotContainer {
         drive =
             new Drive(
                 new GyroIOPigeon2(),
-                new ModuleIOTalonFX(TunerConstants.FrontLeft),
-                new ModuleIOTalonFX(TunerConstants.FrontRight),
-                new ModuleIOTalonFX(TunerConstants.BackLeft),
-                new ModuleIOTalonFX(TunerConstants.BackRight),
+                new ModuleIOTalonFXReal(TunerConstants.FrontLeft),
+                new ModuleIOTalonFXReal(TunerConstants.FrontRight),
+                new ModuleIOTalonFXReal(TunerConstants.BackLeft),
+                new ModuleIOTalonFXReal(TunerConstants.BackRight),
                 (robotPose) -> {});
-        vision =
+        this.vision =
             new Vision(
-                drive,
-                new VisionIOLimelight(VisionConstants.camera0Name, drive::getRotation),
-                new VisionIOLimelight(VisionConstants.camera1Name, drive::getRotation));
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVision(Camera.FrontApriltag),
+                new VisionIOPhotonVision(Camera.BackApriltag),
+                new VisionIOLimelight(VisionConstants.camera0Name, drive::getRotation));
+        this.intake = new Intake(new IntakeIOReal());
+        this.indexer = new Indexer(new IndexerIOReal());
+        this.kicker = new Kicker(new KickerIOReal());
+        this.flywheel = new Flywheel(new FlywheelIOReal());
         break;
 
       case SIM:
@@ -84,19 +110,28 @@ public class RobotContainer {
         drive =
             new Drive(
                 new GyroIOSim(driveSimulation.getGyroSimulation()),
-                new ModuleIOSim(driveSimulation.getModules()[0]),
-                new ModuleIOSim(driveSimulation.getModules()[1]),
-                new ModuleIOSim(driveSimulation.getModules()[2]),
-                new ModuleIOSim(driveSimulation.getModules()[3]),
+                new ModuleIOTalonFXSim(TunerConstants.FrontLeft, driveSimulation.getModules()[0]),
+                new ModuleIOTalonFXSim(TunerConstants.FrontRight, driveSimulation.getModules()[1]),
+                new ModuleIOTalonFXSim(TunerConstants.BackLeft, driveSimulation.getModules()[2]),
+                new ModuleIOTalonFXSim(TunerConstants.BackRight, driveSimulation.getModules()[3]),
                 driveSimulation::setSimulationWorldPose);
 
         vision =
             new Vision(
-                drive,
+                drive::addVisionMeasurement,
                 new VisionIOPhotonVisionSim(
                     camera0Name, robotToCamera0, driveSimulation::getSimulatedDriveTrainPose),
                 new VisionIOPhotonVisionSim(
-                    camera1Name, robotToCamera1, driveSimulation::getSimulatedDriveTrainPose));
+                    camera1Name, robotToCamera1, driveSimulation::getSimulatedDriveTrainPose),
+                // limelight camera added as photonvision sim
+                new VisionIOPhotonVisionSim(
+                    limelightCameraName,
+                    robotTolimelightCamera,
+                    driveSimulation::getSimulatedDriveTrainPose));
+        intake = new Intake(new IntakeIOSim());
+        indexer = new Indexer(new IndexerIOSim());
+        kicker = new Kicker(new KickerIOSim());
+        flywheel = new Flywheel(new FlywheelIOSim());
         break;
 
       default:
@@ -109,32 +144,18 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 (robotPose) -> {});
-        vision = new Vision(drive, new VisionIO() {}, new VisionIO() {});
+        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        intake = new Intake(new IntakeIO() {});
+        indexer = new Indexer(new IndexerIO() {});
+        kicker = new Kicker(new KickerIO() {});
+        flywheel = new Flywheel(new FlywheelIO() {});
         break;
     }
 
-    NamedCommands.registerCommand(
-        "AutoBalance",
-        Commands.runOnce(
-            () ->
-                SimulatedArena.getInstance()
-                    .addGamePieceProjectile(
-                        new ReefscapeCoralOnFly(
-                            driveSimulation.getSimulatedDriveTrainPose().getTranslation(),
-                            new Translation2d(0.4, 0),
-                            driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
-                            driveSimulation.getSimulatedDriveTrainPose().getRotation(),
-                            Meters.of(2),
-                            MetersPerSecond.of(1.5),
-                            Degrees.of(-80)))));
     // Set up auto routines
-    // Build an auto chooser. This will use Commands.none() as the default option.
-    autoChooser = AutoBuilder.buildAutoChooser();
+    autoChooser =
+        new LoggedDashboardChooser<Command>("Auto Choices", AutoBuilder.buildAutoChooser());
 
-    // Another option that allows you to specify the default auto by its name
-    // autoChooser = AutoBuilder.buildAutoChooser("My Default Auto");
-
-    SmartDashboard.putData("Auto Chooser", autoChooser);
     // Set up SysId routines
     autoChooser.addOption(
         "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
@@ -151,8 +172,34 @@ public class RobotContainer {
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
+    setupDefaultCommands();
     // Configure the button bindings
     configureButtonBindings();
+  }
+
+  private void setupDefaultCommands() {
+    this.drive.setDefaultCommand(
+        DriveCommands.joystickDrive(
+            drive,
+            () -> -controller.getLeftY(),
+            () -> -controller.getLeftX(),
+            () -> -controller.getRightX()));
+
+    this.intake.setDefaultCommand(
+        Commands.run(
+            () -> {
+              this.intake.setIntakeState(
+                  Degrees.of(intakeAngle.get()), Volts.of(intakeWheelVolts.get()));
+            },
+            this.intake));
+
+    this.indexer.setDefaultCommand(
+        this.indexer.setRollerVoltage(() -> Volts.of(indexerRollerVolts.get())));
+
+    this.kicker.setDefaultCommand(this.kicker.setVoltage(() -> Volts.of(0.0)));
+
+    // attempt at setDefaultCommand for flywheel
+    this.flywheel.setDefaultCommand(this.flywheel.setWheelVoltage(() -> Volts.of(0.0)));
   }
 
   /**
@@ -162,14 +209,6 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    // Default command, normal field-relative drive
-    drive.setDefaultCommand(
-        DriveCommands.joystickDrive(
-            drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
-
     // Lock to 0° when A button is held
     controller
         .a()
@@ -181,46 +220,17 @@ public class RobotContainer {
                 () -> new Rotation2d()));
 
     // Switch to X pattern when X button is pressed
-    controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+    controller.x().whileTrue(this.intake.setWheelVoltage(() -> Volts.of(-9)));
 
-    // Example Coral Placement Code
-    // TODO: delete these code for your own project
-    if (Constants.currentMode == Constants.Mode.SIM) {
-      // L4 placement
-      controller
-          .y()
-          .onTrue(
-              Commands.runOnce(
-                  () ->
-                      SimulatedArena.getInstance()
-                          .addGamePieceProjectile(
-                              new ReefscapeCoralOnFly(
-                                  driveSimulation.getSimulatedDriveTrainPose().getTranslation(),
-                                  new Translation2d(0.4, 0),
-                                  driveSimulation
-                                      .getDriveTrainSimulatedChassisSpeedsFieldRelative(),
-                                  driveSimulation.getSimulatedDriveTrainPose().getRotation(),
-                                  Meters.of(2),
-                                  MetersPerSecond.of(1.5),
-                                  Degrees.of(-80)))));
-      // L3 placement
-      controller
-          .b()
-          .onTrue(
-              Commands.runOnce(
-                  () ->
-                      SimulatedArena.getInstance()
-                          .addGamePieceProjectile(
-                              new ReefscapeCoralOnFly(
-                                  driveSimulation.getSimulatedDriveTrainPose().getTranslation(),
-                                  new Translation2d(0.4, 0),
-                                  driveSimulation
-                                      .getDriveTrainSimulatedChassisSpeedsFieldRelative(),
-                                  driveSimulation.getSimulatedDriveTrainPose().getRotation(),
-                                  Meters.of(1.35),
-                                  MetersPerSecond.of(1.5),
-                                  Degrees.of(-60)))));
-    }
+    // reset Gyro
+    controller
+        .a()
+        .onTrue(
+            Commands.runOnce(() -> drive.resetHeadingWithAlliance(), drive).ignoringDisable(true));
+
+    controller.y().whileTrue(this.intake.setPivotVoltage(() -> Volts.of(2)));
+
+    controller.b().whileTrue(this.intake.setPivotVoltage(() -> Volts.of(-2)));
   }
 
   /**
@@ -229,13 +239,13 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return autoChooser.getSelected();
+    return autoChooser.get();
   }
 
   public void resetSimulation() {
     if (Constants.currentMode != Constants.Mode.SIM) return;
 
-    drive.resetOdometry(new Pose2d(3, 3, new Rotation2d()));
+    driveSimulation.setSimulationWorldPose(new Pose2d(2, 2, new Rotation2d()));
     SimulatedArena.getInstance().resetFieldForAuto();
   }
 
@@ -249,5 +259,28 @@ public class RobotContainer {
         "FieldSimulation/Coral", SimulatedArena.getInstance().getGamePiecesArrayByType("Coral"));
     Logger.recordOutput(
         "FieldSimulation/Algae", SimulatedArena.getInstance().getGamePiecesArrayByType("Algae"));
+
+    // AdvantageScope custom robot configuration
+    // Set to true for calibration (zeroed poses), false for real animation
+    final boolean CALIBRATION_MODE = false;
+
+    if (CALIBRATION_MODE) {
+      // CALIBRATION: Publish zeroed poses to align models at origin
+      Logger.recordOutput("AdvantageScope/RobotPose", new Pose2d());
+      Logger.recordOutput(
+          "AdvantageScope/ComponentPoses",
+          new Pose3d[] {
+            new Pose3d(), // Component 0 (Intake) - at origin
+            new Pose3d() // Component 1 (Shooter) - at origin
+          });
+    } else {
+      // NORMAL: Publish real component poses for animation
+      Logger.recordOutput(
+          "AdvantageScope/ComponentPoses",
+          new Pose3d[] {
+            intake.getComponentPose(), // Component 0 (Intake) - animated
+            new Pose3d() // Component 1 (Shooter) - static
+          });
+    }
   }
 }

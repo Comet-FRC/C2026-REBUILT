@@ -1,4 +1,4 @@
-// Copyright 2021-2025 FRC 6328
+// Copyright 2021-2024 FRC 6328
 // http://github.com/Mechanical-Advantage
 //
 // This program is free software; you can redistribute it and/or
@@ -16,18 +16,27 @@ package frc.robot.subsystems.vision;
 import static frc.robot.subsystems.vision.VisionConstants.aprilTagLayout;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
+import org.photonvision.PhotonCamera;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
 
 /** IO implementation for physics sim using PhotonVision simulator. */
-public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
+public class VisionIOPhotonVisionSim implements VisionIO {
   private static VisionSystemSim visionSim;
 
   private final Supplier<Pose2d> poseSupplier;
   private final PhotonCameraSim cameraSim;
+  private final PhotonCamera camera;
+  private final Transform3d robotToCamera;
 
   /**
    * Creates a new VisionIOPhotonVisionSim.
@@ -37,8 +46,9 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
    */
   public VisionIOPhotonVisionSim(
       String name, Transform3d robotToCamera, Supplier<Pose2d> poseSupplier) {
-    super(name, robotToCamera);
+    this.camera = new PhotonCamera(name);
     this.poseSupplier = poseSupplier;
+    this.robotToCamera = robotToCamera;
 
     // Initialize vision sim
     if (visionSim == null) {
@@ -54,7 +64,65 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
 
   @Override
   public void updateInputs(VisionIOInputs inputs) {
+    inputs.connected = camera.isConnected();
+
+    // Read new camera observations
+    Set<Short> tagsSeen = new HashSet<>();
+    List<PoseObservation> poseObservations = new LinkedList<>();
+    for (var result : camera.getAllUnreadResults()) {
+      // Update latest target observation
+      if (result.hasTargets()) {
+        inputs.latestTargetObservation =
+            new TargetObservation(
+                Rotation2d.fromDegrees(result.getBestTarget().getYaw()),
+                Rotation2d.fromDegrees(result.getBestTarget().getPitch()));
+      } else {
+        inputs.latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d());
+      }
+
+      // Add pose observation
+      if (result.multitagResult.isPresent()) {
+        var multitagResult = result.multitagResult.get();
+
+        // Calculate robot pose
+        Transform3d fieldToCamera = multitagResult.estimatedPose.best;
+        Transform3d fieldToRobot = fieldToCamera.plus(robotToCamera.inverse());
+        Pose3d robotPose = new Pose3d(fieldToRobot.getTranslation(), fieldToRobot.getRotation());
+
+        // Calculate average tag distance
+        double totalTagDistance = 0.0;
+        for (var target : result.targets) {
+          totalTagDistance += target.bestCameraToTarget.getTranslation().getNorm();
+        }
+
+        // Add tag IDs
+        tagsSeen.addAll(multitagResult.fiducialIDsUsed);
+
+        // Add observation
+        poseObservations.add(
+            new PoseObservation(
+                result.getTimestampSeconds(), // Timestamp
+                robotPose, // 3D pose estimate
+                multitagResult.estimatedPose.ambiguity, // Ambiguity
+                multitagResult.fiducialIDsUsed.size(), // Tag count
+                totalTagDistance / result.targets.size(), // Average tag distance
+                PoseObservationType.PHOTONVISION)); // Observation type
+      }
+
+      // Save pose observations to inputs object
+      inputs.poseObservations = new PoseObservation[poseObservations.size()];
+      for (int i = 0; i < poseObservations.size(); i++) {
+        inputs.poseObservations[i] = poseObservations.get(i);
+      }
+
+      // Save tag IDs to inputs objects
+      inputs.tagIds = new int[tagsSeen.size()];
+      int i = 0;
+      for (int id : tagsSeen) {
+        inputs.tagIds[i++] = id;
+      }
+    }
+
     visionSim.update(poseSupplier.get());
-    super.updateInputs(inputs);
   }
 }
