@@ -13,6 +13,7 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.*;
 import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
@@ -66,7 +67,9 @@ public class RobotContainer {
 
   // Tunable values
   private final LoggedTunableNumber intakeWheelVolts =
-      new LoggedTunableNumber("Intake/WheelVolts", 0.0);
+      new LoggedTunableNumber("Intake/WheelVolts", 5.0);
+
+  private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 179.0);
 
   private final LoggedTunableNumber indexerRollerVolts =
       new LoggedTunableNumber("Indexer/RollerVolts", 0.0);
@@ -186,7 +189,7 @@ public class RobotContainer {
         Commands.run(
             () -> {
               this.intake.setIntakeState(
-                  IntakeConstants.INTAKING_ANGLE, Volts.of(intakeWheelVolts.get()));
+                  Degrees.of(intakeAngle.get()), Volts.of(intakeWheelVolts.get()));
             },
             this.intake));
 
@@ -217,7 +220,7 @@ public class RobotContainer {
                 () -> new Rotation2d()));
 
     // Switch to X pattern when X button is pressed
-    controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+    controller.x().whileTrue(this.intake.setWheelVoltage(() -> Volts.of(-9)));
 
     // reset Gyro
     controller
@@ -225,21 +228,9 @@ public class RobotContainer {
         .onTrue(
             Commands.runOnce(() -> drive.resetHeadingWithAlliance(), drive).ignoringDisable(true));
 
-    controller
-        .y()
-        .toggleOnTrue(
-            Commands.parallel(
-                this.intake.setWheelVoltage(() -> Volts.of(5.0)),
-                this.indexer.setRollerVoltage(() -> Volts.of(5.0)),
-                this.kicker.setVoltage(() -> Volts.of(5.0))));
-    // outtake
-    controller
-        .b()
-        .whileTrue(
-            Commands.parallel(
-                this.intake.setWheelVoltage(() -> Volts.of(-5.0)),
-                this.indexer.setRollerVoltage(() -> Volts.of(-5.0)),
-                this.kicker.setVoltage(() -> Volts.of(-5.0))));
+    controller.y().whileTrue(this.intake.setPivotVoltage(() -> Volts.of(2)));
+
+    controller.b().whileTrue(this.intake.setPivotVoltage(() -> Volts.of(-2)));
   }
 
   /**

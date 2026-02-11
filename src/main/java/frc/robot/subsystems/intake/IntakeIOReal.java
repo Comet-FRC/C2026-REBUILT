@@ -37,7 +37,7 @@ public class IntakeIOReal implements IntakeIO {
   private void configureWheelMotor() {
     SparkMaxConfig leaderConfig = new SparkMaxConfig();
     leaderConfig
-        .inverted(false)
+        .inverted(true)
         .idleMode(IdleMode.kCoast)
         .smartCurrentLimit(20) // Lower current limit for battery efficiency
         .voltageCompensation(11.5); // Consistent behavior as battery drains
@@ -86,7 +86,7 @@ public class IntakeIOReal implements IntakeIO {
           IntakeConstants.PIVOT_kP,
           IntakeConstants.PIVOT_kI,
           IntakeConstants.PIVOT_kD,
-          new TrapezoidProfile.Constraints(2 * Math.PI, Math.PI)); // rad/s, rad/s^2
+          new TrapezoidProfile.Constraints(Math.PI, Math.PI / 2)); // rad/s, rad/s^2
 
   // Tunable PID gains for on-the-fly tuning
   private static final LoggedTunableNumber pivotKp =
@@ -105,11 +105,10 @@ public class IntakeIOReal implements IntakeIO {
   private boolean wheelVoltageMode = false;
 
   private final MutVoltage pivotDesiredVoltage = Volts.mutable(0);
-  private boolean pivotVoltageMode = false;
+  private boolean pivotVoltageMode = true;
   private double pivotDesiredPositionRad = IntakeConstants.STOW_ANGLE.in(Radians);
 
   public IntakeIOReal() {
-    // TODO: Check if encoder is inverted
     throughBoreEncoder.setInverted(true);
     configureWheelMotor();
     configurePivotMotors();
@@ -120,8 +119,8 @@ public class IntakeIOReal implements IntakeIO {
 
   /** Get pivot position in radians from Through Bore Encoder */
   private double getThroughBorePositionRad() {
-    double rawRadians = throughBoreEncoder.get() * 2.0 * Math.PI;
-    return rawRadians + IntakeConstants.THROUGH_BORE_ENCODER_OFFSET_RAD;
+    double rawRadians = (throughBoreEncoder.get() * 2.0 * Math.PI) + 0.174533;
+    return rawRadians;
   }
 
   @Override
