@@ -3,6 +3,7 @@ package frc.robot.subsystems.turret;
 import static edu.wpi.first.units.Units.*;
 
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -51,6 +52,11 @@ public class Turret extends SubsystemBase {
   /** Get current turret position */
   public Angle getPosition() {
     return inputs.turretPosition;
+  }
+
+  /** Get current turret velocity */
+  public AngularVelocity getVelocity() {
+    return inputs.turretVelocity;
   }
 
   /** Check if turret is at setpoint (within tolerance) */

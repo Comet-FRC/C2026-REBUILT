@@ -26,6 +26,8 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.commands.AutoAimCommand;
+import frc.robot.commands.AutoFireCommand;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.*;
@@ -36,7 +38,7 @@ import frc.robot.subsystems.flywheel.FlywheelIOSim;
 import frc.robot.subsystems.indexer.*;
 import frc.robot.subsystems.intake.*;
 import frc.robot.subsystems.kicker.*;
-// import frc.robot.subsystems.turret.*;
+import frc.robot.subsystems.turret.*;
 import frc.robot.subsystems.vision.*;
 import frc.robot.subsystems.vision.VisionConstants.Camera;
 import frc.robot.util.LoggedTunableNumber;
@@ -60,7 +62,11 @@ public class RobotContainer {
   private final Indexer indexer;
   private final Kicker kicker;
   private final Flywheel flywheel;
+  private final Turret turret;
   private SwerveDriveSimulation driveSimulation = null;
+
+  // Auto-aim command (stored as field so AutoFireCommand can access shot parameters)
+  private AutoAimCommand autoAimCommand;
 
   // Controller
   private final CometLogitechController controller = new CometLogitechController(0);
@@ -100,6 +106,7 @@ public class RobotContainer {
         this.indexer = new Indexer(new IndexerIOReal());
         this.kicker = new Kicker(new KickerIOReal());
         this.flywheel = new Flywheel(new FlywheelIOReal());
+        this.turret = new Turret(new TurretIOReal());
         break;
 
       case SIM:
@@ -132,6 +139,7 @@ public class RobotContainer {
         indexer = new Indexer(new IndexerIOSim());
         kicker = new Kicker(new KickerIOSim());
         flywheel = new Flywheel(new FlywheelIOSim());
+        turret = new Turret(new TurretIOSim());
         break;
 
       default:
@@ -149,6 +157,7 @@ public class RobotContainer {
         indexer = new Indexer(new IndexerIO() {});
         kicker = new Kicker(new KickerIO() {});
         flywheel = new Flywheel(new FlywheelIO() {});
+        turret = new Turret(new TurretIO() {});
         break;
     }
 
@@ -198,8 +207,9 @@ public class RobotContainer {
 
     this.kicker.setDefaultCommand(this.kicker.setVoltage(() -> Volts.of(0.0)));
 
-    // attempt at setDefaultCommand for flywheel
-    this.flywheel.setDefaultCommand(this.flywheel.setWheelVoltage(() -> Volts.of(0.0)));
+    // Auto-aim: turret continuously tracks target, flywheel spins up to calculated speed
+    this.autoAimCommand = new AutoAimCommand(drive, turret, flywheel);
+    this.turret.setDefaultCommand(autoAimCommand);
   }
 
   /**
@@ -231,6 +241,12 @@ public class RobotContainer {
     controller.y().whileTrue(this.intake.setPivotVoltage(() -> Volts.of(2)));
 
     controller.b().whileTrue(this.intake.setPivotVoltage(() -> Volts.of(-2)));
+
+    // Auto-fire: when held, kicker fires automatically when turret is aimed + flywheel at speed
+    controller
+        .rightBumper()
+        .whileTrue(
+            new AutoFireCommand(turret, flywheel, kicker, autoAimCommand::getLatestParameters));
   }
 
   /**

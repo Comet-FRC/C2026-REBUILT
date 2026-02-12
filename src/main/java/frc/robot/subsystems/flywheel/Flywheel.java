@@ -1,6 +1,7 @@
 package frc.robot.subsystems.flywheel;
 
 import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
@@ -33,7 +34,19 @@ public class Flywheel extends SubsystemBase {
   }
 
   public Command setWheelVelocity(Supplier<AngularVelocity> velocity) {
-    return Commands.runOnce(() -> io.setWheelVelocitySetpoint(velocity.get()), this);
+    return Commands.run(() -> io.setWheelVelocitySetpoint(velocity.get()), this);
+  }
+
+  /** Returns the current flywheel velocity. */
+  public AngularVelocity getVelocity() {
+    return inputs.wheelVelocity;
+  }
+
+  /** Check if flywheel is within tolerance of target speed. */
+  public boolean atSpeed(AngularVelocity target, AngularVelocity tolerance) {
+    double error =
+        Math.abs(inputs.wheelVelocity.in(RadiansPerSecond) - target.in(RadiansPerSecond));
+    return error < tolerance.in(RadiansPerSecond);
   }
 
   public Command sysIdRoutineWheel() {
