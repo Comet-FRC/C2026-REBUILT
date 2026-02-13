@@ -35,6 +35,7 @@ import frc.robot.subsystems.flywheel.Flywheel;
 import frc.robot.subsystems.flywheel.FlywheelIO;
 import frc.robot.subsystems.flywheel.FlywheelIOReal;
 import frc.robot.subsystems.flywheel.FlywheelIOSim;
+import frc.robot.subsystems.hood.*;
 import frc.robot.subsystems.indexer.*;
 import frc.robot.subsystems.intake.*;
 import frc.robot.subsystems.kicker.*;
@@ -63,6 +64,7 @@ public class RobotContainer {
   private final Kicker kicker;
   private final Flywheel flywheel;
   private final Turret turret;
+  private final Hood hood;
   private SwerveDriveSimulation driveSimulation = null;
 
   // Auto-aim command (stored as field so AutoFireCommand can access shot parameters)
@@ -107,6 +109,7 @@ public class RobotContainer {
         this.kicker = new Kicker(new KickerIOReal());
         this.flywheel = new Flywheel(new FlywheelIOReal());
         this.turret = new Turret(new TurretIOReal());
+        this.hood = new Hood(new HoodIOReal());
         break;
 
       case SIM:
@@ -140,6 +143,7 @@ public class RobotContainer {
         kicker = new Kicker(new KickerIOSim());
         flywheel = new Flywheel(new FlywheelIOSim());
         turret = new Turret(new TurretIOSim());
+        hood = new Hood(new HoodIOSim());
         break;
 
       default:
@@ -158,6 +162,7 @@ public class RobotContainer {
         kicker = new Kicker(new KickerIO() {});
         flywheel = new Flywheel(new FlywheelIO() {});
         turret = new Turret(new TurretIO() {});
+        hood = new Hood(new HoodIO() {});
         break;
     }
 
@@ -208,7 +213,7 @@ public class RobotContainer {
     this.kicker.setDefaultCommand(this.kicker.setVoltage(() -> Volts.of(0.0)));
 
     // Auto-aim: turret continuously tracks target, flywheel spins up to calculated speed
-    this.autoAimCommand = new AutoAimCommand(drive, turret, flywheel);
+    this.autoAimCommand = new AutoAimCommand(drive, turret, flywheel, hood);
     this.turret.setDefaultCommand(autoAimCommand);
   }
 

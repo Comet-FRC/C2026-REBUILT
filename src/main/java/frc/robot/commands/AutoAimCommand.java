@@ -11,6 +11,7 @@ import frc.robot.shooting.ShotCalculator;
 import frc.robot.shooting.ShotParameters;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.flywheel.Flywheel;
+import frc.robot.subsystems.hood.Hood;
 import frc.robot.subsystems.turret.Turret;
 import org.littletonrobotics.junction.Logger;
 
@@ -23,16 +24,18 @@ public class AutoAimCommand extends Command {
   private final Drive drive;
   private final Turret turret;
   private final Flywheel flywheel;
+  private final Hood hood;
 
   private ShotParameters latestParameters = null;
 
-  public AutoAimCommand(Drive drive, Turret turret, Flywheel flywheel) {
+  public AutoAimCommand(Drive drive, Turret turret, Flywheel flywheel, Hood hood) {
     this.drive = drive;
     this.turret = turret;
     this.flywheel = flywheel;
+    this.hood = hood;
 
-    // We control turret and flywheel, but we only read from drive (don't require it)
-    addRequirements(turret, flywheel);
+    // We control turret, flywheel, and hood, but we only read from drive (don't require it)
+    addRequirements(turret, flywheel, hood);
   }
 
   @Override
@@ -54,6 +57,10 @@ public class AutoAimCommand extends Command {
     AngularVelocity flywheelSpeed = RPM.of(latestParameters.flywheelSpeedRPM());
     flywheel.io.setWheelVelocitySetpoint(flywheelSpeed);
 
+    // Set the hood to the right angle for this distance
+    Angle hoodAngle = Degrees.of(latestParameters.hoodAngleDegrees());
+    hood.io.setPositionSetpoint(hoodAngle);
+
     // Log for AdvantageScope debugging
     int quadrant = ShotCalculator.getQuadrant(latestParameters.turretAngle());
     Logger.recordOutput("AutoAim/Quadrant", quadrant);
@@ -68,6 +75,7 @@ public class AutoAimCommand extends Command {
   public void end(boolean interrupted) {
     turret.io.stop();
     flywheel.io.stopWheel();
+    hood.io.stop();
   }
 
   @Override
