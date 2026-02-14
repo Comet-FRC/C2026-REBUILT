@@ -28,7 +28,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.AutoAimCommand;
-import frc.robot.commands.AutoFireCommand;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.*;
@@ -213,7 +212,7 @@ public class RobotContainer {
 
     this.kicker.setDefaultCommand(this.kicker.setVoltage(() -> Volts.of(0.0)));
 
-    //TODO: CHECK LOGIC    
+    // TODO: CHECK LOGIC
     // // Auto-aim: turret continuously tracks target, flywheel spins up to calculated speed
     // this.autoAimCommand = new AutoAimCommand(drive, turret, flywheel, hood);
 
@@ -256,10 +255,9 @@ public class RobotContainer {
         .whileTrue(this.turret.setVoltage(() -> Volts.of(MANUAL_CONTROL_VOLTAGE)));
     controller
         .rightBumper()
-        .whileTrue(this.turret.setVoltage(() -> Volts.of(-MANUAL_CONTROL_VOLTAGE)));  
-        
-        
-    //TODO: CHECK LOGIC    
+        .whileTrue(this.turret.setVoltage(() -> Volts.of(-MANUAL_CONTROL_VOLTAGE)));
+
+    // TODO: CHECK LOGIC
     // // Auto-fire: when held, kicker fires automatically when turret is aimed + flywheel at speed
     // controller
     //     .rightTrigger()

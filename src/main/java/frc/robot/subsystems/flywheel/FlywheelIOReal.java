@@ -22,11 +22,10 @@ public class FlywheelIOReal implements FlywheelIO {
   private final TalonFX wheelFollower = new TalonFX(FlywheelConstants.FLYWHEEL_FOLLOWER_ID);
   private final VoltageOut voltageRequest = new VoltageOut(0);
 
-  private final SimpleMotorFeedforward wheelController = new SimpleMotorFeedforward(
-      FlywheelConstants.WHEEL_kS,
-      FlywheelConstants.WHEEL_kV,
-      FlywheelConstants.WHEEL_kA);
-      
+  private final SimpleMotorFeedforward wheelController =
+      new SimpleMotorFeedforward(
+          FlywheelConstants.WHEEL_kS, FlywheelConstants.WHEEL_kV, FlywheelConstants.WHEEL_kA);
+
   private final ProfiledPIDController wheelPID =
       new ProfiledPIDController(
           FlywheelConstants.WHEEL_kP,
