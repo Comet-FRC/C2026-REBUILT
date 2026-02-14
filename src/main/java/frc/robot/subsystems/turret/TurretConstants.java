@@ -14,6 +14,9 @@ public final class TurretConstants {
   // Turret diameter: 6.875 inches
   public static final double TURRET_DIAMETER_INCHES = 6.875;
 
+  // Manual control voltage
+  public static final double MANUAL_CONTROL_VOLTAGE = 3.0;
+
   // Conversion factor: motor rotations to turret radians
   public static final double TURRET_CONVERSION_FACTOR = 2 * Math.PI / GEAR_RATIO;
 

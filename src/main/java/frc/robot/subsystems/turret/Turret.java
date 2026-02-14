@@ -27,6 +27,7 @@ public class Turret extends SubsystemBase {
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("turret", inputs);
+    Logger.recordOutput("Turret/PositionDegrees", inputs.turretPosition.in(Degrees));
   }
 
   /** Command to set turret voltage (open loop control) */

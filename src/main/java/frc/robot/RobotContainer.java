@@ -15,6 +15,7 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 import static edu.wpi.first.units.Units.Volts;
+import static frc.robot.subsystems.turret.TurretConstants.MANUAL_CONTROL_VOLTAGE;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -212,9 +213,11 @@ public class RobotContainer {
 
     this.kicker.setDefaultCommand(this.kicker.setVoltage(() -> Volts.of(0.0)));
 
-    // Auto-aim: turret continuously tracks target, flywheel spins up to calculated speed
-    this.autoAimCommand = new AutoAimCommand(drive, turret, flywheel, hood);
-    this.turret.setDefaultCommand(autoAimCommand);
+    //TODO: CHECK LOGIC    
+    // // Auto-aim: turret continuously tracks target, flywheel spins up to calculated speed
+    // this.autoAimCommand = new AutoAimCommand(drive, turret, flywheel, hood);
+
+    this.turret.setDefaultCommand(this.turret.setVoltage(() -> Volts.of(0.0)));
   }
 
   /**
@@ -247,11 +250,21 @@ public class RobotContainer {
 
     controller.b().whileTrue(this.intake.setPivotVoltage(() -> Volts.of(-2)));
 
-    // Auto-fire: when held, kicker fires automatically when turret is aimed + flywheel at speed
+    // Manual turret control
+    controller
+        .leftBumper()
+        .whileTrue(this.turret.setVoltage(() -> Volts.of(MANUAL_CONTROL_VOLTAGE)));
     controller
         .rightBumper()
-        .whileTrue(
-            new AutoFireCommand(turret, flywheel, kicker, autoAimCommand::getLatestParameters));
+        .whileTrue(this.turret.setVoltage(() -> Volts.of(-MANUAL_CONTROL_VOLTAGE)));  
+        
+        
+    //TODO: CHECK LOGIC    
+    // // Auto-fire: when held, kicker fires automatically when turret is aimed + flywheel at speed
+    // controller
+    //     .rightTrigger()
+    //     .whileTrue(
+    //         new AutoFireCommand(turret, flywheel, kicker, autoAimCommand::getLatestParameters));
   }
 
   /**

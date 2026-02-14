@@ -11,6 +11,7 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MutVoltage;
@@ -21,6 +22,11 @@ public class FlywheelIOReal implements FlywheelIO {
   private final TalonFX wheelFollower = new TalonFX(FlywheelConstants.FLYWHEEL_FOLLOWER_ID);
   private final VoltageOut voltageRequest = new VoltageOut(0);
 
+  private final SimpleMotorFeedforward wheelController = new SimpleMotorFeedforward(
+      FlywheelConstants.WHEEL_kS,
+      FlywheelConstants.WHEEL_kV,
+      FlywheelConstants.WHEEL_kA);
+      
   private final ProfiledPIDController wheelPID =
       new ProfiledPIDController(
           FlywheelConstants.WHEEL_kP,
@@ -49,7 +55,7 @@ public class FlywheelIOReal implements FlywheelIO {
     leaderConfig.CurrentLimits.StatorCurrentLimitEnable = true;
 
     // 1:1 belt ratio (24T to 24T), no gear reduction
-    leaderConfig.Feedback.SensorToMechanismRatio = 1.0;
+    leaderConfig.Feedback.SensorToMechanismRatio = FlywheelConstants.GEAR_RATIO;
 
     wheelLeader.getConfigurator().apply(leaderConfig);
 
@@ -63,7 +69,8 @@ public class FlywheelIOReal implements FlywheelIO {
     wheelFollower.getConfigurator().apply(followerConfig);
 
     // Follower opposes leader direction (counter-rotating flywheels)
-    wheelFollower.setControl(new Follower(FlywheelConstants.FLYWHEEL_LEADER_ID, MotorAlignmentValue.Opposed));
+    wheelFollower.setControl(
+        new Follower(FlywheelConstants.FLYWHEEL_LEADER_ID, MotorAlignmentValue.Opposed));
   }
 
   @Override

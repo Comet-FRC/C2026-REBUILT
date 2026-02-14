@@ -50,6 +50,15 @@ public class TurretIOReal implements TurretIO {
     // Gear ratio for position/velocity readings
     config.Feedback.SensorToMechanismRatio = TurretConstants.GEAR_RATIO;
 
+    // Software limits (hard stops)
+    config.SoftwareLimitSwitch.ForwardSoftLimitThreshold =
+        TurretConstants.MAX_ANGLE.in(Radians) / (2 * Math.PI); // Rotations
+    config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
+
+    config.SoftwareLimitSwitch.ReverseSoftLimitThreshold =
+        TurretConstants.MIN_ANGLE.in(Radians) / (2 * Math.PI); // Rotations
+    config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
+
     turretMotor.getConfigurator().apply(config);
   }
 
