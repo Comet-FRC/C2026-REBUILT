@@ -18,7 +18,7 @@ public class HoodIOSim implements HoodIO {
   private final DCMotorSim hoodMotor = configureHoodMotor();
 
   private static DCMotorSim configureHoodMotor() {
-    DCMotor gearbox = DCMotor.getKrakenX60(1);
+    DCMotor gearbox = DCMotor.getNEO(1);
     LinearSystem<N2, N1, N2> plant =
         LinearSystemId.createDCMotorSystem(
             gearbox, HoodConstants.HOOD_MOI, HoodConstants.GEAR_RATIO);

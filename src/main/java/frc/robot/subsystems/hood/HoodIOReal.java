@@ -2,11 +2,12 @@ package frc.robot.subsystems.hood;
 
 import static edu.wpi.first.units.Units.*;
 
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.VoltageOut;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -15,10 +16,10 @@ import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
 
 public class HoodIOReal implements HoodIO {
-  private final TalonFX hoodMotor = new TalonFX(HoodConstants.HOOD_MOTOR_ID);
-  private final VoltageOut voltageRequest = new VoltageOut(0);
+  private final SparkMax hoodMotor =
+      new SparkMax(HoodConstants.HOOD_MOTOR_ID, MotorType.kBrushless);
 
-  // Profiled PID for smooth hood motion (slower than turret since it's a smaller mechanism)
+  // Profiled PID for smooth hood motion
   private final ProfiledPIDController hoodPID =
       new ProfiledPIDController(
           HoodConstants.HOOD_kP,
@@ -37,57 +38,55 @@ public class HoodIOReal implements HoodIO {
   }
 
   private void configureHoodMotor() {
-    TalonFXConfiguration config = new TalonFXConfiguration();
-
-    // Motor direction (adjust if hood moves wrong way)
-    config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-
-    // Current limits — lower than turret since the hood is a smaller mechanism
-    config.CurrentLimits.SupplyCurrentLimit = 30;
-    config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = 60;
-    config.CurrentLimits.StatorCurrentLimitEnable = true;
-
-    // Gear ratio so position/velocity readings are in mechanism units
-    config.Feedback.SensorToMechanismRatio = HoodConstants.GEAR_RATIO;
-
-    hoodMotor.getConfigurator().apply(config);
+    SparkMaxConfig config = new SparkMaxConfig();
+    config
+        .inverted(false) // Adjust if hood moves wrong way
+        .idleMode(IdleMode.kBrake)
+        .smartCurrentLimit(30) // NEO current limit
+        .voltageCompensation(11.5);
+    // Gear ratio applied to encoder so readings are in mechanism rotations/radians
+    config
+        .encoder
+        .positionConversionFactor(
+            (1.0 / HoodConstants.GEAR_RATIO) * 2 * Math.PI) // rotations → mechanism radians
+        .velocityConversionFactor(
+            (1.0 / HoodConstants.GEAR_RATIO) * 2 * Math.PI / 60.0); // RPM → mechanism rad/s
+    hoodMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
   @Override
   public void updateInputs(HoodIOInputs inputs) {
     if (voltageMode) {
-      hoodMotor.setControl(voltageRequest.withOutput(desiredVoltage.in(Volts)));
+      hoodMotor.setVoltage(desiredVoltage.in(Volts));
       hoodPID.reset(getHoodPositionRad());
     } else {
       double pid = hoodPID.calculate(getHoodPositionRad());
       double volts = MathUtil.clamp(pid, -12.0, 12.0);
-      hoodMotor.setControl(voltageRequest.withOutput(volts));
+      hoodMotor.setVoltage(volts);
     }
 
     inputs.hoodPosition = Radians.of(getHoodPositionRad());
     inputs.hoodVelocity = RadiansPerSecond.of(getHoodVelocityRadPerSec());
     inputs.hoodDesiredPosition = Radians.of(hoodPID.getGoal().position);
     inputs.hoodPositionSetpoint = Radians.of(hoodPID.getSetpoint().position);
-    inputs.hoodAppliedVolts = Volts.of(hoodMotor.getMotorVoltage().getValueAsDouble());
-    inputs.hoodSupplyCurrent = Amps.of(hoodMotor.getSupplyCurrent().getValueAsDouble());
-    inputs.hoodTemperature = Celsius.of(hoodMotor.getDeviceTemp().getValueAsDouble());
+    inputs.hoodAppliedVolts = Volts.of(hoodMotor.getAppliedOutput() * hoodMotor.getBusVoltage());
+    inputs.hoodSupplyCurrent = Amps.of(hoodMotor.getOutputCurrent());
+    inputs.hoodTemperature = Celsius.of(hoodMotor.getMotorTemperature());
   }
 
-  /** Returns hood position in radians (mechanism rotations × 2π) */
+  /** Returns hood position in radians (already converted by encoder config) */
   private double getHoodPositionRad() {
-    return hoodMotor.getPosition().getValueAsDouble() * 2 * Math.PI;
+    return hoodMotor.getEncoder().getPosition();
   }
 
-  /** Returns hood velocity in rad/s (mechanism RPS × 2π) */
+  /** Returns hood velocity in rad/s (already converted by encoder config) */
   private double getHoodVelocityRadPerSec() {
-    return hoodMotor.getVelocity().getValueAsDouble() * 2 * Math.PI;
+    return hoodMotor.getEncoder().getVelocity();
   }
 
   @Override
   public void stop() {
-    hoodMotor.setControl(voltageRequest.withOutput(0));
+    hoodMotor.setVoltage(0);
   }
 
   @Override
@@ -116,6 +115,7 @@ public class HoodIOReal implements HoodIO {
 
   @Override
   public void resetPosition(Angle position) {
-    hoodMotor.setPosition(position.in(Radians) / (2 * Math.PI));
+    // SparkMax encoder position can be set via the encoder object
+    hoodMotor.getEncoder().setPosition(position.in(Radians));
   }
 }
