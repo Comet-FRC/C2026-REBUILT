@@ -5,7 +5,7 @@ import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.units.measure.Angle;
 
 public final class HoodConstants {
-  // Kraken X60 motor ID
+  // NEO motor ID (SparkMax)
   public static final int HOOD_MOTOR_ID = 21;
 
   // Gear train: 18T → 60T → 10T → 164T

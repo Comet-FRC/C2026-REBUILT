@@ -18,7 +18,7 @@ public class FlywheelIOSim implements FlywheelIO {
   private final DCMotorSim wheelMotor = configureWheelMotor();
 
   private static DCMotorSim configureWheelMotor() {
-    DCMotor wheelGearbox = DCMotor.getNEO(1);
+    DCMotor wheelGearbox = DCMotor.getKrakenX60(1);
     LinearSystem<N2, N1, N2> wheelPlant =
         LinearSystemId.createDCMotorSystem(
             wheelGearbox, FlywheelConstants.WHEEL_MOI, (18.0 / 24.0));
