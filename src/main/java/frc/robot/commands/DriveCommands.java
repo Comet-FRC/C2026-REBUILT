@@ -29,6 +29,8 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.util.CometMathUtil;
+
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.LinkedList;
@@ -74,21 +76,53 @@ public class DriveCommands {
     return Commands.run(
         () -> {
           // Get linear velocity
-          Translation2d linearVelocity =
-              getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
+          //Translation2d linearVelocity =
+              //getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
+
+          double x = xSupplier.getAsDouble();
+          double y = ySupplier.getAsDouble();
+
+          x = MathUtil.clamp(x, -1.0, 1.0);
+					y = MathUtil.clamp(y, -1.0, 1.0);
+
+          double linearSpeedScalar;
+          linearSpeedScalar = Math.hypot(x,y);
+
+          linearSpeedScalar = MathUtil.clamp(linearSpeedScalar, -1.0, 1.0);
+					linearSpeedScalar = MathUtil.applyDeadband(linearSpeedScalar, DEADBAND);
+
+					linearSpeedScalar = CometMathUtil.minMaxScale(
+							linearSpeedScalar,
+							DEADBAND,
+							1);
+
+          Rotation2d linearDirection = new Rotation2d(Math.atan2(y, x));
+          Translation2d linearTranslation = new Translation2d(linearSpeedScalar, linearDirection);
 
           // Apply rotation deadband
-          double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
+          //double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
 
           // Square rotation value for more precise control
-          omega = Math.copySign(omega * omega, omega);
+          //omega = Math.copySign(omega * omega, omega);
+
+          double omegaSpeedScalar;
+          omegaSpeedScalar = omegaSupplier.getAsDouble();
+          omegaSpeedScalar = MathUtil.clamp(omegaSpeedScalar, -1.0, 1.0);
+					omegaSpeedScalar = MathUtil.applyDeadband(omegaSpeedScalar,
+							DEADBAND);
+					omegaSpeedScalar = CometMathUtil.minMaxScale(
+							omegaSpeedScalar,
+							DEADBAND,
+							1);
+
+					omegaSpeedScalar = Math.signum(omegaSpeedScalar) * Math.pow(omegaSpeedScalar, 2);
 
           // Convert to field relative speeds & send command
           ChassisSpeeds speeds =
               new ChassisSpeeds(
-                  linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
-                  linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
-                  omega * drive.getMaxAngularSpeedRadPerSec());
+                  linearTranslation.getX() * drive.getMaxLinearSpeedMetersPerSec(),
+                  linearTranslation.getY() * drive.getMaxLinearSpeedMetersPerSec(),
+                  omegaSpeedScalar * drive.getMaxAngularSpeedRadPerSec());
           boolean isFlipped =
               DriverStation.getAlliance().isPresent()
                   && DriverStation.getAlliance().get() == Alliance.Red;
