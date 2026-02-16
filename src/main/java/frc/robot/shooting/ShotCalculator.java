@@ -5,7 +5,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.Units;
 import frc.robot.FieldConstants;
+import frc.robot.subsystems.turret.TurretConstants;
 import java.util.Map;
 import org.littletonrobotics.junction.Logger;
 
@@ -59,7 +62,10 @@ public class ShotCalculator {
    * Does all the shot math. Give it the robot's pose and velocity, and it tells you where to aim
    * the turret, how fast to spin the flywheel, and what hood angle to use.
    */
-  public static ShotParameters calculate(Pose2d robotPose, ChassisSpeeds fieldVelocity) {
+  public static ShotParameters calculate(
+      Pose2d robotPose,
+      ChassisSpeeds fieldVelocity,
+      Angle currentTurretPosition) { // Changed from Rotation2d to Angle
     // Figure out which quadrant we're in and grab that target
     Translation2d target = FieldConstants.getTargetForRobot2d(robotPose);
     int activeQuadrant = FieldConstants.getRobotQuadrant(robotPose);
@@ -102,10 +108,10 @@ public class ShotCalculator {
     Rotation2d fieldAngleToTarget = vectorToTarget.getAngle();
 
     // Subtract robot heading to get turret angle relative to robot front
-    Rotation2d turretAngle = fieldAngleToTarget.minus(robotPose.getRotation());
+    Rotation2d idealTurretRelativeAngle = fieldAngleToTarget.minus(robotPose.getRotation());
 
-    // Keep it in the [-180, 180] range so the turret takes the shortest path
-    turretAngle = normalizeToTurretRange(turretAngle);
+    // Find the best physical angle for the turret given its limits and current position
+    Angle turretAngle = findBestTurretAngle(idealTurretRelativeAngle, currentTurretPosition);
 
     // Look up the flywheel and hood settings for this distance
     double flywheelSpeedRPM = FLYWHEEL_SPEED_BY_DISTANCE.get(correctedDistance);
@@ -119,7 +125,8 @@ public class ShotCalculator {
     // Log everything so we can debug in AdvantageScope
     Logger.recordOutput("ShotCalculator/RawDistance", rawDistance);
     Logger.recordOutput("ShotCalculator/CorrectedDistance", correctedDistance);
-    Logger.recordOutput("ShotCalculator/TurretAngleDeg", turretAngle.getDegrees());
+    Logger.recordOutput(
+        "ShotCalculator/TurretAngleDeg", turretAngle.in(Units.Degrees));
     Logger.recordOutput("ShotCalculator/FlywheelRPM", flywheelSpeedRPM);
     Logger.recordOutput("ShotCalculator/HoodAngleDeg", hoodAngleDegrees);
     Logger.recordOutput("ShotCalculator/IsValid", isValid);
@@ -135,23 +142,68 @@ public class ShotCalculator {
   }
 
   /**
-   * Keeps the turret angle in [-180, 180] so it always takes the shortest path. TODO: Once we know
-   * the physical turret limits, add clamping here to prevent hitting hard stops.
+   * Helper function to handle the Turret's wrapping logic.
+   *
+   * <p>Our turret can rotate from 0 to 450 degrees (for example). <br>
+   * If we need to aim at 10 degrees, but we are currently at 380 degrees, it's faster to rotate to
+   * 370 degrees (which is the same direction) than to spin all the way back to 10.
+   *
+   * @param targetRelativeAngle The angle we *want* to aim at (normalized -180 to 180).
+   * @param currentTurretPosition Where the turret actually IS right now.
+   * @return The best absolute angle to drive the motor to.
    */
-  private static Rotation2d normalizeToTurretRange(Rotation2d angle) {
-    double degrees = angle.getDegrees();
-    while (degrees > 180.0) degrees -= 360.0;
-    while (degrees < -180.0) degrees += 360.0;
+  private static Angle findBestTurretAngle(
+      Rotation2d targetRelativeAngle, Angle currentTurretPosition) {
+    double minDeg = TurretConstants.MIN_ANGLE.in(Units.Degrees);
+    double maxDeg = TurretConstants.MAX_ANGLE.in(Units.Degrees);
 
-    // TODO: When we know the turret's physical limits, clamp the angle here
-    // or pick the alternate direction if we'd hit a stop.
+    double targetDeg = targetRelativeAngle.getDegrees();
+    double currentDeg = currentTurretPosition.in(Units.Degrees);
 
-    return Rotation2d.fromDegrees(degrees);
-  }
+    // Generate all possible ways to aim at this angle.
+    // Since 0 degrees is the same as 360 degrees and 720 degrees...
+    // We check: The target itself, target + 1 full rotation, target - 1 full rotation.
+    double[] candidates = {targetDeg, targetDeg + 360.0, targetDeg - 360.0, targetDeg + 720.0};
 
-  /** Just tells you which quadrant (1-4) an angle is in. Handy for logging. */
-  public static int getQuadrant(Rotation2d robotRelativeAngle) {
-    double deg = robotRelativeAngle.getDegrees();
+    double bestAngle = currentDeg; // Default to staying put (safety)
+    double minError = Double.MAX_VALUE;
+    boolean foundValid = false;
+
+    // Check each candidate
+    for (double cand : candidates) {
+      // 1. Is this candidate physically possible? (Within 0 to 450 limits)
+      if (cand >= minDeg && cand <= maxDeg) {
+        // 2. How far would we have to move to get there?
+        double error = Math.abs(cand - currentDeg);
+
+        // 3. Keep the one that requires the LEAST movement.
+        if (error < minError) {
+          minError = error;
+          bestAngle = cand;
+          foundValid = true;
+        }
+      }
+    }
+
+    // Edge Case: What if the target is in a "dead zone" we can't reach?
+    // e.g., We can only go 0-450, but the target is at -10.
+     if (!foundValid) {
+      // Just clamp to the nearest limit so we aim as close as possible.
+       if (targetDeg > maxDeg) return TurretConstants.MAX_ANGLE;
+       if (targetDeg < minDeg) return TurretConstants.MIN_ANGLE;
+       return Units.Degrees.of(Math.max(minDeg, Math.min(maxDeg, targetDeg)));
+     }
+ 
+     return Units.Degrees.of(bestAngle);
+   }
+ 
+  /** Handy helper to check which quadrant (1, 2, 3, 4) the turret is facing. */
+   public static int getQuadrant(Angle robotRelativeAngle) {
+     double deg = robotRelativeAngle.in(Units.Degrees);
+     deg %= 360;
+    if (deg > 180) deg -= 360;
+    if (deg < -180) deg += 360;
+
     if (deg >= 0 && deg < 90) return 1;
     if (deg >= 90 && deg <= 180) return 4;
     if (deg < 0 && deg >= -90) return 2;

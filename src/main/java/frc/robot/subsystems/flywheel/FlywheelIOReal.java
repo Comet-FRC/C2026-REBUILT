@@ -4,15 +4,12 @@ import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
@@ -20,25 +17,15 @@ import edu.wpi.first.units.measure.Voltage;
 public class FlywheelIOReal implements FlywheelIO {
   private final TalonFX wheelLeader = new TalonFX(FlywheelConstants.FLYWHEEL_LEADER_ID);
   private final TalonFX wheelFollower = new TalonFX(FlywheelConstants.FLYWHEEL_FOLLOWER_ID);
+  private final VelocityVoltage velocityRequest = new VelocityVoltage(0);
   private final VoltageOut voltageRequest = new VoltageOut(0);
 
-  private final SimpleMotorFeedforward wheelController =
-      new SimpleMotorFeedforward(
-          FlywheelConstants.WHEEL_kS, FlywheelConstants.WHEEL_kV, FlywheelConstants.WHEEL_kA);
-
-  private final ProfiledPIDController wheelPID =
-      new ProfiledPIDController(
-          FlywheelConstants.WHEEL_kP,
-          FlywheelConstants.WHEEL_kI,
-          FlywheelConstants.WHEEL_kD,
-          new TrapezoidProfile.Constraints(2 * Math.PI, Math.PI));
-
-  private final MutVoltage wheelDesiredVoltage = Volts.mutable(0);
+  private double desiredVelocityRadPerSec = 0.0;
   private boolean wheelVoltageMode = false;
+  private final MutVoltage wheelDesiredVoltage = Volts.mutable(0);
 
   public FlywheelIOReal() {
     configureMotors();
-    wheelPID.reset(0);
   }
 
   private void configureMotors() {
@@ -55,6 +42,14 @@ public class FlywheelIOReal implements FlywheelIO {
 
     // 1:1 belt ratio (24T to 24T), no gear reduction
     leaderConfig.Feedback.SensorToMechanismRatio = FlywheelConstants.GEAR_RATIO;
+
+    // Slot 0 Configs (PID + FF)
+    leaderConfig.Slot0.kP = FlywheelConstants.WHEEL_kP;
+    leaderConfig.Slot0.kI = FlywheelConstants.WHEEL_kI;
+    leaderConfig.Slot0.kD = FlywheelConstants.WHEEL_kD;
+    leaderConfig.Slot0.kS = FlywheelConstants.WHEEL_kS;
+    leaderConfig.Slot0.kV = FlywheelConstants.WHEEL_kV;
+    leaderConfig.Slot0.kA = FlywheelConstants.WHEEL_kA;
 
     wheelLeader.getConfigurator().apply(leaderConfig);
 
@@ -76,17 +71,16 @@ public class FlywheelIOReal implements FlywheelIO {
   public void updateInputs(FlywheelIOInputs inputs) {
     if (wheelVoltageMode) {
       wheelLeader.setControl(voltageRequest.withOutput(wheelDesiredVoltage.in(Volts)));
-      wheelPID.reset(getVelocityRadPerSec());
     } else {
-      double pid = wheelPID.calculate(getVelocityRadPerSec());
-      double volts = MathUtil.clamp(pid, -12.0, 12.0);
-      wheelLeader.setControl(voltageRequest.withOutput(volts));
+      // Convert rad/s to rot/s for TalonFX
+      double desiredRotationsPerSec = desiredVelocityRadPerSec / (2 * Math.PI);
+      wheelLeader.setControl(velocityRequest.withVelocity(desiredRotationsPerSec));
     }
 
     inputs.wheelPosition = Radians.of(getPositionRad());
     inputs.wheelVelocity = RadiansPerSecond.of(getVelocityRadPerSec());
-    inputs.wheelDesiredVelocity = RadiansPerSecond.of(wheelPID.getGoal().position);
-    inputs.wheelVelocitySetpoint = RadiansPerSecond.of(wheelPID.getSetpoint().position);
+    inputs.wheelDesiredVelocity = RadiansPerSecond.of(desiredVelocityRadPerSec);
+    inputs.wheelVelocitySetpoint = RadiansPerSecond.of(desiredVelocityRadPerSec);
     inputs.wheelAppliedVolts = Volts.of(wheelLeader.getMotorVoltage().getValueAsDouble());
     inputs.wheelSupplyCurrent = Amps.of(wheelLeader.getSupplyCurrent().getValueAsDouble());
     inputs.wheelTemperature = Celsius.of(wheelLeader.getDeviceTemp().getValueAsDouble());
@@ -116,12 +110,12 @@ public class FlywheelIOReal implements FlywheelIO {
   @Override
   public void setWheelVelocitySetpoint(AngularVelocity velocity) {
     wheelVoltageMode = false;
-    wheelPID.reset(getVelocityRadPerSec());
-    wheelPID.setGoal(velocity.in(RadiansPerSecond));
+    desiredVelocityRadPerSec = velocity.in(RadiansPerSecond);
   }
 
   @Override
   public void enabledInit() {
-    wheelPID.reset(getVelocityRadPerSec());
+    // No explicit reset needed for TalonFX velocity control usually, unless we want to clear
+    // integral accumulators
   }
 }
