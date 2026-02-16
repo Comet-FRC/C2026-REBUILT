@@ -6,7 +6,9 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.Units;
 import frc.robot.FieldConstants;
+import frc.robot.subsystems.turret.TurretConstants;
 import java.util.Map;
 import org.littletonrobotics.junction.Logger;
 
@@ -124,7 +126,7 @@ public class ShotCalculator {
     Logger.recordOutput("ShotCalculator/RawDistance", rawDistance);
     Logger.recordOutput("ShotCalculator/CorrectedDistance", correctedDistance);
     Logger.recordOutput(
-        "ShotCalculator/TurretAngleDeg", turretAngle.in(edu.wpi.first.units.Units.Degrees));
+        "ShotCalculator/TurretAngleDeg", turretAngle.in(Units.Degrees));
     Logger.recordOutput("ShotCalculator/FlywheelRPM", flywheelSpeedRPM);
     Logger.recordOutput("ShotCalculator/HoodAngleDeg", hoodAngleDegrees);
     Logger.recordOutput("ShotCalculator/IsValid", isValid);
@@ -140,40 +142,41 @@ public class ShotCalculator {
   }
 
   /**
-   * Finds the best physical angle for the turret to move to, considering the one-directional chain
-   * (limited but >360 range) and current position to minimize travel.
+   * Helper function to handle the Turret's wrapping logic.
+   *
+   * <p>Our turret can rotate from 0 to 450 degrees (for example). <br>
+   * If we need to aim at 10 degrees, but we are currently at 380 degrees, it's faster to rotate to
+   * 370 degrees (which is the same direction) than to spin all the way back to 10.
+   *
+   * @param targetRelativeAngle The angle we *want* to aim at (normalized -180 to 180).
+   * @param currentTurretPosition Where the turret actually IS right now.
+   * @return The best absolute angle to drive the motor to.
    */
   private static Angle findBestTurretAngle(
-      Rotation2d targetRelativeAngle,
-      Angle currentTurretPosition) { // Changed from Rotation2d to Angle
-    // Physical limits from constants
-    double minDeg =
-        frc.robot.subsystems.turret.TurretConstants.MIN_ANGLE.in(edu.wpi.first.units.Units.Degrees);
-    double maxDeg =
-        frc.robot.subsystems.turret.TurretConstants.MAX_ANGLE.in(edu.wpi.first.units.Units.Degrees);
-
-    // The target angle is somewhere in [-180, 180]. Be careful with normalization.
-    // We want to find k such that (target + k*360) is in [min, max].
-    // There might be multiple valid k's (e.g., 20 deg and 380 deg).
-    // We choose the one closest to currentRelativeAngle to minimize movement.
+      Rotation2d targetRelativeAngle, Angle currentTurretPosition) {
+    double minDeg = TurretConstants.MIN_ANGLE.in(Units.Degrees);
+    double maxDeg = TurretConstants.MAX_ANGLE.in(Units.Degrees);
 
     double targetDeg = targetRelativeAngle.getDegrees();
-    double currentDeg =
-        currentTurretPosition.in(edu.wpi.first.units.Units.Degrees); // Use absolute magnitude
+    double currentDeg = currentTurretPosition.in(Units.Degrees);
 
-    // Candidates: target, target+360, target-360...
-    // Since range is [0, 450], we likely only need to check k=0, k=1.
-    // Or maybe k=-1 if target is large and we want small? No, target is usually normalized.
-    // Let's just generate a few reasonable candidates.
+    // Generate all possible ways to aim at this angle.
+    // Since 0 degrees is the same as 360 degrees and 720 degrees...
+    // We check: The target itself, target + 1 full rotation, target - 1 full rotation.
     double[] candidates = {targetDeg, targetDeg + 360.0, targetDeg - 360.0, targetDeg + 720.0};
 
-    double bestAngle = currentDeg; // Default to staying put if everything fails (shouldn't happen)
+    double bestAngle = currentDeg; // Default to staying put (safety)
     double minError = Double.MAX_VALUE;
     boolean foundValid = false;
 
+    // Check each candidate
     for (double cand : candidates) {
+      // 1. Is this candidate physically possible? (Within 0 to 450 limits)
       if (cand >= minDeg && cand <= maxDeg) {
+        // 2. How far would we have to move to get there?
         double error = Math.abs(cand - currentDeg);
+
+        // 3. Keep the one that requires the LEAST movement.
         if (error < minError) {
           minError = error;
           bestAngle = cand;
@@ -182,26 +185,22 @@ public class ShotCalculator {
       }
     }
 
-    // If no valid angle found in range (e.g. target is barely out of reach in a dead zone),
-    // clamp to the closest limit.
-    if (!foundValid) {
-      // Fallback: clamp to limits to avoid out-of-bounds command
-      if (targetDeg > maxDeg) return frc.robot.subsystems.turret.TurretConstants.MAX_ANGLE;
-      if (targetDeg < minDeg) return frc.robot.subsystems.turret.TurretConstants.MIN_ANGLE;
-      // If we are here, it's weird, but return clamped target
-      return edu.wpi.first.units.Units.Degrees.of(Math.max(minDeg, Math.min(maxDeg, targetDeg)));
-    }
-
-    return edu.wpi.first.units.Units.Degrees.of(bestAngle);
-  }
-
-  /** Just tells you which quadrant (1-4) an angle is in. Handy for logging. */
-  public static int getQuadrant(Angle robotRelativeAngle) {
-    double deg = robotRelativeAngle.in(edu.wpi.first.units.Units.Degrees);
-    // Normalize to [-180, 180] for quadrant check if needed, but usually quadrant 1 is 0-90
-    // If Angle is 370, that's 10 deg, which is Q1.
-    // We should normalize simple degree check.
-    deg %= 360;
+    // Edge Case: What if the target is in a "dead zone" we can't reach?
+    // e.g., We can only go 0-450, but the target is at -10.
+     if (!foundValid) {
+      // Just clamp to the nearest limit so we aim as close as possible.
+       if (targetDeg > maxDeg) return TurretConstants.MAX_ANGLE;
+       if (targetDeg < minDeg) return TurretConstants.MIN_ANGLE;
+       return Units.Degrees.of(Math.max(minDeg, Math.min(maxDeg, targetDeg)));
+     }
+ 
+     return Units.Degrees.of(bestAngle);
+   }
+ 
+  /** Handy helper to check which quadrant (1, 2, 3, 4) the turret is facing. */
+   public static int getQuadrant(Angle robotRelativeAngle) {
+     double deg = robotRelativeAngle.in(Units.Degrees);
+     deg %= 360;
     if (deg > 180) deg -= 360;
     if (deg < -180) deg += 360;
 

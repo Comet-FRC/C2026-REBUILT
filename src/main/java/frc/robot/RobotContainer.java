@@ -272,7 +272,15 @@ public class RobotContainer {
             flywheel
                 .setWheelVelocity(() -> RPM.of(3000))
                 .alongWith(
-                    Commands.waitUntil(() -> flywheel.atSpeed(RPM.of(3000), RPM.of(100)))
+                    Commands.waitUntil(
+                            () -> {
+                              boolean atSpeed = flywheel.atSpeed(RPM.of(3000), RPM.of(100));
+                              Logger.recordOutput("SimpleShoot/AtSpeed", atSpeed);
+                              Logger.recordOutput(
+                                  "SimpleShoot/FlywheelErrorRPM",
+                                  flywheel.getVelocity().minus(RPM.of(3000)).in(RPM));
+                              return atSpeed;
+                            })
                         .andThen(
                             Commands.parallel(
                                 kicker.setVoltage(() -> Volts.of(4)),
