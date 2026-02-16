@@ -3,7 +3,6 @@ package frc.robot.commands;
 import static edu.wpi.first.units.Units.*;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -48,9 +47,7 @@ public class AutoAimCommand extends Command {
     ChassisSpeeds fieldVelocity = drive.getFieldVelocity();
 
     // Run the shot calculator — this handles all the math
-    latestParameters =
-        ShotCalculator.calculate(
-            robotPose, fieldVelocity, Rotation2d.fromRadians(turret.getPosition().in(Radians)));
+    latestParameters = ShotCalculator.calculate(robotPose, fieldVelocity, turret.getPosition());
 
     // Tell the turret where to point
     Angle turretAngle = latestParameters.turretAngle();

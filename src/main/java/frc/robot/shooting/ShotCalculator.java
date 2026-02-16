@@ -61,7 +61,9 @@ public class ShotCalculator {
    * the turret, how fast to spin the flywheel, and what hood angle to use.
    */
   public static ShotParameters calculate(
-      Pose2d robotPose, ChassisSpeeds fieldVelocity, Rotation2d currentTurretAngle) {
+      Pose2d robotPose,
+      ChassisSpeeds fieldVelocity,
+      Angle currentTurretPosition) { // Changed from Rotation2d to Angle
     // Figure out which quadrant we're in and grab that target
     Translation2d target = FieldConstants.getTargetForRobot2d(robotPose);
     int activeQuadrant = FieldConstants.getRobotQuadrant(robotPose);
@@ -107,7 +109,7 @@ public class ShotCalculator {
     Rotation2d idealTurretRelativeAngle = fieldAngleToTarget.minus(robotPose.getRotation());
 
     // Find the best physical angle for the turret given its limits and current position
-    Angle turretAngle = findBestTurretAngle(idealTurretRelativeAngle, currentTurretAngle);
+    Angle turretAngle = findBestTurretAngle(idealTurretRelativeAngle, currentTurretPosition);
 
     // Look up the flywheel and hood settings for this distance
     double flywheelSpeedRPM = FLYWHEEL_SPEED_BY_DISTANCE.get(correctedDistance);
@@ -121,7 +123,8 @@ public class ShotCalculator {
     // Log everything so we can debug in AdvantageScope
     Logger.recordOutput("ShotCalculator/RawDistance", rawDistance);
     Logger.recordOutput("ShotCalculator/CorrectedDistance", correctedDistance);
-    Logger.recordOutput("ShotCalculator/TurretAngleDeg", turretAngle.in(edu.wpi.first.units.Units.Degrees));
+    Logger.recordOutput(
+        "ShotCalculator/TurretAngleDeg", turretAngle.in(edu.wpi.first.units.Units.Degrees));
     Logger.recordOutput("ShotCalculator/FlywheelRPM", flywheelSpeedRPM);
     Logger.recordOutput("ShotCalculator/HoodAngleDeg", hoodAngleDegrees);
     Logger.recordOutput("ShotCalculator/IsValid", isValid);
@@ -141,10 +144,13 @@ public class ShotCalculator {
    * (limited but >360 range) and current position to minimize travel.
    */
   private static Angle findBestTurretAngle(
-      Rotation2d targetRelativeAngle, Rotation2d currentRelativeAngle) {
+      Rotation2d targetRelativeAngle,
+      Angle currentTurretPosition) { // Changed from Rotation2d to Angle
     // Physical limits from constants
-    double minDeg = frc.robot.subsystems.turret.TurretConstants.MIN_ANGLE.in(edu.wpi.first.units.Units.Degrees);
-    double maxDeg = frc.robot.subsystems.turret.TurretConstants.MAX_ANGLE.in(edu.wpi.first.units.Units.Degrees);
+    double minDeg =
+        frc.robot.subsystems.turret.TurretConstants.MIN_ANGLE.in(edu.wpi.first.units.Units.Degrees);
+    double maxDeg =
+        frc.robot.subsystems.turret.TurretConstants.MAX_ANGLE.in(edu.wpi.first.units.Units.Degrees);
 
     // The target angle is somewhere in [-180, 180]. Be careful with normalization.
     // We want to find k such that (target + k*360) is in [min, max].
@@ -152,15 +158,14 @@ public class ShotCalculator {
     // We choose the one closest to currentRelativeAngle to minimize movement.
 
     double targetDeg = targetRelativeAngle.getDegrees();
-    double currentDeg = currentRelativeAngle.getDegrees();
+    double currentDeg =
+        currentTurretPosition.in(edu.wpi.first.units.Units.Degrees); // Use absolute magnitude
 
     // Candidates: target, target+360, target-360...
     // Since range is [0, 450], we likely only need to check k=0, k=1.
     // Or maybe k=-1 if target is large and we want small? No, target is usually normalized.
     // Let's just generate a few reasonable candidates.
-    double[] candidates = {
-      targetDeg, targetDeg + 360.0, targetDeg - 360.0, targetDeg + 720.0
-    };
+    double[] candidates = {targetDeg, targetDeg + 360.0, targetDeg - 360.0, targetDeg + 720.0};
 
     double bestAngle = currentDeg; // Default to staying put if everything fails (shouldn't happen)
     double minError = Double.MAX_VALUE;
@@ -180,8 +185,11 @@ public class ShotCalculator {
     // If no valid angle found in range (e.g. target is barely out of reach in a dead zone),
     // clamp to the closest limit.
     if (!foundValid) {
-      // Fallback: just return normalized target if something is weird.
-      return edu.wpi.first.units.Units.Degrees.of(targetDeg);
+      // Fallback: clamp to limits to avoid out-of-bounds command
+      if (targetDeg > maxDeg) return frc.robot.subsystems.turret.TurretConstants.MAX_ANGLE;
+      if (targetDeg < minDeg) return frc.robot.subsystems.turret.TurretConstants.MIN_ANGLE;
+      // If we are here, it's weird, but return clamped target
+      return edu.wpi.first.units.Units.Degrees.of(Math.max(minDeg, Math.min(maxDeg, targetDeg)));
     }
 
     return edu.wpi.first.units.Units.Degrees.of(bestAngle);

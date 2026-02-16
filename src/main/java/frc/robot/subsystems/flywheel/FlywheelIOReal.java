@@ -115,6 +115,7 @@ public class FlywheelIOReal implements FlywheelIO {
 
   @Override
   public void enabledInit() {
-    // No explicit reset needed for TalonFX velocity control usually, unless we want to clear integral accumulators
+    // No explicit reset needed for TalonFX velocity control usually, unless we want to clear
+    // integral accumulators
   }
 }

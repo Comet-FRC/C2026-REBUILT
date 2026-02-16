@@ -14,7 +14,6 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
-import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.subsystems.turret.TurretConstants.MANUAL_CONTROL_VOLTAGE;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
@@ -264,6 +263,20 @@ public class RobotContainer {
     //     .rightTrigger()
     //     .whileTrue(
     //         new AutoFireCommand(turret, flywheel, kicker, autoAimCommand::getLatestParameters));
+    
+    // Simple Shoot Button (Right Trigger)
+    // Overrides turret tracking (which stops due to requirement conflict)
+    controller
+        .rightTrigger()
+        .whileTrue(
+            flywheel
+                .setWheelVelocity(() -> RPM.of(3000))
+                .alongWith(
+                    Commands.waitUntil(() -> flywheel.atSpeed(RPM.of(3000), RPM.of(100)))
+                        .andThen(
+                            Commands.parallel(
+                                kicker.setVoltage(() -> Volts.of(4)),
+                                indexer.setRollerVoltage(() -> Volts.of(4))))));
 
     if (Constants.currentMode == Constants.Mode.SIM) {
       configureSimulationBindings();

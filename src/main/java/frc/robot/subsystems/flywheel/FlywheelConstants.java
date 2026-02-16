@@ -18,7 +18,7 @@ public class FlywheelConstants {
   public static final double WHEEL_kP = 0.278; // 1.16 * 0.2394
   public static final double WHEEL_kI = 0;
   public static final double WHEEL_kD = 0;
-  
+
   public static final double WHEEL_kS = 0;
   public static final double WHEEL_kV = 0.124; // 0.52 * 0.2394
   public static final double WHEEL_kA = 0.012; // 0.05 * 0.2394

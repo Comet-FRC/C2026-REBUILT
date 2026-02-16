@@ -53,7 +53,8 @@ public class TurretIOReal implements TurretIO {
 
     // Software limits (hard stops)
     config.SoftwareLimitSwitch.ForwardSoftLimitThreshold =
-        TurretConstants.MAX_ANGLE.in(Radians) / (2 * Math.PI); //Test this first and then * GEAR_RATIO;
+        TurretConstants.MAX_ANGLE.in(Radians)
+            / (2 * Math.PI); // Test this first and then * GEAR_RATIO;
     config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
 
     config.SoftwareLimitSwitch.ReverseSoftLimitThreshold =
@@ -106,7 +107,7 @@ public class TurretIOReal implements TurretIO {
 
   @Override
   public void setPositionSetpoint(Angle position) {
-    voltageMode = false;    
+    voltageMode = false;
     turretPID.setGoal(position.in(Radians));
   }
 
