@@ -3,6 +3,7 @@ package frc.robot.commands;
 import static edu.wpi.first.units.Units.*;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -47,10 +48,12 @@ public class AutoAimCommand extends Command {
     ChassisSpeeds fieldVelocity = drive.getFieldVelocity();
 
     // Run the shot calculator — this handles all the math
-    latestParameters = ShotCalculator.calculate(robotPose, fieldVelocity);
+    latestParameters =
+        ShotCalculator.calculate(
+            robotPose, fieldVelocity, Rotation2d.fromRadians(turret.getPosition().in(Radians)));
 
     // Tell the turret where to point
-    Angle turretAngle = Radians.of(latestParameters.turretAngle().getRadians());
+    Angle turretAngle = latestParameters.turretAngle();
     turret.io.setPositionSetpoint(turretAngle);
 
     // Spin up the flywheel to the right speed for this distance
@@ -64,7 +67,7 @@ public class AutoAimCommand extends Command {
     // Log for AdvantageScope debugging
     int quadrant = ShotCalculator.getQuadrant(latestParameters.turretAngle());
     Logger.recordOutput("AutoAim/Quadrant", quadrant);
-    Logger.recordOutput("AutoAim/TurretTargetDeg", latestParameters.turretAngle().getDegrees());
+    Logger.recordOutput("AutoAim/TurretTargetDeg", latestParameters.turretAngle().in(Degrees));
     Logger.recordOutput("AutoAim/FlywheelTargetRPM", latestParameters.flywheelSpeedRPM());
     Logger.recordOutput("AutoAim/HoodAngleDeg", latestParameters.hoodAngleDegrees());
     Logger.recordOutput("AutoAim/ShotValid", latestParameters.isValid());

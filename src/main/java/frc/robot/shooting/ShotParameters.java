@@ -1,6 +1,6 @@
 package frc.robot.shooting;
 
-import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.measure.Angle;
 
 /**
  * Everything the shot calculator figures out, bundled together. The auto-aim command reads these
@@ -8,7 +8,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
  */
 public record ShotParameters(
     boolean isValid, // Are we actually in range to score?
-    Rotation2d turretAngle, // Where the turret should point (robot-relative)
+    Angle turretAngle, // Where the turret should point (robot-relative, can be > 360)
     double flywheelSpeedRPM, // How fast to spin the flywheel
     double hoodAngleDegrees, // What angle the hood should be at
     double distanceToTarget) {} // How far we are from the target (after motion correction)

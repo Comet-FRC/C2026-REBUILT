@@ -212,11 +212,12 @@ public class RobotContainer {
 
     this.kicker.setDefaultCommand(this.kicker.setVoltage(() -> Volts.of(0.0)));
 
-    // TODO: CHECK LOGIC
-    // // Auto-aim: turret continuously tracks target, flywheel spins up to calculated speed
-    // this.autoAimCommand = new AutoAimCommand(drive, turret, flywheel, hood);
+    // Auto-aim: turret continuously tracks target, flywheel spins up to calculated speed
+    this.autoAimCommand = new AutoAimCommand(drive, turret, flywheel, hood);
 
-    this.turret.setDefaultCommand(this.turret.setVoltage(() -> Volts.of(0.0)));
+    this.turret.setDefaultCommand(autoAimCommand);
+    this.flywheel.setDefaultCommand(autoAimCommand);
+    this.hood.setDefaultCommand(autoAimCommand);
   }
 
   /**
@@ -263,6 +264,40 @@ public class RobotContainer {
     //     .rightTrigger()
     //     .whileTrue(
     //         new AutoFireCommand(turret, flywheel, kicker, autoAimCommand::getLatestParameters));
+
+    if (Constants.currentMode == Constants.Mode.SIM) {
+      configureSimulationBindings();
+    }
+  }
+
+  private void configureSimulationBindings() {
+    // Test Q1 (Top Left)
+    controller
+        .up()
+        .onTrue(
+            Commands.runOnce(
+                () -> drive.setPose(new Pose2d(2.0, 6.0, Rotation2d.fromDegrees(0))), drive));
+
+    // Test Q2 (Top Right)
+    controller
+        .right()
+        .onTrue(
+            Commands.runOnce(
+                () -> drive.setPose(new Pose2d(14.0, 6.0, Rotation2d.fromDegrees(180))), drive));
+
+    // Test Q4 (Bottom Right)
+    controller
+        .down()
+        .onTrue(
+            Commands.runOnce(
+                () -> drive.setPose(new Pose2d(14.0, 2.0, Rotation2d.fromDegrees(180))), drive));
+
+    // Test Q3 (Bottom Left)
+    controller
+        .left()
+        .onTrue(
+            Commands.runOnce(
+                () -> drive.setPose(new Pose2d(2.0, 2.0, Rotation2d.fromDegrees(0))), drive));
   }
 
   /**

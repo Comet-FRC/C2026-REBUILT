@@ -106,7 +106,8 @@ public class TurretIOReal implements TurretIO {
 
   @Override
   public void setPositionSetpoint(Angle position) {
-    voltageMode = false;    turretPID.setGoal(position.in(Radians));
+    voltageMode = false;    
+    turretPID.setGoal(position.in(Radians));
   }
 
   @Override

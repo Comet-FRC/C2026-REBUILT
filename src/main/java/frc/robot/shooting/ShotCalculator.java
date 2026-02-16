@@ -5,6 +5,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.measure.Angle;
 import frc.robot.FieldConstants;
 import java.util.Map;
 import org.littletonrobotics.junction.Logger;
@@ -59,7 +60,8 @@ public class ShotCalculator {
    * Does all the shot math. Give it the robot's pose and velocity, and it tells you where to aim
    * the turret, how fast to spin the flywheel, and what hood angle to use.
    */
-  public static ShotParameters calculate(Pose2d robotPose, ChassisSpeeds fieldVelocity) {
+  public static ShotParameters calculate(
+      Pose2d robotPose, ChassisSpeeds fieldVelocity, Rotation2d currentTurretAngle) {
     // Figure out which quadrant we're in and grab that target
     Translation2d target = FieldConstants.getTargetForRobot2d(robotPose);
     int activeQuadrant = FieldConstants.getRobotQuadrant(robotPose);
@@ -102,10 +104,10 @@ public class ShotCalculator {
     Rotation2d fieldAngleToTarget = vectorToTarget.getAngle();
 
     // Subtract robot heading to get turret angle relative to robot front
-    Rotation2d turretAngle = fieldAngleToTarget.minus(robotPose.getRotation());
+    Rotation2d idealTurretRelativeAngle = fieldAngleToTarget.minus(robotPose.getRotation());
 
-    // Keep it in the [-180, 180] range so the turret takes the shortest path
-    turretAngle = normalizeToTurretRange(turretAngle);
+    // Find the best physical angle for the turret given its limits and current position
+    Angle turretAngle = findBestTurretAngle(idealTurretRelativeAngle, currentTurretAngle);
 
     // Look up the flywheel and hood settings for this distance
     double flywheelSpeedRPM = FLYWHEEL_SPEED_BY_DISTANCE.get(correctedDistance);
@@ -119,7 +121,7 @@ public class ShotCalculator {
     // Log everything so we can debug in AdvantageScope
     Logger.recordOutput("ShotCalculator/RawDistance", rawDistance);
     Logger.recordOutput("ShotCalculator/CorrectedDistance", correctedDistance);
-    Logger.recordOutput("ShotCalculator/TurretAngleDeg", turretAngle.getDegrees());
+    Logger.recordOutput("ShotCalculator/TurretAngleDeg", turretAngle.in(edu.wpi.first.units.Units.Degrees));
     Logger.recordOutput("ShotCalculator/FlywheelRPM", flywheelSpeedRPM);
     Logger.recordOutput("ShotCalculator/HoodAngleDeg", hoodAngleDegrees);
     Logger.recordOutput("ShotCalculator/IsValid", isValid);
@@ -135,23 +137,66 @@ public class ShotCalculator {
   }
 
   /**
-   * Keeps the turret angle in [-180, 180] so it always takes the shortest path. TODO: Once we know
-   * the physical turret limits, add clamping here to prevent hitting hard stops.
+   * Finds the best physical angle for the turret to move to, considering the one-directional chain
+   * (limited but >360 range) and current position to minimize travel.
    */
-  private static Rotation2d normalizeToTurretRange(Rotation2d angle) {
-    double degrees = angle.getDegrees();
-    while (degrees > 180.0) degrees -= 360.0;
-    while (degrees < -180.0) degrees += 360.0;
+  private static Angle findBestTurretAngle(
+      Rotation2d targetRelativeAngle, Rotation2d currentRelativeAngle) {
+    // Physical limits from constants
+    double minDeg = frc.robot.subsystems.turret.TurretConstants.MIN_ANGLE.in(edu.wpi.first.units.Units.Degrees);
+    double maxDeg = frc.robot.subsystems.turret.TurretConstants.MAX_ANGLE.in(edu.wpi.first.units.Units.Degrees);
 
-    // TODO: When we know the turret's physical limits, clamp the angle here
-    // or pick the alternate direction if we'd hit a stop.
+    // The target angle is somewhere in [-180, 180]. Be careful with normalization.
+    // We want to find k such that (target + k*360) is in [min, max].
+    // There might be multiple valid k's (e.g., 20 deg and 380 deg).
+    // We choose the one closest to currentRelativeAngle to minimize movement.
 
-    return Rotation2d.fromDegrees(degrees);
+    double targetDeg = targetRelativeAngle.getDegrees();
+    double currentDeg = currentRelativeAngle.getDegrees();
+
+    // Candidates: target, target+360, target-360...
+    // Since range is [0, 450], we likely only need to check k=0, k=1.
+    // Or maybe k=-1 if target is large and we want small? No, target is usually normalized.
+    // Let's just generate a few reasonable candidates.
+    double[] candidates = {
+      targetDeg, targetDeg + 360.0, targetDeg - 360.0, targetDeg + 720.0
+    };
+
+    double bestAngle = currentDeg; // Default to staying put if everything fails (shouldn't happen)
+    double minError = Double.MAX_VALUE;
+    boolean foundValid = false;
+
+    for (double cand : candidates) {
+      if (cand >= minDeg && cand <= maxDeg) {
+        double error = Math.abs(cand - currentDeg);
+        if (error < minError) {
+          minError = error;
+          bestAngle = cand;
+          foundValid = true;
+        }
+      }
+    }
+
+    // If no valid angle found in range (e.g. target is barely out of reach in a dead zone),
+    // clamp to the closest limit.
+    if (!foundValid) {
+      // Fallback: just return normalized target if something is weird.
+      return edu.wpi.first.units.Units.Degrees.of(targetDeg);
+    }
+
+    return edu.wpi.first.units.Units.Degrees.of(bestAngle);
   }
 
   /** Just tells you which quadrant (1-4) an angle is in. Handy for logging. */
-  public static int getQuadrant(Rotation2d robotRelativeAngle) {
-    double deg = robotRelativeAngle.getDegrees();
+  public static int getQuadrant(Angle robotRelativeAngle) {
+    double deg = robotRelativeAngle.in(edu.wpi.first.units.Units.Degrees);
+    // Normalize to [-180, 180] for quadrant check if needed, but usually quadrant 1 is 0-90
+    // If Angle is 370, that's 10 deg, which is Q1.
+    // We should normalize simple degree check.
+    deg %= 360;
+    if (deg > 180) deg -= 360;
+    if (deg < -180) deg += 360;
+
     if (deg >= 0 && deg < 90) return 1;
     if (deg >= 90 && deg <= 180) return 4;
     if (deg < 0 && deg >= -90) return 2;
