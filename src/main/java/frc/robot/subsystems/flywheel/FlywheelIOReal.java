@@ -63,7 +63,8 @@ public class FlywheelIOReal implements FlywheelIO {
     wheelFollower.getConfigurator().apply(followerConfig);
 
     // Follower opposes leader direction (counter-rotating flywheels)
-    wheelFollower.setControl(new Follower(FlywheelConstants.FLYWHEEL_LEADER_ID, MotorAlignmentValue.Opposed));
+    wheelFollower.setControl(
+        new Follower(FlywheelConstants.FLYWHEEL_LEADER_ID, MotorAlignmentValue.Opposed));
   }
 
   @Override
