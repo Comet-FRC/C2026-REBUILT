@@ -14,8 +14,6 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
-import static edu.wpi.first.units.Units.Volts;
-import static frc.robot.subsystems.turret.TurretConstants.MANUAL_CONTROL_VOLTAGE;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -28,7 +26,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.AutoAimCommand;
-import frc.robot.commands.AutoFireCommand;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.*;
@@ -44,6 +41,7 @@ import frc.robot.subsystems.turret.*;
 import frc.robot.subsystems.vision.*;
 import frc.robot.subsystems.vision.VisionConstants.Camera;
 import frc.robot.util.LoggedTunableNumber;
+import frc.robot.util.ProximitySensor;
 import frc.robot.util.controller.CometLogitechController;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -67,6 +65,7 @@ public class RobotContainer {
   private final Turret turret;
   private final Hood hood;
   private SwerveDriveSimulation driveSimulation = null;
+  private final ProximitySensor sensor;
 
   // Auto-aim command (stored as field so AutoFireCommand can access shot parameters)
   private AutoAimCommand autoAimCommand;
@@ -76,18 +75,23 @@ public class RobotContainer {
 
   // Tunable values
   private final LoggedTunableNumber intakeWheelVolts =
-      new LoggedTunableNumber("Intake/WheelVolts", 5.0);
+      new LoggedTunableNumber("Intake/WheelVolts", 0.0);
 
-  private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 179.0);
+  private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 100.0);
 
   private final LoggedTunableNumber indexerRollerVolts =
       new LoggedTunableNumber("Indexer/RollerVolts", 0.0);
+
+  private final LoggedTunableNumber turretVolts = new LoggedTunableNumber("Turret/Volts", 0.5);
+  private final LoggedTunableNumber flywheelVolts = new LoggedTunableNumber("Flywheel/Volts", 5);
+  private final LoggedTunableNumber kickerVolts = new LoggedTunableNumber("Kicker/Volts", 5);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    this.sensor = new ProximitySensor();
     switch (Constants.currentMode) {
       case REAL:
         // Real robot, instantiate hardware IO implementations
@@ -213,11 +217,13 @@ public class RobotContainer {
 
     this.kicker.setDefaultCommand(this.kicker.setVoltage(() -> Volts.of(0.0)));
 
-    //TODO: CHECK LOGIC    
+    // TODO: CHECK LOGIC
     // // Auto-aim: turret continuously tracks target, flywheel spins up to calculated speed
     // this.autoAimCommand = new AutoAimCommand(drive, turret, flywheel, hood);
 
     this.turret.setDefaultCommand(this.turret.setVoltage(() -> Volts.of(0.0)));
+
+    this.flywheel.setDefaultCommand(this.flywheel.setWheelVoltage(() -> Volts.of(0.0)));
   }
 
   /**
@@ -246,20 +252,16 @@ public class RobotContainer {
         .onTrue(
             Commands.runOnce(() -> drive.resetHeadingWithAlliance(), drive).ignoringDisable(true));
 
-    controller.y().whileTrue(this.intake.setPivotVoltage(() -> Volts.of(2)));
+    controller.y().whileTrue(this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())));
 
-    controller.b().whileTrue(this.intake.setPivotVoltage(() -> Volts.of(-2)));
+    controller.b().whileTrue(this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())));
 
+    controller.up().whileTrue(this.flywheel.setWheelVoltage(() -> Volts.of(flywheelVolts.get())));
     // Manual turret control
-    controller
-        .leftBumper()
-        .whileTrue(this.turret.setVoltage(() -> Volts.of(MANUAL_CONTROL_VOLTAGE)));
-    controller
-        .rightBumper()
-        .whileTrue(this.turret.setVoltage(() -> Volts.of(-MANUAL_CONTROL_VOLTAGE)));  
-        
-        
-    //TODO: CHECK LOGIC    
+    controller.leftBumper().whileTrue(this.turret.setVoltage(() -> Volts.of(turretVolts.get())));
+    controller.rightBumper().whileTrue(this.turret.setVoltage(() -> Volts.of(-turretVolts.get())));
+
+    // TODO: CHECK LOGIC
     // // Auto-fire: when held, kicker fires automatically when turret is aimed + flywheel at speed
     // controller
     //     .rightTrigger()

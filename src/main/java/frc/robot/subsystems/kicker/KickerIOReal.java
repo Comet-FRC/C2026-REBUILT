@@ -40,7 +40,7 @@ public class KickerIOReal implements KickerIO {
 
     // Right motor config (inverted)
     SparkMaxConfig rightConfig = new SparkMaxConfig();
-    rightConfig.inverted(true).idleMode(IdleMode.kCoast).smartCurrentLimit(30);
+    rightConfig.inverted(false).idleMode(IdleMode.kCoast).smartCurrentLimit(30);
     rightConfig
         .encoder
         .positionConversionFactor(KickerConstants.WHEEL_CONVERSION_FACTOR)
