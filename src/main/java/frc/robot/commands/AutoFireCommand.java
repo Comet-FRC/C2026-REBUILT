@@ -38,7 +38,6 @@ public class AutoFireCommand extends Command {
     this.kicker = kicker;
     this.parametersSupplier = parametersSupplier;
 
-    // Only need kicker — turret and flywheel are handled by AutoAimCommand
     addRequirements(kicker);
   }
 

@@ -14,12 +14,15 @@ public final class TurretConstants {
   // Turret diameter: 6.875 inches
   public static final double TURRET_DIAMETER_INCHES = 6.875;
 
+  // Manual control voltage
+  public static final double MANUAL_CONTROL_VOLTAGE = 3.0;
+
   // Conversion factor: motor rotations to turret radians
   public static final double TURRET_CONVERSION_FACTOR = 2 * Math.PI / GEAR_RATIO;
 
   // Soft limits for turret rotation (adjust based on physical limits)
-  public static final Angle MIN_ANGLE = Degrees.of(-180.0);
-  public static final Angle MAX_ANGLE = Degrees.of(180.0);
+  public static final Angle MIN_ANGLE = Degrees.of(0.0);
+  public static final Angle MAX_ANGLE = Degrees.of(450.0);
 
   // Tolerance for "at setpoint" checks (NEEDS TUNING)
   public static final Angle TURRET_TOLERANCE = Degrees.of(2.0);

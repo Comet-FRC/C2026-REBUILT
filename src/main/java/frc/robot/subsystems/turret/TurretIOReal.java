@@ -30,8 +30,9 @@ public class TurretIOReal implements TurretIO {
 
   public TurretIOReal() {
     configureTurretMotor();
+    resetPosition(Degrees.of(0));
     turretPID.reset(0);
-    turretPID.enableContinuousInput(-Math.PI, Math.PI);
+    // turretPID.enableContinuousInput(-Math.PI, Math.PI); // Disabled for limited range turret
   }
 
   private void configureTurretMotor() {
@@ -49,6 +50,16 @@ public class TurretIOReal implements TurretIO {
 
     // Gear ratio for position/velocity readings
     config.Feedback.SensorToMechanismRatio = TurretConstants.GEAR_RATIO;
+
+    // Software limits (hard stops)
+    config.SoftwareLimitSwitch.ForwardSoftLimitThreshold =
+        TurretConstants.MAX_ANGLE.in(Radians)
+            / (2 * Math.PI); // Test this first and then * GEAR_RATIO;
+    config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
+
+    config.SoftwareLimitSwitch.ReverseSoftLimitThreshold =
+        TurretConstants.MIN_ANGLE.in(Radians) / (2 * Math.PI); // Rotations
+    config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
 
     turretMotor.getConfigurator().apply(config);
   }
@@ -97,7 +108,6 @@ public class TurretIOReal implements TurretIO {
   @Override
   public void setPositionSetpoint(Angle position) {
     voltageMode = false;
-    turretPID.reset(getTurretPosition());
     turretPID.setGoal(position.in(Radians));
   }
 

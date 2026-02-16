@@ -14,7 +14,7 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
-import static edu.wpi.first.units.Units.Volts;
+import static frc.robot.subsystems.turret.TurretConstants.MANUAL_CONTROL_VOLTAGE;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -27,7 +27,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.AutoAimCommand;
-import frc.robot.commands.AutoFireCommand;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.*;
@@ -214,7 +213,10 @@ public class RobotContainer {
 
     // Auto-aim: turret continuously tracks target, flywheel spins up to calculated speed
     this.autoAimCommand = new AutoAimCommand(drive, turret, flywheel, hood);
+
     this.turret.setDefaultCommand(autoAimCommand);
+    this.flywheel.setDefaultCommand(autoAimCommand);
+    this.hood.setDefaultCommand(autoAimCommand);
   }
 
   /**
@@ -247,11 +249,76 @@ public class RobotContainer {
 
     controller.b().whileTrue(this.intake.setPivotVoltage(() -> Volts.of(-2)));
 
-    // Auto-fire: when held, kicker fires automatically when turret is aimed + flywheel at speed
+    // Manual turret control
+    controller
+        .leftBumper()
+        .whileTrue(this.turret.setVoltage(() -> Volts.of(MANUAL_CONTROL_VOLTAGE)));
     controller
         .rightBumper()
+        .whileTrue(this.turret.setVoltage(() -> Volts.of(-MANUAL_CONTROL_VOLTAGE)));
+
+    // TODO: CHECK LOGIC
+    // // Auto-fire: when held, kicker fires automatically when turret is aimed + flywheel at speed
+    // controller
+    //     .rightTrigger()
+    //     .whileTrue(
+    //         new AutoFireCommand(turret, flywheel, kicker, autoAimCommand::getLatestParameters));
+    
+    // Simple Shoot Button (Right Trigger)
+    // Overrides turret tracking (which stops due to requirement conflict)
+    controller
+        .rightTrigger()
         .whileTrue(
-            new AutoFireCommand(turret, flywheel, kicker, autoAimCommand::getLatestParameters));
+            flywheel
+                .setWheelVelocity(() -> RPM.of(3000))
+                .alongWith(
+                    Commands.waitUntil(
+                            () -> {
+                              boolean atSpeed = flywheel.atSpeed(RPM.of(3000), RPM.of(100));
+                              Logger.recordOutput("SimpleShoot/AtSpeed", atSpeed);
+                              Logger.recordOutput(
+                                  "SimpleShoot/FlywheelErrorRPM",
+                                  flywheel.getVelocity().minus(RPM.of(3000)).in(RPM));
+                              return atSpeed;
+                            })
+                        .andThen(
+                            Commands.parallel(
+                                kicker.setVoltage(() -> Volts.of(4)),
+                                indexer.setRollerVoltage(() -> Volts.of(4))))));
+
+    if (Constants.currentMode == Constants.Mode.SIM) {
+      configureSimulationBindings();
+    }
+  }
+
+  private void configureSimulationBindings() {
+    // Test Q1 (Top Left)
+    controller
+        .up()
+        .onTrue(
+            Commands.runOnce(
+                () -> drive.setPose(new Pose2d(2.0, 6.0, Rotation2d.fromDegrees(0))), drive));
+
+    // Test Q2 (Top Right)
+    controller
+        .right()
+        .onTrue(
+            Commands.runOnce(
+                () -> drive.setPose(new Pose2d(14.0, 6.0, Rotation2d.fromDegrees(180))), drive));
+
+    // Test Q4 (Bottom Right)
+    controller
+        .down()
+        .onTrue(
+            Commands.runOnce(
+                () -> drive.setPose(new Pose2d(14.0, 2.0, Rotation2d.fromDegrees(180))), drive));
+
+    // Test Q3 (Bottom Left)
+    controller
+        .left()
+        .onTrue(
+            Commands.runOnce(
+                () -> drive.setPose(new Pose2d(2.0, 2.0, Rotation2d.fromDegrees(0))), drive));
   }
 
   /**
