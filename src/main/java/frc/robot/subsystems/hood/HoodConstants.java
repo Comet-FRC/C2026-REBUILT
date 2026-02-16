@@ -16,7 +16,7 @@ public final class HoodConstants {
 
   // Angle limits (0° = stow, max TBD — using 45° placeholder)
   public static final Angle MIN_ANGLE = Degrees.of(0.0);
-  public static final Angle MAX_ANGLE = Degrees.of(27.0); 
+  public static final Angle MAX_ANGLE = Degrees.of(27.0);
 
   // Stow position
   public static final Angle STOW_ANGLE = Degrees.of(0.0);

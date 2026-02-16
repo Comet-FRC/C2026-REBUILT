@@ -5,8 +5,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Angle;
 import frc.robot.FieldConstants;
 import frc.robot.subsystems.turret.TurretConstants;
 import java.util.Map;
@@ -125,8 +125,7 @@ public class ShotCalculator {
     // Log everything so we can debug in AdvantageScope
     Logger.recordOutput("ShotCalculator/RawDistance", rawDistance);
     Logger.recordOutput("ShotCalculator/CorrectedDistance", correctedDistance);
-    Logger.recordOutput(
-        "ShotCalculator/TurretAngleDeg", turretAngle.in(Units.Degrees));
+    Logger.recordOutput("ShotCalculator/TurretAngleDeg", turretAngle.in(Units.Degrees));
     Logger.recordOutput("ShotCalculator/FlywheelRPM", flywheelSpeedRPM);
     Logger.recordOutput("ShotCalculator/HoodAngleDeg", hoodAngleDegrees);
     Logger.recordOutput("ShotCalculator/IsValid", isValid);
@@ -187,20 +186,20 @@ public class ShotCalculator {
 
     // Edge Case: What if the target is in a "dead zone" we can't reach?
     // e.g., We can only go 0-450, but the target is at -10.
-     if (!foundValid) {
+    if (!foundValid) {
       // Just clamp to the nearest limit so we aim as close as possible.
-       if (targetDeg > maxDeg) return TurretConstants.MAX_ANGLE;
-       if (targetDeg < minDeg) return TurretConstants.MIN_ANGLE;
-       return Units.Degrees.of(Math.max(minDeg, Math.min(maxDeg, targetDeg)));
-     }
- 
-     return Units.Degrees.of(bestAngle);
-   }
- 
+      if (targetDeg > maxDeg) return TurretConstants.MAX_ANGLE;
+      if (targetDeg < minDeg) return TurretConstants.MIN_ANGLE;
+      return Units.Degrees.of(Math.max(minDeg, Math.min(maxDeg, targetDeg)));
+    }
+
+    return Units.Degrees.of(bestAngle);
+  }
+
   /** Handy helper to check which quadrant (1, 2, 3, 4) the turret is facing. */
-   public static int getQuadrant(Angle robotRelativeAngle) {
-     double deg = robotRelativeAngle.in(Units.Degrees);
-     deg %= 360;
+  public static int getQuadrant(Angle robotRelativeAngle) {
+    double deg = robotRelativeAngle.in(Units.Degrees);
+    deg %= 360;
     if (deg > 180) deg -= 360;
     if (deg < -180) deg += 360;
 

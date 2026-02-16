@@ -41,7 +41,7 @@ import frc.robot.subsystems.turret.*;
 import frc.robot.subsystems.vision.*;
 import frc.robot.subsystems.vision.VisionConstants.Camera;
 import frc.robot.util.LoggedTunableNumber;
-import frc.robot.util.ProximitySensor;
+// import frc.robot.util.ProximitySensor;
 import frc.robot.util.controller.CometLogitechController;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -65,7 +65,6 @@ public class RobotContainer {
   private final Turret turret;
   private final Hood hood;
   private SwerveDriveSimulation driveSimulation = null;
-  private final ProximitySensor sensor;
 
   // Auto-aim command (stored as field so AutoFireCommand can access shot parameters)
   private AutoAimCommand autoAimCommand;
@@ -91,7 +90,7 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    this.sensor = new ProximitySensor();
+    // this.sensor = new ProximitySensor();
     switch (Constants.currentMode) {
       case REAL:
         // Real robot, instantiate hardware IO implementations
@@ -212,8 +211,7 @@ public class RobotContainer {
             },
             this.intake));
 
-    this.indexer.setDefaultCommand(
-        this.indexer.setRollerVoltage(() -> Volts.of(indexerRollerVolts.get())));
+    this.indexer.setDefaultCommand(this.indexer.setRollerVoltage(() -> Volts.of(0.0)));
 
     this.kicker.setDefaultCommand(this.kicker.setVoltage(() -> Volts.of(0.0)));
 
@@ -258,8 +256,18 @@ public class RobotContainer {
 
     controller.up().whileTrue(this.flywheel.setWheelVoltage(() -> Volts.of(flywheelVolts.get())));
     // Manual turret control
-    controller.leftBumper().whileTrue(this.turret.setVoltage(() -> Volts.of(turretVolts.get())));
+    controller.leftBumper().whileTrue(this.turret.setVoltage(() -> Volts.of(turretVolts.get()))); 
     controller.rightBumper().whileTrue(this.turret.setVoltage(() -> Volts.of(-turretVolts.get())));
+
+    controller.right().whileTrue(this.intake.setPivotVoltage(() -> Volts.of(2.0)));
+
+    controller
+        .down()
+        .whileTrue(
+            Commands.parallel(
+                this.flywheel.setWheelVoltage(() -> Volts.of(flywheelVolts.get())),
+                this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())),
+                this.indexer.setRollerVoltage(() -> Volts.of(indexerRollerVolts.get()))));
 
     // TODO: CHECK LOGIC
     // // Auto-fire: when held, kicker fires automatically when turret is aimed + flywheel at speed
@@ -267,7 +275,7 @@ public class RobotContainer {
     //     .rightTrigger()
     //     .whileTrue(
     //         new AutoFireCommand(turret, flywheel, kicker, autoAimCommand::getLatestParameters));
-    
+
     // Simple Shoot Button (Right Trigger)
     // Overrides turret tracking (which stops due to requirement conflict)
     controller
