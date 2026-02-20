@@ -9,10 +9,12 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
+import frc.robot.util.LoggedTunableNumber;
 
 public class TurretIOReal implements TurretIO {
   private final TalonFX turretMotor = new TalonFX(TurretConstants.TURRET_MOTOR_ID);
@@ -25,6 +27,15 @@ public class TurretIOReal implements TurretIO {
           TurretConstants.TURRET_kD,
           new TrapezoidProfile.Constraints(Math.PI, Math.PI / 2)); // rad/s, rad/s^2
 
+  private final SimpleMotorFeedforward feedforward =
+      new SimpleMotorFeedforward(
+          TurretConstants.TURRET_kS, TurretConstants.TURRET_kV, TurretConstants.TURRET_kA);
+
+  private static final LoggedTunableNumber turretkP =
+      new LoggedTunableNumber("Turret/kP", TurretConstants.TURRET_kP);
+  private static final LoggedTunableNumber turretkD =
+      new LoggedTunableNumber("Turret/kD", TurretConstants.TURRET_kD);
+
   private final MutVoltage desiredVoltage = Volts.mutable(0);
   private boolean voltageMode = false;
 
@@ -32,15 +43,14 @@ public class TurretIOReal implements TurretIO {
     configureTurretMotor();
     resetPosition(Degrees.of(0));
     turretPID.reset(0);
-    // turretPID.enableContinuousInput(-Math.PI, Math.PI); // Disabled for limited range turret
   }
 
   private void configureTurretMotor() {
     TalonFXConfiguration config = new TalonFXConfiguration();
 
     // Motor direction (adjust if turret rotates wrong way)
-    config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive; // Was counterClockwise_Positive
+    config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
 
     // Current limits
     config.CurrentLimits.SupplyCurrentLimit = 40;
@@ -53,8 +63,7 @@ public class TurretIOReal implements TurretIO {
 
     // Software limits (hard stops)
     config.SoftwareLimitSwitch.ForwardSoftLimitThreshold =
-        TurretConstants.MAX_ANGLE.in(Radians)
-            / (2 * Math.PI); // Test this first and then * GEAR_RATIO;
+        TurretConstants.MAX_ANGLE.in(Radians) / (2 * Math.PI);
     config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
 
     config.SoftwareLimitSwitch.ReverseSoftLimitThreshold =
@@ -66,12 +75,19 @@ public class TurretIOReal implements TurretIO {
 
   @Override
   public void updateInputs(TurretIOInputs inputs) {
+
+    if (turretkP.hasChanged(hashCode()) || turretkD.hasChanged(hashCode())) {
+      turretPID.setP(turretkP.get());
+      turretPID.setD(turretkD.get());
+    }
     if (voltageMode) {
       turretMotor.setControl(voltageRequest.withOutput(desiredVoltage.in(Volts)));
       turretPID.reset(getTurretPosition());
     } else {
-      double pid = turretPID.calculate(getTurretPosition());
-      double volts = MathUtil.clamp(pid, -12.0, 12.0);
+      double pidOutput = turretPID.calculate(getTurretPosition());
+      double feedforwardOutput =
+          feedforward.calculate(turretPID.getSetpoint().position, turretPID.getSetpoint().velocity);
+      double volts = MathUtil.clamp(pidOutput + feedforwardOutput, -12.0, 12.0);
       turretMotor.setControl(voltageRequest.withOutput(volts));
     }
 

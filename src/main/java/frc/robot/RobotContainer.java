@@ -81,7 +81,7 @@ public class RobotContainer {
   private final LoggedTunableNumber indexerRollerVolts =
       new LoggedTunableNumber("Indexer/RollerVolts", 0.0);
 
-  private final LoggedTunableNumber turretVolts = new LoggedTunableNumber("Turret/Volts", 0.5);
+  private final LoggedTunableNumber turretVolts = new LoggedTunableNumber("Turret/Volts", 2.0);
   private final LoggedTunableNumber flywheelVolts = new LoggedTunableNumber("Flywheel/Volts", 5);
   private final LoggedTunableNumber kickerVolts = new LoggedTunableNumber("Kicker/Volts", 5);
 
@@ -259,7 +259,7 @@ public class RobotContainer {
     controller.leftBumper().whileTrue(this.turret.setVoltage(() -> Volts.of(turretVolts.get())));
     controller.rightBumper().whileTrue(this.turret.setVoltage(() -> Volts.of(-turretVolts.get())));
 
-    controller.right().whileTrue(this.intake.setPivotVoltage(() -> Volts.of(2.0)));
+    controller.right().whileTrue(this.turret.setPosition(() -> Degrees.of(273)));
 
     controller
         .down()

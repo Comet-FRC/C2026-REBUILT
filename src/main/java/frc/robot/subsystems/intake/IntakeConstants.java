@@ -10,8 +10,8 @@ public final class IntakeConstants {
   // Intake wheel motors (SparkMax + NEO)
   public static final int INTAKE_LEADER_ID = 12;
   // Intake pivot motors (SparkMax + NEO)
-  public static final int PIVOT_RIGHT = 14;
-  public static final int PIVOT_LEFT = 13;
+  public static final int PIVOT_RIGHT = 13;
+  public static final int PIVOT_LEFT = 14;
 
   // REV Through Bore Encoder (Duty Cycle) on intake axle
   public static final int THROUGH_BORE_ENCODER_DIO = 0;
