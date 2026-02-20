@@ -88,11 +88,11 @@ public class Intake extends SubsystemBase {
             new SysIdRoutine.Mechanism(
                 io::setPivotVoltage,
                 log -> {
-                  Logger.recordOutput("SysId/intake-pivot/Voltage", inputs.pivotAppliedVolts);
+                  Logger.recordOutput("SysId/intake-pivot/Voltage", inputs.pivotRightAppliedVolts);
                   Logger.recordOutput("SysId/intake-pivot/Position", inputs.pivotPosition);
                   Logger.recordOutput("SysId/intake-pivot/Velocity", inputs.pivotVelocity);
                   log.motor("intake-pivot")
-                      .voltage(inputs.pivotAppliedVolts)
+                      .voltage(inputs.pivotRightAppliedVolts)
                       .angularPosition(inputs.pivotPosition)
                       .angularVelocity(inputs.pivotVelocity);
                 },

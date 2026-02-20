@@ -10,8 +10,8 @@ public final class IntakeConstants {
   // Intake wheel motors (SparkMax + NEO)
   public static final int INTAKE_LEADER_ID = 12;
   // Intake pivot motors (SparkMax + NEO)
-  public static final int PIVOT_LEADER_ID = 13;
-  public static final int PIVOT_FOLLOWER_ID = 14;
+  public static final int PIVOT_RIGHT = 14;
+  public static final int PIVOT_LEFT = 13;
 
   // REV Through Bore Encoder (Duty Cycle) on intake axle
   public static final int THROUGH_BORE_ENCODER_DIO = 0;
@@ -22,7 +22,7 @@ public final class IntakeConstants {
   public static final double THROUGH_BORE_ENCODER_OFFSET_RAD = 0.174533;
 
   public static final Angle STOW_ANGLE = Degrees.of(72.0);
-  public static final Angle INTAKING_ANGLE = Degrees.of(179.0);
+  public static final Angle INTAKING_ANGLE = Degrees.of(185.0);
   public static final double GEAR_RATIO = 4 * 4 * (38 / 14);
 
   public static final double WHEEL_CONVERSION_FACTOR = 2 * Math.PI * (18.0 / 24.0);
@@ -43,7 +43,7 @@ public final class IntakeConstants {
   // SET kS to 0
   //
 
-  public static final double PIVOT_kP = 6;
+  public static final double PIVOT_kP = 5.8;
   public static final double PIVOT_kI = 0;
   public static final double PIVOT_kD = 0.41;
   public static final double PIVOT_kS = 0; // Not really used with intakes

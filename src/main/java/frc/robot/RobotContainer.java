@@ -256,7 +256,7 @@ public class RobotContainer {
 
     controller.up().whileTrue(this.flywheel.setWheelVoltage(() -> Volts.of(flywheelVolts.get())));
     // Manual turret control
-    controller.leftBumper().whileTrue(this.turret.setVoltage(() -> Volts.of(turretVolts.get()))); 
+    controller.leftBumper().whileTrue(this.turret.setVoltage(() -> Volts.of(turretVolts.get())));
     controller.rightBumper().whileTrue(this.turret.setVoltage(() -> Volts.of(-turretVolts.get())));
 
     controller.right().whileTrue(this.intake.setPivotVoltage(() -> Volts.of(2.0)));

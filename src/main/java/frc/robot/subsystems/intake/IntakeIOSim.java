@@ -150,7 +150,7 @@ public class IntakeIOSim implements IntakeIO {
     inputs.pivotPosition = Radians.of(pivotMotor.getAngleRads());
     inputs.pivotDesiredPosition = Radians.of(pivotPID.getSetpoint());
     inputs.pivotVelocity = RadiansPerSecond.of(pivotMotor.getVelocityRadPerSec());
-    inputs.pivotAppliedVolts = this.pivotAppliedVoltage;
+    inputs.pivotRightAppliedVolts = this.pivotAppliedVoltage;
     inputs.pivotSupplyCurrent = Amps.of(pivotMotor.getCurrentDrawAmps());
   }
 

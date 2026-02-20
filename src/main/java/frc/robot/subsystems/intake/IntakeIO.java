@@ -23,13 +23,13 @@ public interface IntakeIO {
     public Angle pivotPosition = Radians.of(0);
     public Angle pivotDesiredPosition = Radians.of(0);
     public AngularVelocity pivotVelocity = RadiansPerSecond.of(0);
-    public Voltage pivotAppliedVolts = Volts.of(0);
+    public Voltage pivotRightAppliedVolts = Volts.of(0);
+    public Voltage pivotLeftAppliedVolts = Volts.of(0);
     public Current pivotSupplyCurrent = Amps.of(0);
     public Temperature pivotTemperature = Celsius.of(0);
 
     // REV Through Bore Encoder (Duty Cycle)
-    public double throughBoreEncoderPosition = 0.0; // Value 0-1 for one full rotation
-    public double throughBoreEncoderPositionRad = 0.0;
+    public double throughBoreEncoderPositionRaw = 0.0; // Value 0-1 for one full rotation
     public boolean throughBoreEncoderConnected = false;
   }
 
