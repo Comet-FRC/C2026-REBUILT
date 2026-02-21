@@ -30,7 +30,7 @@ public class TurretIOReal implements TurretIO {
 
   public TurretIOReal() {
     configureTurretMotor();
-    resetPosition(Degrees.of(0));
+    resetPosition(Degrees.of(180));
   }
 
   private void configureTurretMotor() {

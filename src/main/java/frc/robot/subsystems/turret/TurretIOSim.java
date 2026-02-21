@@ -47,7 +47,8 @@ public class TurretIOSim implements TurretIO {
   private boolean voltageMode = false;
 
   public TurretIOSim() {
-    turretPID.enableContinuousInput(-Math.PI, Math.PI);
+    turretPID.enableContinuousInput(0, 2 * Math.PI);
+    resetPosition(Degrees.of(180));
   }
 
   private void updateTunableValues() {

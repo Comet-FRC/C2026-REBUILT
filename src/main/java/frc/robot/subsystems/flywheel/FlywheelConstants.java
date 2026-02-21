@@ -30,8 +30,7 @@ public class FlywheelConstants {
   public static final double WHEEL_SIM_kV = 0.01763;
   public static final double WHEEL_SIM_kA = 0.0001;
 
-  public static final Mass WHEEL_MASS = Pounds.of(0.035);
-  public static final Distance WHEEL_RADIUS = Inches.of(1.5);
-  public static final double WHEEL_MOI =
-      0.5 * WHEEL_MASS.in(Kilograms) * Math.pow(WHEEL_RADIUS.in(Meters), 2); // 1/2MR^2
+  public static final Mass WHEEL_MASS = Pounds.of(2.27); // 1.14 lbs shooter + 1.13 lbs flywheels
+  public static final Distance WHEEL_RADIUS = Inches.of(2.0); // 4" OD wheels
+  public static final double WHEEL_MOI = 0.001474; // kg*m^2 (Computed from custom MOIs)
 }
