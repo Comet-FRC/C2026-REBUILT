@@ -44,7 +44,6 @@ public class HoodIOReal implements HoodIO {
         .idleMode(IdleMode.kBrake)
         .smartCurrentLimit(30) // NEO current limit
         .voltageCompensation(11.5);
-    // Gear ratio applied to encoder so readings are in mechanism rotations/radians
     config
         .encoder
         .positionConversionFactor(
@@ -52,6 +51,7 @@ public class HoodIOReal implements HoodIO {
         .velocityConversionFactor(
             (1.0 / HoodConstants.GEAR_RATIO) * 2 * Math.PI / 60.0); // RPM → mechanism rad/s
     hoodMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    hoodMotor.getEncoder().setPosition(0.0);
   }
 
   @Override

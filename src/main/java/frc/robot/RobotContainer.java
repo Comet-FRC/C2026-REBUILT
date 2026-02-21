@@ -76,7 +76,11 @@ public class RobotContainer {
   private final LoggedTunableNumber intakeWheelVolts =
       new LoggedTunableNumber("Intake/WheelVolts", 0.0);
 
-  private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 100.0);
+  private final LoggedTunableNumber FlywheelVelocity =
+      new LoggedTunableNumber("Flywheel/RPM", 6000.0);
+  private final LoggedTunableNumber HoodAngle = new LoggedTunableNumber("Hood/Angle", 0.0);
+
+  private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 180.0);
 
   private final LoggedTunableNumber indexerRollerVolts =
       new LoggedTunableNumber("Indexer/RollerVolts", 0.0);
@@ -254,7 +258,11 @@ public class RobotContainer {
 
     controller.b().whileTrue(this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())));
 
-    controller.up().whileTrue(this.flywheel.setWheelVoltage(() -> Volts.of(flywheelVolts.get())));
+    controller.down().whileTrue(this.hood.setPosition(() -> Degrees.of(HoodAngle.get())));
+    controller.up().whileTrue(this.hood.setVoltage(() -> Volts.of(3)));
+
+    // controller.up().whileTrue(this.flywheel.setWheelVoltage(() ->
+    // Volts.of(flywheelVolts.get())));
     // Manual turret control
     System.out.println("Starting bumper checks: " + turretVolts.get());
     controller.leftBumper().whileTrue(this.turret.setVoltage(() -> Volts.of(turretVolts.get())));
@@ -263,13 +271,13 @@ public class RobotContainer {
     controller.right().whileTrue(this.turret.setPosition(() -> Degrees.of(90)));
     controller.left().whileTrue(this.turret.resetPosition(() -> Degrees.of(180)));
 
-    controller
-        .down()
-        .whileTrue(
-            Commands.parallel(
-                this.flywheel.setWheelVoltage(() -> Volts.of(flywheelVolts.get())),
-                this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())),
-                this.indexer.setRollerVoltage(() -> Volts.of(indexerRollerVolts.get()))));
+    // controller
+    //     .down()
+    //     .whileTrue(
+    //         Commands.parallel(
+    //             this.flywheel.setWheelVoltage(() -> Volts.of(flywheelVolts.get())),
+    //             this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())),
+    //             this.indexer.setRollerVoltage(() -> Volts.of(indexerRollerVolts.get()))));
 
     // TODO: CHECK LOGIC
     // // Auto-fire: when held, kicker fires automatically when turret is aimed + flywheel at speed
@@ -284,15 +292,19 @@ public class RobotContainer {
         .rightTrigger()
         .whileTrue(
             flywheel
-                .setWheelVelocity(() -> RPM.of(3000))
+                .setWheelVelocity(() -> RPM.of(FlywheelVelocity.get()))
                 .alongWith(
                     Commands.waitUntil(
                             () -> {
-                              boolean atSpeed = flywheel.atSpeed(RPM.of(3000), RPM.of(100));
+                              boolean atSpeed =
+                                  flywheel.atSpeed(RPM.of(FlywheelVelocity.get()), RPM.of(100));
                               Logger.recordOutput("SimpleShoot/AtSpeed", atSpeed);
                               Logger.recordOutput(
                                   "SimpleShoot/FlywheelErrorRPM",
-                                  flywheel.getVelocity().minus(RPM.of(3000)).in(RPM));
+                                  flywheel
+                                      .getVelocity()
+                                      .minus(RPM.of(FlywheelVelocity.get()))
+                                      .in(RPM));
                               return atSpeed;
                             })
                         .andThen(

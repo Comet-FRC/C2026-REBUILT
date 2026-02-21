@@ -5,7 +5,6 @@ import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.shooting.ShotCalculator;
 import frc.robot.shooting.ShotParameters;
@@ -50,16 +49,17 @@ public class AutoAimCommand extends Command {
     latestParameters = ShotCalculator.calculate(robotPose, fieldVelocity, turret.getPosition());
 
     // Tell the turret where to point
+    System.out.println("positionsetpoint");
     Angle turretAngle = latestParameters.turretAngle();
     turret.io.setPositionSetpoint(turretAngle);
 
-    // Spin up the flywheel to the right speed for this distance
-    AngularVelocity flywheelSpeed = RPM.of(latestParameters.flywheelSpeedRPM());
-    flywheel.io.setWheelVelocitySetpoint(flywheelSpeed);
+    // // Spin up the flywheel to the right speed for this distance
+    // AngularVelocity flywheelSpeed = RPM.of(latestParameters.flywheelSpeedRPM());
+    // flywheel.io.setWheelVelocitySetpoint(flywheelSpeed);
 
-    // Set the hood to the right angle for this distance
-    Angle hoodAngle = Degrees.of(latestParameters.hoodAngleDegrees());
-    hood.io.setPositionSetpoint(hoodAngle);
+    // // Set the hood to the right angle for this distance
+    // Angle hoodAngle = Degrees.of(latestParameters.hoodAngleDegrees());
+    // hood.io.setPositionSetpoint(hoodAngle);
 
     // Log for AdvantageScope debugging
     int quadrant = ShotCalculator.getQuadrant(latestParameters.turretAngle());

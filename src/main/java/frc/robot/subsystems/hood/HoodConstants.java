@@ -16,7 +16,7 @@ public final class HoodConstants {
 
   // Angle limits (0° = stow, max TBD — using 45° placeholder)
   public static final Angle MIN_ANGLE = Degrees.of(0.0);
-  public static final Angle MAX_ANGLE = Degrees.of(27.0);
+  public static final Angle MAX_ANGLE = Degrees.of(30.0);
 
   // Stow position
   public static final Angle STOW_ANGLE = Degrees.of(0.0);
@@ -25,12 +25,12 @@ public final class HoodConstants {
   public static final Angle HOOD_TOLERANCE = Degrees.of(1.0);
 
   // PID gains for hood position control (NEEDS TUNING)
-  public static final double HOOD_kP = 0.0;
+  public static final double HOOD_kP = 25;
   public static final double HOOD_kI = 0.0;
   public static final double HOOD_kD = 0.0;
-  public static final double HOOD_kS = 0.0;
-  public static final double HOOD_kV = 0.0;
-  public static final double HOOD_kA = 0.0;
+  public static final double HOOD_kS = 0.3;
+  public static final double HOOD_kV = 0.8;
+  public static final double HOOD_kA = 0.05;
 
   // Simulation PID gains
   public static final double HOOD_SIM_kP = 5.0;

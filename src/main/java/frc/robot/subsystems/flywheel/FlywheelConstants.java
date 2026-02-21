@@ -15,13 +15,13 @@ public class FlywheelConstants {
   // Radius = 1.5 inches = 0.0381 meters
   // Circumference = 0.2394 meters
   // Rotational = Linear * Circumference
-  public static final double WHEEL_kP = 0.278; // 1.16 * 0.2394
+  public static final double WHEEL_kP = 1.16 * 0.319;
   public static final double WHEEL_kI = 0;
   public static final double WHEEL_kD = 0;
 
   public static final double WHEEL_kS = 0;
-  public static final double WHEEL_kV = 0.124; // 0.52 * 0.2394
-  public static final double WHEEL_kA = 0.012; // 0.05 * 0.2394
+  public static final double WHEEL_kV = 0.39 * 0.319;
+  public static final double WHEEL_kA = 0.22 * 0.319;
 
   public static final double WHEEL_SIM_kP = 0.001;
   public static final double WHEEL_SIM_kI = 0;

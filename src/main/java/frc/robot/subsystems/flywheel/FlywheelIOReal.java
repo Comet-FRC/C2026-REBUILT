@@ -31,7 +31,7 @@ public class FlywheelIOReal implements FlywheelIO {
   private void configureMotors() {
     // Leader configuration
     TalonFXConfiguration leaderConfig = new TalonFXConfiguration();
-    leaderConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+    leaderConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     leaderConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
 
     // Current limits
