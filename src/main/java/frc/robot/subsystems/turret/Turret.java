@@ -35,6 +35,10 @@ public class Turret extends SubsystemBase {
     return Commands.run(() -> io.setVoltage(voltage.get()), this);
   }
 
+  public Command resetPosition(Supplier<Angle> position) {
+    return Commands.runOnce(() -> io.resetPosition(position.get()), this);
+  }
+
   /** Command to set turret position setpoint (closed loop control) */
   public Command setPosition(Supplier<Angle> position) {
     return Commands.run(() -> io.setPositionSetpoint(position.get()), this);

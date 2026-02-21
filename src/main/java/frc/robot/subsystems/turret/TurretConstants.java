@@ -28,7 +28,7 @@ public final class TurretConstants {
   public static final Angle TURRET_TOLERANCE = Degrees.of(2.0);
 
   // PID gains for turret position control (NEEDS TUNING)
-  public static final double TURRET_kP = 8.2;
+  public static final double TURRET_kP = 9.6;
   public static final double TURRET_kI = 0.0;
   public static final double TURRET_kD = 0.0;
   public static final double TURRET_kS = 0.0;
