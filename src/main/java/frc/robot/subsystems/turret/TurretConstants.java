@@ -10,9 +10,9 @@ public final class TurretConstants {
   public static final double TURRET_DIAMETER_INCHES = 6.875;
   public static final double TURRET_CONVERSION_FACTOR = 2 * Math.PI / GEAR_RATIO;
 
-  //soft limits
-  public static final Angle MIN_ANGLE = Degrees.of(0.0);
-  public static final Angle MAX_ANGLE = Degrees.of(450.0);
+  // soft limits
+  public static final Angle MIN_ANGLE = Degrees.of(90.0);
+  public static final Angle MAX_ANGLE = Degrees.of(270.0);
 
   public static final Angle TURRET_TOLERANCE = Degrees.of(1.0);
 
