@@ -50,7 +50,7 @@ public class VisionConstants {
 
   public static String camera0Name = "camera_0";
   public static String camera1Name = "camera_1";
-  public static String limelightCameraName = "limelight"; // limelight string name
+  public static String limelightCameraName = "back"; // limelight string name
 
   // Basic filtering thresholds
   public static double maxAmbiguity = 0.2;

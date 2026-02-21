@@ -107,7 +107,7 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVision(Camera.FrontApriltag),
                 new VisionIOPhotonVision(Camera.BackApriltag),
-                new VisionIOLimelight(VisionConstants.camera0Name, drive::getRotation));
+                new VisionIOLimelight("limelight", drive::getRotation));
         this.intake = new Intake(new IntakeIOReal());
         this.indexer = new Indexer(new IndexerIOReal());
         this.kicker = new Kicker(new KickerIOReal());
@@ -219,7 +219,7 @@ public class RobotContainer {
     // // Auto-aim: turret continuously tracks target, flywheel spins up to calculated speed
     // this.autoAimCommand = new AutoAimCommand(drive, turret, flywheel, hood);
 
-    this.turret.setDefaultCommand(this.turret.setVoltage(() -> Volts.of(0.0)));
+    this.turret.setDefaultCommand(this.turret.setVoltage(() -> Volts.of(0)));
 
     this.flywheel.setDefaultCommand(this.flywheel.setWheelVoltage(() -> Volts.of(0.0)));
   }
@@ -256,6 +256,7 @@ public class RobotContainer {
 
     controller.up().whileTrue(this.flywheel.setWheelVoltage(() -> Volts.of(flywheelVolts.get())));
     // Manual turret control
+    System.out.println("Starting bumper checks: " + turretVolts.get());
     controller.leftBumper().whileTrue(this.turret.setVoltage(() -> Volts.of(turretVolts.get())));
     controller.rightBumper().whileTrue(this.turret.setVoltage(() -> Volts.of(-turretVolts.get())));
 

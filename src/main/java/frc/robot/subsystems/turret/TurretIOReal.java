@@ -46,14 +46,14 @@ public class TurretIOReal implements TurretIO {
 
     config.Feedback.SensorToMechanismRatio = TurretConstants.GEAR_RATIO;
 
-    // Software limits (hard stops)
-    config.SoftwareLimitSwitch.ForwardSoftLimitThreshold =
-        TurretConstants.MAX_ANGLE.in(Radians) / (2 * Math.PI); // Rotations
-    config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
+    // // Software limits (hard stops)
+    // config.SoftwareLimitSwitch.ForwardSoftLimitThreshold =
+    //     TurretConstants.MAX_ANGLE.in(Radians) / (2 * Math.PI); // Rotations
+    // config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
 
-    config.SoftwareLimitSwitch.ReverseSoftLimitThreshold =
-        TurretConstants.MIN_ANGLE.in(Radians) / (2 * Math.PI); // Rotations
-    config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
+    // config.SoftwareLimitSwitch.ReverseSoftLimitThreshold =
+    //     TurretConstants.MIN_ANGLE.in(Radians) / (2 * Math.PI); // Rotations
+    // config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
 
     config.Slot0.kP = TurretConstants.TURRET_kP;
     config.Slot0.kI = TurretConstants.TURRET_kI;
@@ -112,6 +112,8 @@ public class TurretIOReal implements TurretIO {
   public void setVoltage(Voltage voltage) {
     voltageMode = true;
     desiredVoltage.mut_replace(voltage);
+    // System.out.println("TurretIOReal setVoltage: " + voltage.toString());
+    // System.out.println("Check Voltage: " + turretMotor.get());
   }
 
   @Override
