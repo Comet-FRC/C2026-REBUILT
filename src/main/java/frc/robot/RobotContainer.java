@@ -261,7 +261,7 @@ public class RobotContainer {
     controller.rightBumper().whileTrue(this.turret.setVoltage(() -> Volts.of(-turretVolts.get())));
 
     controller.right().whileTrue(this.turret.setPosition(() -> Degrees.of(90)));
-    controller.left().whileTrue(this.turret.resetPosition(() -> Degrees.of(0)));
+    controller.left().whileTrue(this.turret.resetPosition(() -> Degrees.of(180)));
 
     controller
         .down()
