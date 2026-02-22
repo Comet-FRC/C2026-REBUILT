@@ -7,12 +7,14 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.FieldConstants;
+import frc.robot.FieldConstants.TargetMode;
 import frc.robot.shooting.ShotCalculator;
 import frc.robot.shooting.ShotParameters;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.flywheel.Flywheel;
 import frc.robot.subsystems.hood.Hood;
 import frc.robot.subsystems.turret.Turret;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 /**
@@ -25,14 +27,17 @@ public class AutoAimCommand extends Command {
   private final Turret turret;
   private final Flywheel flywheel;
   private final Hood hood;
+  private final Supplier<TargetMode> modeSupplier;
 
   private ShotParameters latestParameters = null;
 
-  public AutoAimCommand(Drive drive, Turret turret, Flywheel flywheel, Hood hood) {
+  public AutoAimCommand(
+      Drive drive, Turret turret, Flywheel flywheel, Hood hood, Supplier<TargetMode> modeSupplier) {
     this.drive = drive;
     this.turret = turret;
     this.flywheel = flywheel;
     this.hood = hood;
+    this.modeSupplier = modeSupplier;
 
     // We control turret, flywheel, and hood, but we only read from drive (don't require it)
     addRequirements(turret, flywheel, hood);
@@ -45,9 +50,11 @@ public class AutoAimCommand extends Command {
   public void execute() {
     Pose2d robotPose = drive.getPose();
     ChassisSpeeds fieldVelocity = drive.getFieldVelocity();
+    TargetMode mode = modeSupplier.get();
 
     // Run the shot calculator — this handles all the math
-    latestParameters = ShotCalculator.calculate(robotPose, fieldVelocity, turret.getPosition());
+    latestParameters =
+        ShotCalculator.calculate(robotPose, fieldVelocity, turret.getPosition(), mode);
 
     // Tell the turret where to point
     Angle turretAngle = latestParameters.turretAngle();
@@ -62,6 +69,7 @@ public class AutoAimCommand extends Command {
     // hood.io.setPositionSetpoint(hoodAngle);
 
     // Log to AdvantageScope
+    Logger.recordOutput("AutoAim/TargetMode", mode.name());
     Logger.recordOutput("AutoAim/TurretTargetDeg", turretAngle.in(Degrees));
     Logger.recordOutput("AutoAim/Distance", latestParameters.distanceToTarget());
     Logger.recordOutput("AutoAim/ShotValid", latestParameters.isValid());
@@ -69,7 +77,7 @@ public class AutoAimCommand extends Command {
     Logger.recordOutput("AutoAim/HoodAngleDeg", latestParameters.hoodAngleDegrees());
     Logger.recordOutput(
         "AutoAim/ActiveTarget",
-        new Pose2d(FieldConstants.getTargetForRobot2d(robotPose), robotPose.getRotation()));
+        new Pose2d(FieldConstants.getTargetForMode(mode, robotPose), robotPose.getRotation()));
   }
 
   @Override
@@ -81,8 +89,9 @@ public class AutoAimCommand extends Command {
 
   @Override
   public boolean isFinished() {
-    return false; 
+    return false;
   }
+
   /** Grab the latest shot parameters (AutoFireCommand needs these). */
   public ShotParameters getLatestParameters() {
     return latestParameters;

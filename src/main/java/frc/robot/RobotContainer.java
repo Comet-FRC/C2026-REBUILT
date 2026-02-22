@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.FieldConstants.TargetMode;
 import frc.robot.commands.AutoAimCommand;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
@@ -65,6 +66,9 @@ public class RobotContainer {
   private final Turret turret;
   private final Hood hood;
   private SwerveDriveSimulation driveSimulation = null;
+
+  // Target mode — toggle between feeding and hub targets (default: FEEDING)
+  private TargetMode targetMode = TargetMode.FEEDING;
 
   // Auto-aim command (stored as field so AutoFireCommand can access shot parameters)
   private AutoAimCommand autoAimCommand;
@@ -215,7 +219,7 @@ public class RobotContainer {
     this.flywheel.setDefaultCommand(this.flywheel.setWheelVoltage(() -> Volts.of(0.0)));
     this.hood.setDefaultCommand(this.hood.setPosition(() -> Degrees.of(0.0)));
 
-    this.autoAimCommand = new AutoAimCommand(drive, turret, flywheel, hood);
+    this.autoAimCommand = new AutoAimCommand(drive, turret, flywheel, hood, () -> targetMode);
     this.turret.setDefaultCommand(this.autoAimCommand);
   }
 
@@ -235,6 +239,18 @@ public class RobotContainer {
             Commands.runOnce(() -> drive.resetHeadingWithAlliance(), drive).ignoringDisable(true));
 
     // MANUAL KICKER
+    // Toggle target mode: FEEDING ↔ HUB
+    operatorController
+        .a()
+        .onTrue(
+            Commands.runOnce(
+                    () -> {
+                      targetMode =
+                          (targetMode == TargetMode.FEEDING) ? TargetMode.HUB : TargetMode.FEEDING;
+                      Logger.recordOutput("AutoAim/TargetMode", targetMode.name());
+                    })
+                .ignoringDisable(true));
+
     operatorController.y().whileTrue(this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())));
     operatorController.b().whileTrue(this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())));
 

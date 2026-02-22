@@ -8,6 +8,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import frc.robot.FieldConstants;
+import frc.robot.FieldConstants.TargetMode;
 import frc.robot.subsystems.turret.TurretConstants;
 import java.util.Map;
 import org.littletonrobotics.junction.Logger;
@@ -19,10 +20,13 @@ import org.littletonrobotics.junction.Logger;
  */
 public class ShotCalculator {
 
+  // ──────────────────────────────────────────────────────────────────────────
+  //  FEEDING target treemaps
+  // ──────────────────────────────────────────────────────────────────────────
   // TODO: Fill these in with real data from testing!
   // Stand at each distance, tune RPM until you make the shot, and record it here.
   // The map interpolates between entries so you don't need every single distance.
-  private static final InterpolatingDoubleTreeMap FLYWHEEL_SPEED_BY_DISTANCE =
+  private static final InterpolatingDoubleTreeMap FEEDING_FLYWHEEL_SPEED =
       InterpolatingDoubleTreeMap.ofEntries(
           Map.entry(1.0, 2500.0), // meters -> RPM
           Map.entry(2.0, 2700.0),
@@ -33,7 +37,7 @@ public class ShotCalculator {
 
   // TODO: Fill these in with real data from testing!
   // Same idea — at each distance, find the hood angle that scores, and record it.
-  private static final InterpolatingDoubleTreeMap HOOD_ANGLE_BY_DISTANCE =
+  private static final InterpolatingDoubleTreeMap FEEDING_HOOD_ANGLE =
       InterpolatingDoubleTreeMap.ofEntries(
           Map.entry(1.0, 15.0), // meters -> degrees
           Map.entry(2.0, 20.0),
@@ -45,7 +49,7 @@ public class ShotCalculator {
   // TODO: Fill these in with real data! Use slow-mo video to measure.
   // This is how long the ball is in the air at each distance — needed for shoot on move.
   // If you set these all to 0, shoot-on-move correction is effectively disabled.
-  private static final InterpolatingDoubleTreeMap TIME_OF_FLIGHT_BY_DISTANCE =
+  private static final InterpolatingDoubleTreeMap FEEDING_TIME_OF_FLIGHT =
       InterpolatingDoubleTreeMap.ofEntries(
           Map.entry(1.0, 0.3), // meters -> seconds
           Map.entry(2.0, 0.5),
@@ -54,21 +58,74 @@ public class ShotCalculator {
           Map.entry(5.0, 1.1),
           Map.entry(6.0, 1.3));
 
+  // ──────────────────────────────────────────────────────────────────────────
+  //  HUB target treemaps (higher target → more RPM & steeper hood angles)
+  // ──────────────────────────────────────────────────────────────────────────
+  // TODO: Fill these in with real data from hub testing!
+  private static final InterpolatingDoubleTreeMap HUB_FLYWHEEL_SPEED =
+      InterpolatingDoubleTreeMap.ofEntries(
+          Map.entry(1.0, 3000.0), // meters -> RPM  (placeholder)
+          Map.entry(2.0, 3200.0),
+          Map.entry(3.0, 3500.0),
+          Map.entry(4.0, 3800.0),
+          Map.entry(5.0, 4200.0),
+          Map.entry(6.0, 4500.0));
+
+  // TODO: Fill these in with real data from hub testing!
+  private static final InterpolatingDoubleTreeMap HUB_HOOD_ANGLE =
+      InterpolatingDoubleTreeMap.ofEntries(
+          Map.entry(1.0, 25.0), // meters -> degrees  (placeholder)
+          Map.entry(2.0, 30.0),
+          Map.entry(3.0, 35.0),
+          Map.entry(4.0, 40.0),
+          Map.entry(5.0, 43.0),
+          Map.entry(6.0, 45.0));
+
+  // TODO: Fill these in with real data from hub testing!
+  private static final InterpolatingDoubleTreeMap HUB_TIME_OF_FLIGHT =
+      InterpolatingDoubleTreeMap.ofEntries(
+          Map.entry(1.0, 0.4), // meters -> seconds  (placeholder)
+          Map.entry(2.0, 0.6),
+          Map.entry(3.0, 0.8),
+          Map.entry(4.0, 1.0),
+          Map.entry(5.0, 1.2),
+          Map.entry(6.0, 1.4));
+
   // How many times we re-calculate the lookahead to get a more accurate prediction.
   private static final int LOOKAHEAD_ITERATIONS = 5;
 
   /**
    * Does all the shot math. Give it the robot's pose and velocity, and it tells you where to aim
    * the turret, how fast to spin the flywheel, and what hood angle to use.
+   *
+   * @param mode Whether we're aiming at a FEEDING target or the HUB.
    */
   public static ShotParameters calculate(
-      Pose2d robotPose,
-      ChassisSpeeds fieldVelocity,
-      Angle currentTurretPosition) { // Changed from Rotation2d to Angle
-    // Figure out which quadrant we're in and grab that target
-    Translation2d target = FieldConstants.getTargetForRobot2d(robotPose);
-    Translation2d robotPosition = robotPose.getTranslation();
+      Pose2d robotPose, ChassisSpeeds fieldVelocity, Angle currentTurretPosition, TargetMode mode) {
 
+    // Select the right treemaps and target based on mode
+    InterpolatingDoubleTreeMap flywheelMap;
+    InterpolatingDoubleTreeMap hoodMap;
+    InterpolatingDoubleTreeMap tofMap;
+    Translation2d target;
+
+    switch (mode) {
+      case HUB:
+        flywheelMap = HUB_FLYWHEEL_SPEED;
+        hoodMap = HUB_HOOD_ANGLE;
+        tofMap = HUB_TIME_OF_FLIGHT;
+        target = FieldConstants.getHubTarget();
+        break;
+      case FEEDING:
+      default:
+        flywheelMap = FEEDING_FLYWHEEL_SPEED;
+        hoodMap = FEEDING_HOOD_ANGLE;
+        tofMap = FEEDING_TIME_OF_FLIGHT;
+        target = FieldConstants.getTargetForRobot2d(robotPose);
+        break;
+    }
+
+    Translation2d robotPosition = robotPose.getTranslation();
     double rawDistance = robotPosition.getDistance(target);
 
     // -- Shoot on move correction --
@@ -80,7 +137,7 @@ public class ShotCalculator {
     double correctedDistance = rawDistance;
 
     for (int i = 0; i < LOOKAHEAD_ITERATIONS; i++) {
-      double tof = TIME_OF_FLIGHT_BY_DISTANCE.get(correctedDistance);
+      double tof = tofMap.get(correctedDistance);
 
       // Where will we be after the ball's flight time?
       double futureX = robotPosition.getX() + fieldVelocity.vxMetersPerSecond * tof;
@@ -94,11 +151,9 @@ public class ShotCalculator {
     // -- Figure out the turret angle --
     // We need to aim from where we'll BE (future position) to the target
     double futureX =
-        robotPosition.getX()
-            + fieldVelocity.vxMetersPerSecond * TIME_OF_FLIGHT_BY_DISTANCE.get(correctedDistance);
+        robotPosition.getX() + fieldVelocity.vxMetersPerSecond * tofMap.get(correctedDistance);
     double futureY =
-        robotPosition.getY()
-            + fieldVelocity.vyMetersPerSecond * TIME_OF_FLIGHT_BY_DISTANCE.get(correctedDistance);
+        robotPosition.getY() + fieldVelocity.vyMetersPerSecond * tofMap.get(correctedDistance);
     Translation2d futurePosition = new Translation2d(futureX, futureY);
 
     // This gives us the field angle, but the turret needs a robot-relative angle
@@ -112,8 +167,8 @@ public class ShotCalculator {
     Angle turretAngle = findBestTurretAngle(idealTurretRelativeAngle, currentTurretPosition);
 
     // Look up the flywheel and hood settings for this distance
-    double flywheelSpeedRPM = FLYWHEEL_SPEED_BY_DISTANCE.get(correctedDistance);
-    double hoodAngleDegrees = HOOD_ANGLE_BY_DISTANCE.get(correctedDistance);
+    double flywheelSpeedRPM = flywheelMap.get(correctedDistance);
+    double hoodAngleDegrees = hoodMap.get(correctedDistance);
 
     // Are we close enough (and not too far) to actually make this shot?
     boolean isValid =
