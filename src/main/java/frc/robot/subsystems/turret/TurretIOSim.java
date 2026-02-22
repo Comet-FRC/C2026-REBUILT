@@ -65,9 +65,6 @@ public class TurretIOSim implements TurretIO {
   @Override
   public void updateInputs(TurretIOInputs inputs) {
     updateTunableValues();
-
-    turretMotor.update(0.02);
-
     runLoopControl();
 
     inputs.turretPosition = turretMotor.getAngularPosition();

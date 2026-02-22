@@ -70,7 +70,7 @@ public class TurretIOReal implements TurretIO {
 
   @Override
   public void updateInputs(TurretIOInputs inputs) {
-
+    // Update PID gains if they have changed
     if (turretkP.hasChanged(hashCode()) || turretkD.hasChanged(hashCode())) {
       Slot0Configs slot0 = new Slot0Configs();
       turretMotor.getConfigurator().refresh(slot0);
@@ -78,6 +78,7 @@ public class TurretIOReal implements TurretIO {
       slot0.kD = turretkD.get();
       turretMotor.getConfigurator().apply(slot0);
     }
+    // Loop control
     if (voltageMode) {
       turretMotor.setControl(voltageRequest.withOutput(desiredVoltage.in(Volts)));
     } else {
@@ -112,8 +113,6 @@ public class TurretIOReal implements TurretIO {
   public void setVoltage(Voltage voltage) {
     voltageMode = true;
     desiredVoltage.mut_replace(voltage);
-    // System.out.println("TurretIOReal setVoltage: " + voltage.toString());
-    // System.out.println("Check Voltage: " + turretMotor.get());
   }
 
   @Override

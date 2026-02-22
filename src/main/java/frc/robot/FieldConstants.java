@@ -17,34 +17,20 @@ public final class FieldConstants {
   // Split the field in half both ways
   public static final double X_MIDLINE = FIELD_LENGTH_METERS / 2.0; // 8.27m
   public static final double Y_MIDLINE = FIELD_WIDTH_METERS / 2.0; // 4.105m
+  public static final Translation3d Q1_TARGET = // Blue, bottom
+      new Translation3d(1.869, 1.956, 0.0);
 
-  // TODO: Replace these with actual target positions once we know where they are.
-  // Right now they're just the center of each quadrant.
-  //
-  //  +--------+--------+
-  //  |  Q1    |  Q2    |
-  //  | (TL)   | (TR)   |
-  //  +--------+--------+
-  //  |  Q3    |  Q4    |
-  //  | (BL)   | (BR)   |
-  //  +--------+--------+
-  //  ^ blue wall        ^ red wall
-  //  (0,0) is bottom-left
+  public static final Translation3d Q2_TARGET = // Blue, top (mirrored across Y)
+      new Translation3d(1.869, FIELD_WIDTH_METERS - 1.956, 0.0);
 
-  // TODO: Set Z to actual target height for all of these
-  public static final Translation3d Q1_TARGET = // Top-Left, center at ~(4.1, 6.2)
-      new Translation3d(X_MIDLINE / 2.0, Y_MIDLINE + Y_MIDLINE / 2.0, 0.0);
+  public static final Translation3d Q3_TARGET = // Red, bottom (mirrored across X)
+      new Translation3d(FIELD_LENGTH_METERS - 1.869, 1.956, 0.0);
 
-  public static final Translation3d Q2_TARGET = // Top-Right, center at ~(12.4, 6.2)
-      new Translation3d(X_MIDLINE + X_MIDLINE / 2.0, Y_MIDLINE + Y_MIDLINE / 2.0, 0.0);
+  public static final Translation3d Q4_TARGET = // Red, top (mirrored across both)
+      new Translation3d(FIELD_LENGTH_METERS - 1.869, FIELD_WIDTH_METERS - 1.956, 0.0);
 
-  public static final Translation3d Q3_TARGET = // Bottom-Left, center at ~(4.1, 2.1)
-      new Translation3d(X_MIDLINE / 2.0, Y_MIDLINE / 2.0, 0.0);
-
-  public static final Translation3d Q4_TARGET = // Bottom-Right, center at ~(12.4, 2.1)
-      new Translation3d(X_MIDLINE + X_MIDLINE / 2.0, Y_MIDLINE / 2.0, 0.0);
-
-  private static final Translation3d[] BLUE_TARGETS = {Q1_TARGET, Q2_TARGET, Q3_TARGET, Q4_TARGET};
+  private static final Translation3d[] BLUE_TARGETS = {Q1_TARGET, Q2_TARGET};
+  private static final Translation3d[] RED_TARGETS = {Q3_TARGET, Q4_TARGET};
 
   // TODO: Set these based on how far your shooter can realistically score from
   public static final double MIN_SHOOTING_DISTANCE = 1.0;
@@ -56,25 +42,37 @@ public final class FieldConstants {
     double y = robotPose.getY();
 
     if (x < X_MIDLINE) {
-      return y > Y_MIDLINE ? 1 : 3;
+      return y > Y_MIDLINE ? 2 : 1; // Blue side: Q1 bottom, Q2 top
     } else {
-      return y > Y_MIDLINE ? 2 : 4;
+      return y > Y_MIDLINE ? 4 : 3; // Red side: Q3 bottom, Q4 top
     }
   }
 
-  /** Gets the target for whatever quadrant the robot is in. Flips for red alliance. */
+  /**
+   * Gets the target for the robot's alliance, picking whichever of the two alliance targets is
+   * closer.
+   */
   public static Translation3d getTargetForRobot(Pose2d robotPose) {
-    int quadrant = getRobotQuadrant(robotPose);
-    Translation3d blueTarget = BLUE_TARGETS[quadrant - 1];
-
     boolean isRed =
         DriverStation.getAlliance().isPresent()
             && DriverStation.getAlliance().get() == Alliance.Red;
-    if (isRed) {
-      return new Translation3d(
-          FIELD_LENGTH_METERS - blueTarget.getX(), blueTarget.getY(), blueTarget.getZ());
+
+    Translation3d[] targets = isRed ? RED_TARGETS : BLUE_TARGETS;
+
+    // Pick the closer of the two alliance targets
+    Translation2d robotPos = robotPose.getTranslation();
+    Translation3d closest = targets[0];
+    double closestDist =
+        robotPos.getDistance(new Translation2d(targets[0].getX(), targets[0].getY()));
+
+    for (int i = 1; i < targets.length; i++) {
+      double dist = robotPos.getDistance(new Translation2d(targets[i].getX(), targets[i].getY()));
+      if (dist < closestDist) {
+        closestDist = dist;
+        closest = targets[i];
+      }
     }
-    return blueTarget;
+    return closest;
   }
 
   /** Same as above but just the 2D ground position (ignores height). */

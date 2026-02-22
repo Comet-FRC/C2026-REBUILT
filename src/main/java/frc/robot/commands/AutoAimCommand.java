@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.FieldConstants;
 import frc.robot.shooting.ShotCalculator;
 import frc.robot.shooting.ShotParameters;
 import frc.robot.subsystems.drive.Drive;
@@ -49,7 +50,6 @@ public class AutoAimCommand extends Command {
     latestParameters = ShotCalculator.calculate(robotPose, fieldVelocity, turret.getPosition());
 
     // Tell the turret where to point
-    System.out.println("positionsetpoint");
     Angle turretAngle = latestParameters.turretAngle();
     turret.io.setPositionSetpoint(turretAngle);
 
@@ -61,14 +61,15 @@ public class AutoAimCommand extends Command {
     // Angle hoodAngle = Degrees.of(latestParameters.hoodAngleDegrees());
     // hood.io.setPositionSetpoint(hoodAngle);
 
-    // Log for AdvantageScope debugging
-    int quadrant = ShotCalculator.getQuadrant(latestParameters.turretAngle());
-    Logger.recordOutput("AutoAim/Quadrant", quadrant);
-    Logger.recordOutput("AutoAim/TurretTargetDeg", latestParameters.turretAngle().in(Degrees));
+    // Log to AdvantageScope
+    Logger.recordOutput("AutoAim/TurretTargetDeg", turretAngle.in(Degrees));
+    Logger.recordOutput("AutoAim/Distance", latestParameters.distanceToTarget());
+    Logger.recordOutput("AutoAim/ShotValid", latestParameters.isValid());
     Logger.recordOutput("AutoAim/FlywheelTargetRPM", latestParameters.flywheelSpeedRPM());
     Logger.recordOutput("AutoAim/HoodAngleDeg", latestParameters.hoodAngleDegrees());
-    Logger.recordOutput("AutoAim/ShotValid", latestParameters.isValid());
-    Logger.recordOutput("AutoAim/Distance", latestParameters.distanceToTarget());
+    Logger.recordOutput(
+        "AutoAim/ActiveTarget",
+        new Pose2d(FieldConstants.getTargetForRobot2d(robotPose), robotPose.getRotation()));
   }
 
   @Override
@@ -80,9 +81,8 @@ public class AutoAimCommand extends Command {
 
   @Override
   public boolean isFinished() {
-    return false; // Default command, runs forever
+    return false; 
   }
-
   /** Grab the latest shot parameters (AutoFireCommand needs these). */
   public ShotParameters getLatestParameters() {
     return latestParameters;

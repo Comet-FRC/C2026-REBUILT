@@ -55,7 +55,6 @@ public class ShotCalculator {
           Map.entry(6.0, 1.3));
 
   // How many times we re-calculate the lookahead to get a more accurate prediction.
-  // 5 is plenty — it converges fast.
   private static final int LOOKAHEAD_ITERATIONS = 5;
 
   /**
@@ -68,7 +67,6 @@ public class ShotCalculator {
       Angle currentTurretPosition) { // Changed from Rotation2d to Angle
     // Figure out which quadrant we're in and grab that target
     Translation2d target = FieldConstants.getTargetForRobot2d(robotPose);
-    int activeQuadrant = FieldConstants.getRobotQuadrant(robotPose);
     Translation2d robotPosition = robotPose.getTranslation();
 
     double rawDistance = robotPosition.getDistance(target);
@@ -122,18 +120,11 @@ public class ShotCalculator {
         correctedDistance >= FieldConstants.MIN_SHOOTING_DISTANCE
             && correctedDistance <= FieldConstants.MAX_SHOOTING_DISTANCE;
 
-    // Log everything so we can debug in AdvantageScope
-    Logger.recordOutput("ShotCalculator/RawDistance", rawDistance);
-    Logger.recordOutput("ShotCalculator/CorrectedDistance", correctedDistance);
-    Logger.recordOutput("ShotCalculator/TurretAngleDeg", turretAngle.in(Units.Degrees));
-    Logger.recordOutput("ShotCalculator/FlywheelRPM", flywheelSpeedRPM);
-    Logger.recordOutput("ShotCalculator/HoodAngleDeg", hoodAngleDegrees);
-    Logger.recordOutput("ShotCalculator/IsValid", isValid);
-    Logger.recordOutput("ShotCalculator/ActiveQuadrant", activeQuadrant);
+    // Log shoot-on-move internals (everything else is logged in AutoAimCommand)
+    Logger.recordOutput("AutoAim/RawDistance", rawDistance);
+    Logger.recordOutput("AutoAim/CorrectedDistance", correctedDistance);
     Logger.recordOutput(
-        "ShotCalculator/TargetPosition", new double[] {target.getX(), target.getY()});
-    Logger.recordOutput(
-        "ShotCalculator/FieldVelocity",
+        "AutoAim/FieldVelocity",
         Math.hypot(fieldVelocity.vxMetersPerSecond, fieldVelocity.vyMetersPerSecond));
 
     return new ShotParameters(
@@ -143,9 +134,9 @@ public class ShotCalculator {
   /**
    * Helper function to handle the Turret's wrapping logic.
    *
-   * <p>Our turret can rotate from 0 to 450 degrees (for example). <br>
-   * If we need to aim at 10 degrees, but we are currently at 380 degrees, it's faster to rotate to
-   * 370 degrees (which is the same direction) than to spin all the way back to 10.
+   * <p>Our turret can rotate from -90 to 270 degrees. <br>
+   * If we need to aim at -80 degrees, but we are currently at 200 degrees, it's faster to rotate to
+   * 280 degrees (same direction, equivalent angle) — but 280 is out of range, so we'd go to -80.
    *
    * @param targetRelativeAngle The angle we *want* to aim at (normalized -180 to 180).
    * @param currentTurretPosition Where the turret actually IS right now.
@@ -160,9 +151,9 @@ public class ShotCalculator {
     double currentDeg = currentTurretPosition.in(Units.Degrees);
 
     // Generate all possible ways to aim at this angle.
-    // Since 0 degrees is the same as 360 degrees and 720 degrees...
-    // We check: The target itself, target + 1 full rotation, target - 1 full rotation.
-    double[] candidates = {targetDeg, targetDeg + 360.0, targetDeg - 360.0, targetDeg + 720.0};
+    // Since 0 degrees is the same as 360 degrees and -360 degrees...
+    // With a [-90, 270] range (360° span), at most one candidate will be valid.
+    double[] candidates = {targetDeg, targetDeg + 360.0, targetDeg - 360.0};
 
     double bestAngle = currentDeg; // Default to staying put (safety)
     double minError = Double.MAX_VALUE;
@@ -170,7 +161,7 @@ public class ShotCalculator {
 
     // Check each candidate
     for (double cand : candidates) {
-      // 1. Is this candidate physically possible? (Within 0 to 450 limits)
+      // 1. Is this candidate physically possible? (Within -90 to 270 limits)
       if (cand >= minDeg && cand <= maxDeg) {
         // 2. How far would we have to move to get there?
         double error = Math.abs(cand - currentDeg);
@@ -185,7 +176,6 @@ public class ShotCalculator {
     }
 
     // Edge Case: What if the target is in a "dead zone" we can't reach?
-    // e.g., We can only go 0-450, but the target is at -10.
     if (!foundValid) {
       // Just clamp to the nearest limit so we aim as close as possible.
       if (targetDeg > maxDeg) return TurretConstants.MAX_ANGLE;
@@ -194,18 +184,5 @@ public class ShotCalculator {
     }
 
     return Units.Degrees.of(bestAngle);
-  }
-
-  /** Handy helper to check which quadrant (1, 2, 3, 4) the turret is facing. */
-  public static int getQuadrant(Angle robotRelativeAngle) {
-    double deg = robotRelativeAngle.in(Units.Degrees);
-    deg %= 360;
-    if (deg > 180) deg -= 360;
-    if (deg < -180) deg += 360;
-
-    if (deg >= 0 && deg < 90) return 1;
-    if (deg >= 90 && deg <= 180) return 4;
-    if (deg < 0 && deg >= -90) return 2;
-    return 3;
   }
 }

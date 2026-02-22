@@ -70,21 +70,18 @@ public class RobotContainer {
   private AutoAimCommand autoAimCommand;
 
   // Controller
-  private final CometLogitechController controller = new CometLogitechController(0);
+  private final CometLogitechController driverController = new CometLogitechController(0);
+  private final CometLogitechController operatorController = new CometLogitechController(1);
 
   // Tunable values
   private final LoggedTunableNumber intakeWheelVolts =
       new LoggedTunableNumber("Intake/WheelVolts", 0.0);
-
   private final LoggedTunableNumber FlywheelVelocity =
       new LoggedTunableNumber("Flywheel/RPM", 6000.0);
   private final LoggedTunableNumber HoodAngle = new LoggedTunableNumber("Hood/Angle", 0.0);
-
   private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 180.0);
-
   private final LoggedTunableNumber indexerRollerVolts =
       new LoggedTunableNumber("Indexer/RollerVolts", 0.0);
-
   private final LoggedTunableNumber turretVolts = new LoggedTunableNumber("Turret/Volts", 2.0);
   private final LoggedTunableNumber flywheelVolts = new LoggedTunableNumber("Flywheel/Volts", 5);
   private final LoggedTunableNumber kickerVolts = new LoggedTunableNumber("Kicker/Volts", 5);
@@ -155,7 +152,6 @@ public class RobotContainer {
         break;
 
       default:
-        // Replayed robot, disable IO implementations
         drive =
             new Drive(
                 new GyroIO() {},
@@ -195,7 +191,6 @@ public class RobotContainer {
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
     setupDefaultCommands();
-    // Configure the button bindings
     configureButtonBindings();
   }
 
@@ -203,9 +198,9 @@ public class RobotContainer {
     this.drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
+            () -> -driverController.getLeftY(),
+            () -> -driverController.getLeftX(),
+            () -> -driverController.getRightX()));
 
     this.intake.setDefaultCommand(
         Commands.run(
@@ -216,16 +211,12 @@ public class RobotContainer {
             this.intake));
 
     this.indexer.setDefaultCommand(this.indexer.setRollerVoltage(() -> Volts.of(0.0)));
-
     this.kicker.setDefaultCommand(this.kicker.setVoltage(() -> Volts.of(0.0)));
-
-    // TODO: CHECK LOGIC
-    // // Auto-aim: turret continuously tracks target, flywheel spins up to calculated speed
-    // this.autoAimCommand = new AutoAimCommand(drive, turret, flywheel, hood);
-
-    this.turret.setDefaultCommand(this.turret.setVoltage(() -> Volts.of(0)));
-
     this.flywheel.setDefaultCommand(this.flywheel.setWheelVoltage(() -> Volts.of(0.0)));
+    this.hood.setDefaultCommand(this.hood.setPosition(() -> Degrees.of(0.0)));
+
+    this.autoAimCommand = new AutoAimCommand(drive, turret, flywheel, hood);
+    this.turret.setDefaultCommand(this.autoAimCommand);
   }
 
   /**
@@ -235,41 +226,31 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    // Lock to 0° when A button is held
-    controller
-        .a()
-        .whileTrue(
-            DriveCommands.joystickDriveAtAngle(
-                drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX(),
-                () -> new Rotation2d()));
+    // DRIVER BUTTONS
 
-    // Switch to X pattern when X button is pressed
-    controller.x().whileTrue(this.intake.setWheelVoltage(() -> Volts.of(-9)));
-
-    // reset Gyro
-    controller
+    // RESET GYRO
+    driverController
         .a()
         .onTrue(
             Commands.runOnce(() -> drive.resetHeadingWithAlliance(), drive).ignoringDisable(true));
 
-    controller.y().whileTrue(this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())));
+    // MANUAL KICKER
+    operatorController.y().whileTrue(this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())));
+    operatorController.b().whileTrue(this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())));
 
-    controller.b().whileTrue(this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())));
+    driverController.down().whileTrue(this.hood.setPosition(() -> Degrees.of(HoodAngle.get())));
+    driverController.up().whileTrue(this.hood.setVoltage(() -> Volts.of(3)));
 
-    controller.down().whileTrue(this.hood.setPosition(() -> Degrees.of(HoodAngle.get())));
-    controller.up().whileTrue(this.hood.setVoltage(() -> Volts.of(3)));
-
-    // controller.up().whileTrue(this.flywheel.setWheelVoltage(() ->
-    // Volts.of(flywheelVolts.get())));
     // Manual turret control
-    System.out.println("Starting bumper checks: " + turretVolts.get());
-    controller.leftBumper().whileTrue(this.turret.setVoltage(() -> Volts.of(turretVolts.get())));
-    controller.rightBumper().whileTrue(this.turret.setVoltage(() -> Volts.of(-turretVolts.get())));
+    driverController
+        .leftBumper()
+        .whileTrue(this.turret.setVoltage(() -> Volts.of(turretVolts.get())));
+    driverController
+        .rightBumper()
+        .whileTrue(this.turret.setVoltage(() -> Volts.of(-turretVolts.get())));
 
-    controller.right().whileTrue(this.turret.setPosition(() -> Degrees.of(90)));
-    controller.left().whileTrue(this.turret.resetPosition(() -> Degrees.of(180)));
+    driverController.right().whileTrue(this.turret.setPosition(() -> Degrees.of(90)));
+    driverController.left().whileTrue(this.turret.resetPosition(() -> Degrees.of(180)));
 
     // controller
     //     .down()
@@ -287,8 +268,7 @@ public class RobotContainer {
     //         new AutoFireCommand(turret, flywheel, kicker, autoAimCommand::getLatestParameters));
 
     // Simple Shoot Button (Right Trigger)
-    // Overrides turret tracking (which stops due to requirement conflict)
-    controller
+    driverController
         .rightTrigger()
         .whileTrue(
             flywheel
@@ -319,28 +299,28 @@ public class RobotContainer {
 
   private void configureSimulationBindings() {
     // Test Q1 (Top Left)
-    controller
+    driverController
         .up()
         .onTrue(
             Commands.runOnce(
                 () -> drive.setPose(new Pose2d(2.0, 6.0, Rotation2d.fromDegrees(0))), drive));
 
     // Test Q2 (Top Right)
-    controller
+    driverController
         .right()
         .onTrue(
             Commands.runOnce(
                 () -> drive.setPose(new Pose2d(14.0, 6.0, Rotation2d.fromDegrees(180))), drive));
 
     // Test Q4 (Bottom Right)
-    controller
+    driverController
         .down()
         .onTrue(
             Commands.runOnce(
                 () -> drive.setPose(new Pose2d(14.0, 2.0, Rotation2d.fromDegrees(180))), drive));
 
     // Test Q3 (Bottom Left)
-    controller
+    driverController
         .left()
         .onTrue(
             Commands.runOnce(
