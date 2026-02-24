@@ -14,7 +14,7 @@ public final class TurretConstants {
   public static final Angle MIN_ANGLE = Degrees.of(-90.0);
   public static final Angle MAX_ANGLE = Degrees.of(270.0);
 
-  public static final Angle TURRET_TOLERANCE = Degrees.of(1.0);
+  public static final Angle TURRET_TOLERANCE = Degrees.of(7.0);
 
   public static final double TURRET_kP = 30.2;
   public static final double TURRET_kI = 0.0;
@@ -23,7 +23,7 @@ public final class TurretConstants {
   public static final double TURRET_kV = 4.8;
   public static final double TURRET_kA = 0.0;
 
-  public static final double TURRET_MAX_VELOCITY = 0.5; // Mechanism rotations / second
+  public static final double TURRET_MAX_VELOCITY = 0.75; // Mechanism rotations / second
   public static final double TURRET_MAX_ACCELERATION = 0.25; // Mechanism rotations / second^2
 
   // Simulation PID gains

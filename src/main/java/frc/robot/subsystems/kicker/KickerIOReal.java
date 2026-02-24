@@ -74,6 +74,7 @@ public class KickerIOReal implements KickerIO {
   @Override
   public void updateInputs(KickerIOInputs inputs) {
     if (voltageMode) {
+      System.out.println(desiredVoltage);
       leftMotor.setVoltage(desiredVoltage.copy());
       rightMotor.setVoltage(desiredVoltage.copy());
     }

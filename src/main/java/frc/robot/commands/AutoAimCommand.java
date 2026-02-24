@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.FieldConstants;
 import frc.robot.shooting.ShotCalculator;
@@ -53,13 +54,13 @@ public class AutoAimCommand extends Command {
     Angle turretAngle = latestParameters.turretAngle();
     turret.io.setPositionSetpoint(turretAngle);
 
-    // // Spin up the flywheel to the right speed for this distance
-    // AngularVelocity flywheelSpeed = RPM.of(latestParameters.flywheelSpeedRPM());
-    // flywheel.io.setWheelVelocitySetpoint(flywheelSpeed);
+    // Spin up the flywheel to the right speed for this distance
+    AngularVelocity flywheelSpeed = RPM.of(latestParameters.flywheelSpeedRPM());
+    flywheel.io.setWheelVelocitySetpoint(flywheelSpeed);
 
-    // // Set the hood to the right angle for this distance
-    // Angle hoodAngle = Degrees.of(latestParameters.hoodAngleDegrees());
-    // hood.io.setPositionSetpoint(hoodAngle);
+    // Set the hood to the right angle for this distance
+    Angle hoodAngle = Degrees.of(latestParameters.hoodAngleDegrees());
+    hood.io.setPositionSetpoint(hoodAngle);
 
     // Log to AdvantageScope
     Logger.recordOutput("AutoAim/TurretTargetDeg", turretAngle.in(Degrees));
@@ -81,7 +82,7 @@ public class AutoAimCommand extends Command {
 
   @Override
   public boolean isFinished() {
-    return false; 
+    return false;
   }
   /** Grab the latest shot parameters (AutoFireCommand needs these). */
   public ShotParameters getLatestParameters() {

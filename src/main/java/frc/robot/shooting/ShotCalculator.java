@@ -24,35 +24,35 @@ public class ShotCalculator {
   // The map interpolates between entries so you don't need every single distance.
   private static final InterpolatingDoubleTreeMap FLYWHEEL_SPEED_BY_DISTANCE =
       InterpolatingDoubleTreeMap.ofEntries(
-          Map.entry(1.0, 2500.0), // meters -> RPM
-          Map.entry(2.0, 2700.0),
-          Map.entry(3.0, 3000.0),
-          Map.entry(4.0, 3300.0),
-          Map.entry(5.0, 3750.0),
-          Map.entry(6.0, 4000.0));
+          Map.entry(3.5, 3000.0), // meters -> RPM
+          Map.entry(6.479, 3300.0),
+          Map.entry(8.145, 3400.0),
+          Map.entry(4.823, 2800.0),
+          Map.entry(4.302, 2500.0),
+          Map.entry(5.3, 2900.0));
 
   // TODO: Fill these in with real data from testing!
   // Same idea — at each distance, find the hood angle that scores, and record it.
   private static final InterpolatingDoubleTreeMap HOOD_ANGLE_BY_DISTANCE =
       InterpolatingDoubleTreeMap.ofEntries(
-          Map.entry(1.0, 15.0), // meters -> degrees
-          Map.entry(2.0, 20.0),
-          Map.entry(3.0, 27.0),
-          Map.entry(4.0, 31.0),
-          Map.entry(5.0, 33.0),
-          Map.entry(6.0, 35.0));
+          Map.entry(3.5, 20.0), // meters -> degrees
+          Map.entry(6.479, 20.0),
+          Map.entry(8.145, 20.0),
+          Map.entry(4.823, 20.0),
+          Map.entry(4.302, 20.0),
+          Map.entry(5.3, 20.0));
 
   // TODO: Fill these in with real data! Use slow-mo video to measure.
   // This is how long the ball is in the air at each distance — needed for shoot on move.
   // If you set these all to 0, shoot-on-move correction is effectively disabled.
   private static final InterpolatingDoubleTreeMap TIME_OF_FLIGHT_BY_DISTANCE =
       InterpolatingDoubleTreeMap.ofEntries(
-          Map.entry(1.0, 0.3), // meters -> seconds
-          Map.entry(2.0, 0.5),
-          Map.entry(3.0, 0.7),
-          Map.entry(4.0, 0.9),
-          Map.entry(5.0, 1.1),
-          Map.entry(6.0, 1.3));
+          Map.entry(3.5, 0.8), // meters -> seconds
+          Map.entry(6.479, 1.0),
+          Map.entry(8.145, 1.16),
+          Map.entry(4.283, 0.86),
+          Map.entry(4.302, 0.74),
+          Map.entry(5.3, 1.2));
 
   // How many times we re-calculate the lookahead to get a more accurate prediction.
   private static final int LOOKAHEAD_ITERATIONS = 5;

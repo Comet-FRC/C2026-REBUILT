@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.AutoAimCommand;
+import frc.robot.commands.AutoFireCommand;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.*;
@@ -77,7 +78,7 @@ public class RobotContainer {
   private final LoggedTunableNumber intakeWheelVolts =
       new LoggedTunableNumber("Intake/WheelVolts", 0.0);
   private final LoggedTunableNumber FlywheelVelocity =
-      new LoggedTunableNumber("Flywheel/RPM", 6000.0);
+      new LoggedTunableNumber("Flywheel/RPM", 3000.0);
   private final LoggedTunableNumber HoodAngle = new LoggedTunableNumber("Hood/Angle", 0.0);
   private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 180.0);
   private final LoggedTunableNumber indexerRollerVolts =
@@ -210,13 +211,15 @@ public class RobotContainer {
             },
             this.intake));
 
-    this.indexer.setDefaultCommand(this.indexer.setRollerVoltage(() -> Volts.of(0.0)));
+    this.indexer.setDefaultCommand(this.indexer.setRollerVoltage(() -> Volts.of(2.0)));
     this.kicker.setDefaultCommand(this.kicker.setVoltage(() -> Volts.of(0.0)));
     this.flywheel.setDefaultCommand(this.flywheel.setWheelVoltage(() -> Volts.of(0.0)));
     this.hood.setDefaultCommand(this.hood.setPosition(() -> Degrees.of(0.0)));
 
     this.autoAimCommand = new AutoAimCommand(drive, turret, flywheel, hood);
     this.turret.setDefaultCommand(this.autoAimCommand);
+    // this.flywheel.setDefaultCommand(this.autoAimCommand);
+    // this.hood.setDefaultCommand(this.autoAimCommand);
   }
 
   /**
@@ -235,8 +238,8 @@ public class RobotContainer {
             Commands.runOnce(() -> drive.resetHeadingWithAlliance(), drive).ignoringDisable(true));
 
     // MANUAL KICKER
-    operatorController.y().whileTrue(this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())));
-    operatorController.b().whileTrue(this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())));
+    driverController.y().whileTrue(this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())));
+    driverController.b().whileTrue(this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())));
 
     driverController.down().whileTrue(this.hood.setPosition(() -> Degrees.of(HoodAngle.get())));
     driverController.up().whileTrue(this.hood.setVoltage(() -> Volts.of(3)));
@@ -262,35 +265,35 @@ public class RobotContainer {
 
     // TODO: CHECK LOGIC
     // // Auto-fire: when held, kicker fires automatically when turret is aimed + flywheel at speed
-    // controller
-    //     .rightTrigger()
-    //     .whileTrue(
-    //         new AutoFireCommand(turret, flywheel, kicker, autoAimCommand::getLatestParameters));
-
-    // Simple Shoot Button (Right Trigger)
     driverController
         .rightTrigger()
         .whileTrue(
-            flywheel
-                .setWheelVelocity(() -> RPM.of(FlywheelVelocity.get()))
-                .alongWith(
-                    Commands.waitUntil(
-                            () -> {
-                              boolean atSpeed =
-                                  flywheel.atSpeed(RPM.of(FlywheelVelocity.get()), RPM.of(100));
-                              Logger.recordOutput("SimpleShoot/AtSpeed", atSpeed);
-                              Logger.recordOutput(
-                                  "SimpleShoot/FlywheelErrorRPM",
-                                  flywheel
-                                      .getVelocity()
-                                      .minus(RPM.of(FlywheelVelocity.get()))
-                                      .in(RPM));
-                              return atSpeed;
-                            })
-                        .andThen(
-                            Commands.parallel(
-                                kicker.setVoltage(() -> Volts.of(4)),
-                                indexer.setRollerVoltage(() -> Volts.of(4))))));
+            new AutoFireCommand(turret, flywheel, kicker, autoAimCommand::getLatestParameters));
+
+    // Simple Shoot Button (Right Trigger)
+    // driverController
+    //     .rightTrigger()
+    //     .whileTrue(
+    //         flywheel
+    //             .setWheelVelocity(() -> RPM.of(FlywheelVelocity.get()))
+    //             .alongWith(
+    //                 Commands.waitUntil(
+    //                         () -> {
+    //                           boolean atSpeed =
+    //                               flywheel.atSpeed(RPM.of(FlywheelVelocity.get()), RPM.of(100));
+    //                           Logger.recordOutput("SimpleShoot/AtSpeed", atSpeed);
+    //                           Logger.recordOutput(
+    //                               "SimpleShoot/FlywheelErrorRPM",
+    //                               flywheel
+    //                                   .getVelocity()
+    //                                   .minus(RPM.of(FlywheelVelocity.get()))
+    //                                   .in(RPM));
+    //                           return atSpeed;
+    //                         })
+    //                     .andThen(
+    //                         Commands.parallel(
+    //                             kicker.setVoltage(() -> Volts.of(4)),
+    //                             indexer.setRollerVoltage(() -> Volts.of(4))))));
 
     if (Constants.currentMode == Constants.Mode.SIM) {
       configureSimulationBindings();

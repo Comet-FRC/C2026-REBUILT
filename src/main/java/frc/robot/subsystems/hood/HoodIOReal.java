@@ -98,13 +98,11 @@ public class HoodIOReal implements HoodIO {
   @Override
   public void setPositionSetpoint(Angle position) {
     voltageMode = false;
-    // Clamp to physical limits
     double clampedDeg =
         MathUtil.clamp(
             position.in(Degrees),
             HoodConstants.MIN_ANGLE.in(Degrees),
             HoodConstants.MAX_ANGLE.in(Degrees));
-    hoodPID.reset(getHoodPositionRad());
     hoodPID.setGoal(Math.toRadians(clampedDeg));
   }
 
