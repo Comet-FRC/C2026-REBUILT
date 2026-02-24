@@ -2,6 +2,8 @@ package frc.robot.subsystems.turret;
 
 import static edu.wpi.first.units.Units.*;
 
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
@@ -10,7 +12,9 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.MutVoltage;
+import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.util.LoggedTunableNumber;
 
@@ -28,7 +32,23 @@ public class TurretIOReal implements TurretIO {
   private boolean voltageMode = false;
   private Angle targetPosition = Radians.of(0);
 
+  // Cached status signals — refreshed in one batched CAN call
+  private final StatusSignal<Angle> positionSignal;
+  private final StatusSignal<edu.wpi.first.units.measure.AngularVelocity> velocitySignal;
+  private final StatusSignal<Double> closedLoopRefSignal;
+  private final StatusSignal<Voltage> motorVoltageSignal;
+  private final StatusSignal<Current> supplyCurrentSignal;
+  private final StatusSignal<Temperature> deviceTempSignal;
+
   public TurretIOReal() {
+    // Cache status signal references (these don't do CAN reads yet)
+    positionSignal = turretMotor.getPosition();
+    velocitySignal = turretMotor.getVelocity();
+    closedLoopRefSignal = turretMotor.getClosedLoopReference();
+    motorVoltageSignal = turretMotor.getMotorVoltage();
+    supplyCurrentSignal = turretMotor.getSupplyCurrent();
+    deviceTempSignal = turretMotor.getDeviceTemp();
+
     configureTurretMotor();
     resetPosition(Degrees.of(180));
   }
@@ -86,22 +106,24 @@ public class TurretIOReal implements TurretIO {
           motionMagicRequest.withPosition(targetPosition.in(Radians) / (2 * Math.PI)));
     }
 
-    inputs.turretPosition = Radians.of(getTurretPositionRad());
-    inputs.turretVelocity = RadiansPerSecond.of(getTurretVelocityRadPerSec());
+    // Batch-refresh all status signals in one CAN operation
+    BaseStatusSignal.refreshAll(
+        positionSignal,
+        velocitySignal,
+        closedLoopRefSignal,
+        motorVoltageSignal,
+        supplyCurrentSignal,
+        deviceTempSignal);
+
+    // Read from cached signals — no additional CAN traffic
+    inputs.turretPosition = Radians.of(positionSignal.getValueAsDouble() * 2 * Math.PI);
+    inputs.turretVelocity = RadiansPerSecond.of(velocitySignal.getValueAsDouble() * 2 * Math.PI);
     inputs.turretDesiredPosition = targetPosition;
     inputs.turretPositionSetpoint =
-        Radians.of(turretMotor.getClosedLoopReference().getValueAsDouble() * 2 * Math.PI);
-    inputs.turretAppliedVolts = Volts.of(turretMotor.getMotorVoltage().getValueAsDouble());
-    inputs.turretSupplyCurrent = Amps.of(turretMotor.getSupplyCurrent().getValueAsDouble());
-    inputs.turretTemperature = Celsius.of(turretMotor.getDeviceTemp().getValueAsDouble());
-  }
-
-  private double getTurretPositionRad() {
-    return turretMotor.getPosition().getValueAsDouble() * 2 * Math.PI;
-  }
-
-  private double getTurretVelocityRadPerSec() {
-    return turretMotor.getVelocity().getValueAsDouble() * 2 * Math.PI;
+        Radians.of(closedLoopRefSignal.getValueAsDouble() * 2 * Math.PI);
+    inputs.turretAppliedVolts = Volts.of(motorVoltageSignal.getValueAsDouble());
+    inputs.turretSupplyCurrent = Amps.of(supplyCurrentSignal.getValueAsDouble());
+    inputs.turretTemperature = Celsius.of(deviceTempSignal.getValueAsDouble());
   }
 
   @Override

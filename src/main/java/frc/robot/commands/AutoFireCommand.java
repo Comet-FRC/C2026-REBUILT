@@ -24,8 +24,7 @@ public class AutoFireCommand extends Command {
   private final Kicker kicker;
   private final Supplier<ShotParameters> parametersSupplier;
 
-  // TODO: Tune kicker voltage and flywheel tolerance
-  private static final Voltage KICKER_FIRE_VOLTAGE = Volts.of(8.0);
+  private static final Voltage KICKER_FIRE_VOLTAGE = Volts.of(4.0);
   private static final AngularVelocity FLYWHEEL_TOLERANCE = RPM.of(100.0);
 
   public AutoFireCommand(

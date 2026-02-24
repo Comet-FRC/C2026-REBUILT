@@ -2,6 +2,8 @@ package frc.robot.subsystems.flywheel;
 
 import static edu.wpi.first.units.Units.*;
 
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VelocityVoltage;
@@ -10,8 +12,11 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.MutVoltage;
+import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 
 public class FlywheelIOReal implements FlywheelIO {
@@ -24,7 +29,21 @@ public class FlywheelIOReal implements FlywheelIO {
   private boolean wheelVoltageMode = false;
   private final MutVoltage wheelDesiredVoltage = Volts.mutable(0);
 
+  // Cached status signals — refreshed in one batched CAN call
+  private final StatusSignal<Angle> positionSignal;
+  private final StatusSignal<AngularVelocity> velocitySignal;
+  private final StatusSignal<Voltage> motorVoltageSignal;
+  private final StatusSignal<Current> supplyCurrentSignal;
+  private final StatusSignal<Temperature> deviceTempSignal;
+
   public FlywheelIOReal() {
+    // Cache status signal references
+    positionSignal = wheelLeader.getPosition();
+    velocitySignal = wheelLeader.getVelocity();
+    motorVoltageSignal = wheelLeader.getMotorVoltage();
+    supplyCurrentSignal = wheelLeader.getSupplyCurrent();
+    deviceTempSignal = wheelLeader.getDeviceTemp();
+
     configureMotors();
   }
 
@@ -77,23 +96,18 @@ public class FlywheelIOReal implements FlywheelIO {
       wheelLeader.setControl(velocityRequest.withVelocity(desiredRotationsPerSec));
     }
 
-    inputs.wheelPosition = Radians.of(getPositionRad());
-    inputs.wheelVelocity = RadiansPerSecond.of(getVelocityRadPerSec());
+    // Batch-refresh all status signals in one CAN operation
+    BaseStatusSignal.refreshAll(
+        positionSignal, velocitySignal, motorVoltageSignal, supplyCurrentSignal, deviceTempSignal);
+
+    // Read from cached signals — no additional CAN traffic
+    inputs.wheelPosition = Radians.of(positionSignal.getValueAsDouble() * 2 * Math.PI);
+    inputs.wheelVelocity = RadiansPerSecond.of(velocitySignal.getValueAsDouble() * 2 * Math.PI);
     inputs.wheelDesiredVelocity = RadiansPerSecond.of(desiredVelocityRadPerSec);
     inputs.wheelVelocitySetpoint = RadiansPerSecond.of(desiredVelocityRadPerSec);
-    inputs.wheelAppliedVolts = Volts.of(wheelLeader.getMotorVoltage().getValueAsDouble());
-    inputs.wheelSupplyCurrent = Amps.of(wheelLeader.getSupplyCurrent().getValueAsDouble());
-    inputs.wheelTemperature = Celsius.of(wheelLeader.getDeviceTemp().getValueAsDouble());
-  }
-
-  /** Returns flywheel position in radians (mechanism rotations × 2π) */
-  private double getPositionRad() {
-    return wheelLeader.getPosition().getValueAsDouble() * 2 * Math.PI;
-  }
-
-  /** Returns flywheel velocity in rad/s (mechanism RPS × 2π) */
-  private double getVelocityRadPerSec() {
-    return wheelLeader.getVelocity().getValueAsDouble() * 2 * Math.PI;
+    inputs.wheelAppliedVolts = Volts.of(motorVoltageSignal.getValueAsDouble());
+    inputs.wheelSupplyCurrent = Amps.of(supplyCurrentSignal.getValueAsDouble());
+    inputs.wheelTemperature = Celsius.of(deviceTempSignal.getValueAsDouble());
   }
 
   @Override
