@@ -28,7 +28,7 @@ public class IndexerIOReal implements IndexerIO {
 
   private void configureRollerMotor() {
     SparkMaxConfig config = new SparkMaxConfig();
-    config.inverted(true).idleMode(IdleMode.kCoast).smartCurrentLimit(30);
+    config.inverted(true).idleMode(IdleMode.kCoast).smartCurrentLimit(20);
     config
         .encoder
         .positionConversionFactor(IndexerConstants.WHEEL_CONVERSION_FACTOR)
@@ -71,7 +71,7 @@ public class IndexerIOReal implements IndexerIO {
 
     SparkMaxConfig config = new SparkMaxConfig();
 
-    config.inverted(true).idleMode(IdleMode.kBrake).smartCurrentLimit(30);
+    config.inverted(true).idleMode(IdleMode.kBrake).smartCurrentLimit(20);
     config
         .encoder
         .positionConversionFactor(IndexerConstants.WHEEL_CONVERSION_FACTOR)

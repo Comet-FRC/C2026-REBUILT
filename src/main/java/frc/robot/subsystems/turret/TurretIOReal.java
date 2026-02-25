@@ -59,9 +59,9 @@ public class TurretIOReal implements TurretIO {
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive; // Was counterClockwise_Positive
     config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
 
-    config.CurrentLimits.SupplyCurrentLimit = 40;
+    config.CurrentLimits.SupplyCurrentLimit = 20;
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = 80;
+    config.CurrentLimits.StatorCurrentLimit = 40;
     config.CurrentLimits.StatorCurrentLimitEnable = true;
 
     config.Feedback.SensorToMechanismRatio = TurretConstants.GEAR_RATIO;
@@ -79,6 +79,7 @@ public class TurretIOReal implements TurretIO {
     config.Slot0.kI = TurretConstants.TURRET_kI;
     config.Slot0.kD = TurretConstants.TURRET_kD;
     config.Slot0.kS = TurretConstants.TURRET_kS;
+    // config.Slot0.IntegralZone = TurretConstants.TURRET_I_ZONE;
     config.Slot0.kV = TurretConstants.TURRET_kV;
     config.Slot0.kA = TurretConstants.TURRET_kA;
 

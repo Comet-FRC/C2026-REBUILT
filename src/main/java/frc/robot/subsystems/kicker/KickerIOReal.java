@@ -31,7 +31,7 @@ public class KickerIOReal implements KickerIO {
   private void configureMotors() {
     // Left motor config (not inverted)
     SparkMaxConfig leftConfig = new SparkMaxConfig();
-    leftConfig.inverted(false).idleMode(IdleMode.kCoast).smartCurrentLimit(30);
+    leftConfig.inverted(false).idleMode(IdleMode.kCoast).smartCurrentLimit(20);
     leftConfig
         .encoder
         .positionConversionFactor(KickerConstants.WHEEL_CONVERSION_FACTOR)
@@ -40,7 +40,7 @@ public class KickerIOReal implements KickerIO {
 
     // Right motor config (inverted)
     SparkMaxConfig rightConfig = new SparkMaxConfig();
-    rightConfig.inverted(false).idleMode(IdleMode.kCoast).smartCurrentLimit(30);
+    rightConfig.inverted(false).idleMode(IdleMode.kCoast).smartCurrentLimit(20);
     rightConfig
         .encoder
         .positionConversionFactor(KickerConstants.WHEEL_CONVERSION_FACTOR)
@@ -101,7 +101,7 @@ public class KickerIOReal implements KickerIO {
 
     // Configure left motor
     SparkMaxConfig leftConfig = new SparkMaxConfig();
-    leftConfig.inverted(false).idleMode(IdleMode.kBrake).smartCurrentLimit(30);
+    leftConfig.inverted(false).idleMode(IdleMode.kBrake).smartCurrentLimit(20);
     leftConfig
         .encoder
         .positionConversionFactor(KickerConstants.WHEEL_CONVERSION_FACTOR)
@@ -119,7 +119,7 @@ public class KickerIOReal implements KickerIO {
 
     // Configure right motor
     SparkMaxConfig rightConfig = new SparkMaxConfig();
-    rightConfig.inverted(true).idleMode(IdleMode.kBrake).smartCurrentLimit(30);
+    rightConfig.inverted(true).idleMode(IdleMode.kBrake).smartCurrentLimit(20);
     rightConfig
         .encoder
         .positionConversionFactor(KickerConstants.WHEEL_CONVERSION_FACTOR)

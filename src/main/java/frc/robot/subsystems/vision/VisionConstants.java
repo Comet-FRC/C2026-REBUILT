@@ -75,27 +75,20 @@ public class VisionConstants {
       Double.POSITIVE_INFINITY; // No rotation data available
 
   public static enum Camera {
-    FrontApriltag(
-        "Front OV9782",
+    LeftCamera(
+        "LEFT",
         0.6,
         5,
         new Transform3d(
-            new Translation3d(Inches.of(+13.6), Inches.of(0.25), Inches.of(+20.875)),
-            new Rotation3d(Degrees.of(0), Degrees.of(-20), Degrees.of(0)))),
-    BackApriltag(
-        "Back OV9281",
+            new Translation3d(Inches.of(-9.944988), Inches.of(9.848857), Inches.of(7.862498)),
+            new Rotation3d(Degrees.of(0), Degrees.of(-25), Degrees.of(100)))),
+    RightCamera(
+        "RIGHT",
         1,
         4,
         new Transform3d(
-            new Translation3d(Inches.of(-13.663), Inches.of(-4.75), Inches.of(19.625)),
-            new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(180)))),
-    NoteVision(
-        "Note Cam",
-        0,
-        0,
-        new Transform3d(
-            new Translation3d(Inches.of(-14.047), Inches.of(+0), Inches.of(+12.584)),
-            new Rotation3d(0, Degrees.of(15).in(Radians), Math.PI)));
+            new Translation3d(Inches.of(-9.944988), Inches.of(-9.848857), Inches.of(7.862498)),
+            new Rotation3d(Degrees.of(0), Degrees.of(-25), Degrees.of(200))));
 
     public final String hardwareName;
     private final Transform3d intermediateToCamera;

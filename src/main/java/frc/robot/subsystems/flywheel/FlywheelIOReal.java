@@ -54,12 +54,11 @@ public class FlywheelIOReal implements FlywheelIO {
     leaderConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
 
     // Current limits
-    leaderConfig.CurrentLimits.SupplyCurrentLimit = 40;
+    leaderConfig.CurrentLimits.SupplyCurrentLimit = 20;
     leaderConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-    leaderConfig.CurrentLimits.StatorCurrentLimit = 80;
+    leaderConfig.CurrentLimits.StatorCurrentLimit = 70;
     leaderConfig.CurrentLimits.StatorCurrentLimitEnable = true;
 
-    // 1:1 belt ratio (24T to 24T), no gear reduction
     leaderConfig.Feedback.SensorToMechanismRatio = FlywheelConstants.GEAR_RATIO;
 
     // Slot 0 Configs (PID + FF)

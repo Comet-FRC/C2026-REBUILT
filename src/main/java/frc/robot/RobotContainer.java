@@ -111,8 +111,8 @@ public class RobotContainer {
         this.vision =
             new Vision(
                 drive::addVisionMeasurement,
-                new VisionIOPhotonVision(Camera.FrontApriltag),
-                new VisionIOPhotonVision(Camera.BackApriltag),
+                new VisionIOPhotonVision(Camera.LeftCamera),
+                new VisionIOPhotonVision(Camera.RightCamera),
                 new VisionIOLimelight("limelight", drive::getRotation));
         this.intake = new Intake(new IntakeIOReal());
         this.indexer = new Indexer(new IndexerIOReal());
@@ -315,36 +315,6 @@ public class RobotContainer {
     if (Constants.currentMode == Constants.Mode.SIM) {
       configureSimulationBindings();
     }
-  }
-
-  private void configureSimulationBindings() {
-    // Test Q1 (Top Left)
-    driverController
-        .up()
-        .onTrue(
-            Commands.runOnce(
-                () -> drive.setPose(new Pose2d(2.0, 6.0, Rotation2d.fromDegrees(0))), drive));
-
-    // Test Q2 (Top Right)
-    driverController
-        .right()
-        .onTrue(
-            Commands.runOnce(
-                () -> drive.setPose(new Pose2d(14.0, 6.0, Rotation2d.fromDegrees(180))), drive));
-
-    // Test Q4 (Bottom Right)
-    driverController
-        .down()
-        .onTrue(
-            Commands.runOnce(
-                () -> drive.setPose(new Pose2d(14.0, 2.0, Rotation2d.fromDegrees(180))), drive));
-
-    // Test Q3 (Bottom Left)
-    driverController
-        .left()
-        .onTrue(
-            Commands.runOnce(
-                () -> drive.setPose(new Pose2d(2.0, 2.0, Rotation2d.fromDegrees(0))), drive));
   }
 
   /**
