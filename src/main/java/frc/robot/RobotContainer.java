@@ -312,9 +312,6 @@ public class RobotContainer {
     //                             kicker.setVoltage(() -> Volts.of(4)),
     //                             indexer.setRollerVoltage(() -> Volts.of(4))))));
 
-    if (Constants.currentMode == Constants.Mode.SIM) {
-      configureSimulationBindings();
-    }
   }
 
   /**
