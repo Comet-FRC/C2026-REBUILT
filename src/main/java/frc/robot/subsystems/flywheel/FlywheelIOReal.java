@@ -92,6 +92,7 @@ public class FlywheelIOReal implements FlywheelIO {
       wheelLeader.setControl(voltageRequest.withOutput(wheelDesiredVoltage.in(Volts)));
     } else {
       // Convert rad/s to rot/s for TalonFX
+      System.out.println(desiredVelocityRadPerSec);
       double desiredRotationsPerSec = desiredVelocityRadPerSec / (2 * Math.PI);
       wheelLeader.setControl(velocityRequest.withVelocity(desiredRotationsPerSec));
     }

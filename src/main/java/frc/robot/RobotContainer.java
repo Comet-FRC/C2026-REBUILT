@@ -215,15 +215,16 @@ public class RobotContainer {
             },
             this.intake));
 
-    this.indexer.setDefaultCommand(this.indexer.setRollerVoltage(() -> Volts.of(2.0)));
+    this.indexer.setDefaultCommand(
+        this.indexer.setRollerVoltage(() -> Volts.of(indexerRollerVolts.get())));
     this.kicker.setDefaultCommand(this.kicker.setVoltage(() -> Volts.of(0.0)));
     this.flywheel.setDefaultCommand(this.flywheel.setWheelVoltage(() -> Volts.of(0.0)));
     this.hood.setDefaultCommand(this.hood.setPosition(() -> Degrees.of(0.0)));
 
     this.autoAimCommand = new AutoAimCommand(drive, turret, flywheel, hood, () -> targetMode);
     this.turret.setDefaultCommand(this.autoAimCommand);
-    // this.flywheel.setDefaultCommand(this.autoAimCommand);
-    // this.hood.setDefaultCommand(this.autoAimCommand);
+    this.flywheel.setDefaultCommand(this.autoAimCommand);
+    this.hood.setDefaultCommand(this.autoAimCommand);
   }
 
   /**
@@ -243,8 +244,8 @@ public class RobotContainer {
 
     // MANUAL KICKER
     // Toggle target mode: FEEDING ↔ HUB
-    operatorController
-        .a()
+    driverController
+        .leftTrigger()
         .onTrue(
             Commands.runOnce(
                     () -> {
@@ -254,8 +255,8 @@ public class RobotContainer {
                     })
                 .ignoringDisable(true));
 
-    operatorController.y().whileTrue(this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())));
-    operatorController.b().whileTrue(this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())));
+    driverController.y().whileTrue(this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())));
+    driverController.b().whileTrue(this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())));
 
     driverController.down().whileTrue(this.hood.setPosition(() -> Degrees.of(HoodAngle.get())));
     driverController.up().whileTrue(this.hood.setVoltage(() -> Volts.of(3)));

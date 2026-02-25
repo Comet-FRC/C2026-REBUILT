@@ -64,32 +64,29 @@ public class ShotCalculator {
   // TODO: Fill these in with real data from hub testing!
   private static final InterpolatingDoubleTreeMap HUB_FLYWHEEL_SPEED =
       InterpolatingDoubleTreeMap.ofEntries(
-          Map.entry(1.0, 3000.0), // meters -> RPM  (placeholder)
-          Map.entry(2.0, 3200.0),
-          Map.entry(3.0, 3500.0),
-          Map.entry(4.0, 3800.0),
-          Map.entry(5.0, 4200.0),
-          Map.entry(6.0, 4500.0));
+          Map.entry(2.7, 2700.0), // meters -> RPM  (placeholder)
+          Map.entry(3.0, 2700.0),
+          Map.entry(4.07, 2900.0),
+          Map.entry(4.659, 3200.0),
+          Map.entry(1.514, 2500.0));
 
   // TODO: Fill these in with real data from hub testing!
   private static final InterpolatingDoubleTreeMap HUB_HOOD_ANGLE =
       InterpolatingDoubleTreeMap.ofEntries(
-          Map.entry(1.0, 25.0), // meters -> degrees  (placeholder)
-          Map.entry(2.0, 30.0),
-          Map.entry(3.0, 35.0),
-          Map.entry(4.0, 40.0),
-          Map.entry(5.0, 43.0),
-          Map.entry(6.0, 45.0));
+          Map.entry(2.7, 10.0), // meters -> degrees  (placeholder)
+          Map.entry(3.0, 10.0),
+          Map.entry(4.07, 14.0),
+          Map.entry(4.659, 16.0),
+          Map.entry(1.514, 0.0));
 
   // TODO: Fill these in with real data from hub testing!
   private static final InterpolatingDoubleTreeMap HUB_TIME_OF_FLIGHT =
       InterpolatingDoubleTreeMap.ofEntries(
-          Map.entry(1.0, 0.4), // meters -> seconds  (placeholder)
-          Map.entry(2.0, 0.6),
-          Map.entry(3.0, 0.8),
-          Map.entry(4.0, 1.0),
-          Map.entry(5.0, 1.2),
-          Map.entry(6.0, 1.4));
+          Map.entry(2.7, 0.79), // meters -> seconds  (placeholder)
+          Map.entry(3.0, 0.88),
+          Map.entry(4.07, 0.61),
+          Map.entry(4.659, 0.73),
+          Map.entry(1.514, 0.79));
 
   // How many times we re-calculate the lookahead to get a more accurate prediction.
   private static final int LOOKAHEAD_ITERATIONS = 5;

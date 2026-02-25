@@ -28,7 +28,7 @@ public final class HoodConstants {
   public static final double HOOD_kP = 25;
   public static final double HOOD_kI = 0.0;
   public static final double HOOD_kD = 0.0;
-  public static final double HOOD_kS = 0.3;
+  public static final double HOOD_kS = 0.4;
   public static final double HOOD_kV = 0.8;
   public static final double HOOD_kA = 0.05;
 
