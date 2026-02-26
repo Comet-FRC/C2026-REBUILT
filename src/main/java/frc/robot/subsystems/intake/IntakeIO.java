@@ -25,8 +25,10 @@ public interface IntakeIO {
     public AngularVelocity pivotVelocity = RadiansPerSecond.of(0);
     public Voltage pivotRightAppliedVolts = Volts.of(0);
     public Voltage pivotLeftAppliedVolts = Volts.of(0);
-    public Current pivotSupplyCurrent = Amps.of(0);
-    public Temperature pivotTemperature = Celsius.of(0);
+    public Current pivotRightSupplyCurrent = Amps.of(0);
+    public Current pivotLeftSupplyCurrent = Amps.of(0);
+    public Temperature pivotRightTemperature = Celsius.of(0);
+    public Temperature pivotLeftTemperature = Celsius.of(0);
 
     // REV Through Bore Encoder (Duty Cycle)
     public double throughBoreEncoderPositionRaw = 0.0; // Value 0-1 for one full rotation

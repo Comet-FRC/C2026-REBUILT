@@ -38,8 +38,8 @@ public class IntakeIOReal implements IntakeIO {
     leftConfig
         .inverted(true)
         .idleMode(IdleMode.kCoast)
-        .smartCurrentLimit(20) 
-        .voltageCompensation(11.5); 
+        .smartCurrentLimit(20)
+        .voltageCompensation(11.5);
     leftConfig
         .encoder
         .positionConversionFactor(IntakeConstants.WHEEL_CONVERSION_FACTOR)
@@ -51,7 +51,7 @@ public class IntakeIOReal implements IntakeIO {
   private void configurePivotMotors() {
     SparkMaxConfig rightConfig = new SparkMaxConfig();
     rightConfig
-        .inverted(true) 
+        .inverted(true)
         .idleMode(IdleMode.kBrake)
         .smartCurrentLimit(30) // Lower for battery efficiency
         .voltageCompensation(11.5);
@@ -67,7 +67,7 @@ public class IntakeIOReal implements IntakeIO {
         .idleMode(IdleMode.kBrake)
         .smartCurrentLimit(30)
         .voltageCompensation(11.5)
-        .inverted(false); 
+        .inverted(false);
     pivotLeft.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
@@ -182,8 +182,10 @@ public class IntakeIOReal implements IntakeIO {
     inputs.pivotLeftAppliedVolts =
         Volts.of(pivotLeft.getAppliedOutput() * pivotLeft.getBusVoltage());
 
-    inputs.pivotSupplyCurrent = Amps.of(pivotRight.getOutputCurrent());
-    inputs.pivotTemperature = Celsius.of(pivotRight.getMotorTemperature());
+    inputs.pivotRightSupplyCurrent = Amps.of(pivotRight.getOutputCurrent());
+    inputs.pivotLeftSupplyCurrent = Amps.of(pivotLeft.getOutputCurrent());
+    inputs.pivotRightTemperature = Celsius.of(pivotRight.getMotorTemperature());
+    inputs.pivotLeftTemperature = Celsius.of(pivotLeft.getMotorTemperature());
 
     // Through Bore Encoder raw values
     inputs.throughBoreEncoderPositionRaw = throughBoreEncoder.get();

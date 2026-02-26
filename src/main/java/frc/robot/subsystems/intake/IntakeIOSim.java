@@ -151,7 +151,11 @@ public class IntakeIOSim implements IntakeIO {
     inputs.pivotDesiredPosition = Radians.of(pivotPID.getSetpoint());
     inputs.pivotVelocity = RadiansPerSecond.of(pivotMotor.getVelocityRadPerSec());
     inputs.pivotRightAppliedVolts = this.pivotAppliedVoltage;
-    inputs.pivotSupplyCurrent = Amps.of(pivotMotor.getCurrentDrawAmps());
+    inputs.pivotLeftAppliedVolts = this.pivotAppliedVoltage;
+    inputs.pivotRightSupplyCurrent = Amps.of(pivotMotor.getCurrentDrawAmps());
+    inputs.pivotLeftSupplyCurrent = Amps.of(pivotMotor.getCurrentDrawAmps());
+    inputs.pivotRightTemperature = Celsius.of(0.0);
+    inputs.pivotLeftTemperature = Celsius.of(0.0);
   }
 
   private void runLoopControl() {
