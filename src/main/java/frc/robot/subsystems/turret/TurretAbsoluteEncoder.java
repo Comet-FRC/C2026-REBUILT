@@ -66,9 +66,16 @@ public class TurretAbsoluteEncoder {
     lastRaw19T = encoder19T.get(); // [0, 1) — fractional encoder revolution
     lastRaw21T = encoder21T.get();
 
-    // Apply per-encoder offsets so that turret "zero" (180°) reads 0.0
-    double adj19T = (lastRaw19T - TurretConstants.ENCODER_19T_OFFSET + 1.0) % 1.0;
-    double adj21T = (lastRaw21T - TurretConstants.ENCODER_21T_OFFSET + 1.0) % 1.0;
+    // Apply inversion (flip direction if encoder counts backwards relative to turret)
+    double effective19T =
+        TurretConstants.ENCODER_19T_INVERTED ? (1.0 - lastRaw19T) % 1.0 : lastRaw19T;
+    double effective21T =
+        TurretConstants.ENCODER_21T_INVERTED ? (1.0 - lastRaw21T) % 1.0 : lastRaw21T;
+
+    // Apply per-encoder offsets (shift so that turret reference position reads as the correct
+    // angle)
+    double adj19T = (effective19T - TurretConstants.ENCODER_19T_OFFSET + 1.0) % 1.0;
+    double adj21T = (effective21T - TurretConstants.ENCODER_21T_OFFSET + 1.0) % 1.0;
 
     // Convert fractional encoder rotation to turret tooth remainder
     //   n mod 19 = round(adj19T * 19) mod 19
