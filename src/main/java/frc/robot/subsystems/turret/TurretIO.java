@@ -20,6 +20,11 @@ public interface TurretIO {
     public Voltage turretAppliedVolts = Volts.of(0);
     public Current turretSupplyCurrent = Amps.of(0);
     public Temperature turretTemperature = Celsius.of(0);
+
+    public boolean absEncoderConnected = false;
+    public double absEncoderRaw19T = 0.0; 
+    public double absEncoderRaw21T = 0.0; 
+    public double absEncoderAngleDeg = 0.0; // CRT-computed turret angle in degrees
   }
 
   public default void updateInputs(TurretIOInputs inputs) {}
