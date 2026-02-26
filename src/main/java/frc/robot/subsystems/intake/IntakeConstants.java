@@ -9,6 +9,7 @@ import edu.wpi.first.units.measure.Mass;
 public final class IntakeConstants {
   // Intake wheel motors (SparkMax + NEO)
   public static final int INTAKE_LEADER_ID = 12;
+  public static final int INTAKE_FOLLOWER_ID = 23;
   // Intake pivot motors (SparkMax + NEO)
   public static final int PIVOT_RIGHT = 13;
   public static final int PIVOT_LEFT = 14;

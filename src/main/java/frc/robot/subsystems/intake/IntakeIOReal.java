@@ -23,6 +23,8 @@ public class IntakeIOReal implements IntakeIO {
   // Wheel motors (SparkMax + NEO)
   private final SparkMax wheelLeader =
       new SparkMax(IntakeConstants.INTAKE_LEADER_ID, MotorType.kBrushless);
+  private final SparkMax wheelFollower =
+      new SparkMax(IntakeConstants.INTAKE_FOLLOWER_ID, MotorType.kBrushless);
 
   // Pivot motors (SparkMax + NEO)
   private final SparkMax pivotRight =
@@ -33,7 +35,7 @@ public class IntakeIOReal implements IntakeIO {
   private final DutyCycleEncoder throughBoreEncoder =
       new DutyCycleEncoder(IntakeConstants.THROUGH_BORE_ENCODER_DIO);
 
-  private void configureWheelMotor() {
+  private void configureWheelMotors() {
     SparkMaxConfig leftConfig = new SparkMaxConfig();
     leftConfig
         .inverted(true)
@@ -46,6 +48,15 @@ public class IntakeIOReal implements IntakeIO {
         .velocityConversionFactor(IntakeConstants.WHEEL_CONVERSION_FACTOR / 60.0);
     wheelLeader.configure(
         leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+    SparkMaxConfig followerConfig = new SparkMaxConfig();
+    followerConfig
+        .idleMode(IdleMode.kCoast)
+        .smartCurrentLimit(20)
+        .voltageCompensation(11.5)
+        .follow(wheelLeader);
+    wheelFollower.configure(
+        followerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
   private void configurePivotMotors() {
@@ -111,7 +122,7 @@ public class IntakeIOReal implements IntakeIO {
 
   public IntakeIOReal() {
     throughBoreEncoder.setInverted(true);
-    configureWheelMotor();
+    configureWheelMotors();
     configurePivotMotors();
     wheelPID.reset(0);
     pivotPID.reset(getThroughBorePositionRad());

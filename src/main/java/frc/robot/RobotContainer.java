@@ -210,8 +210,7 @@ public class RobotContainer {
     this.intake.setDefaultCommand(
         Commands.run(
             () -> {
-              this.intake.setIntakeState(
-                  Degrees.of(intakeAngle.get()), Volts.of(intakeWheelVolts.get()));
+              this.intake.setIntakeState(Degrees.of(80.0), Volts.of(0.0));
             },
             this.intake));
 
@@ -220,11 +219,9 @@ public class RobotContainer {
     this.kicker.setDefaultCommand(this.kicker.setVoltage(() -> Volts.of(0.0)));
     this.flywheel.setDefaultCommand(this.flywheel.setWheelVoltage(() -> Volts.of(0.0)));
     this.hood.setDefaultCommand(this.hood.setPosition(() -> Degrees.of(0.0)));
+    this.turret.setDefaultCommand(this.turret.setVoltage(() -> Volts.of(0.0)));
 
-    this.autoAimCommand = new AutoAimCommand(drive, turret, flywheel, hood, () -> targetMode);
-    this.turret.setDefaultCommand(this.autoAimCommand);
-    this.flywheel.setDefaultCommand(this.autoAimCommand);
-    this.hood.setDefaultCommand(this.autoAimCommand);
+    this.autoAimCommand = new AutoAimCommand(drive, turret, () -> targetMode);
   }
 
   /**
@@ -242,10 +239,9 @@ public class RobotContainer {
         .onTrue(
             Commands.runOnce(() -> drive.resetHeadingWithAlliance(), drive).ignoringDisable(true));
 
-    // MANUAL KICKER
     // Toggle target mode: FEEDING ↔ HUB
     driverController
-        .leftTrigger()
+        .leftBumper()
         .onTrue(
             Commands.runOnce(
                     () -> {
@@ -255,63 +251,71 @@ public class RobotContainer {
                     })
                 .ignoringDisable(true));
 
-    driverController.y().whileTrue(this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())));
-    driverController.b().whileTrue(this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())));
+    // Toggle AutoAim for Turret
+    driverController.leftTrigger().toggleOnTrue(this.autoAimCommand);
 
-    driverController.down().whileTrue(this.hood.setPosition(() -> Degrees.of(HoodAngle.get())));
-    driverController.up().whileTrue(this.hood.setVoltage(() -> Volts.of(3)));
-
-    // Manual turret control
-    driverController
-        .leftBumper()
-        .whileTrue(this.turret.setVoltage(() -> Volts.of(turretVolts.get())));
-    driverController
-        .rightBumper()
-        .whileTrue(this.turret.setVoltage(() -> Volts.of(-turretVolts.get())));
-
-    driverController.right().whileTrue(this.turret.setPosition(() -> Degrees.of(90)));
-    driverController.left().whileTrue(this.turret.resetPosition(() -> Degrees.of(180)));
-
-    // controller
-    //     .down()
-    //     .whileTrue(
-    //         Commands.parallel(
-    //             this.flywheel.setWheelVoltage(() -> Volts.of(flywheelVolts.get())),
-    //             this.kicker.setVoltage(() -> Volts.of(kickerVolts.get())),
-    //             this.indexer.setRollerVoltage(() -> Volts.of(indexerRollerVolts.get()))));
-
-    // TODO: CHECK LOGIC
-    // // Auto-fire: when held, kicker fires automatically when turret is aimed + flywheel at speed
+    // AutoShoot: spin up flywheel, set hood, and fire kicker
     driverController
         .rightTrigger()
+        .whileTrue(new AutoFireCommand(drive, turret, flywheel, hood, kicker, () -> targetMode));
+
+    // Simple Shoot Button (Right Bumper)
+    driverController
+        .rightBumper()
         .whileTrue(
-            new AutoFireCommand(turret, flywheel, kicker, autoAimCommand::getLatestParameters));
+            flywheel
+                .setWheelVelocity(() -> RPM.of(FlywheelVelocity.get()))
+                .alongWith(
+                    Commands.waitUntil(
+                            () -> {
+                              boolean atSpeed =
+                                  flywheel.atSpeed(RPM.of(FlywheelVelocity.get()), RPM.of(100));
+                              Logger.recordOutput("SimpleShoot/AtSpeed", atSpeed);
+                              Logger.recordOutput(
+                                  "SimpleShoot/FlywheelErrorRPM",
+                                  flywheel
+                                      .getVelocity()
+                                      .minus(RPM.of(FlywheelVelocity.get()))
+                                      .in(RPM));
+                              return atSpeed;
+                            })
+                        .andThen(
+                            Commands.parallel(
+                                kicker.setVoltage(() -> Volts.of(4)),
+                                indexer.setRollerVoltage(() -> Volts.of(4))))));
 
-    // Simple Shoot Button (Right Trigger)
-    // driverController
-    //     .rightTrigger()
-    //     .whileTrue(
-    //         flywheel
-    //             .setWheelVelocity(() -> RPM.of(FlywheelVelocity.get()))
-    //             .alongWith(
-    //                 Commands.waitUntil(
-    //                         () -> {
-    //                           boolean atSpeed =
-    //                               flywheel.atSpeed(RPM.of(FlywheelVelocity.get()), RPM.of(100));
-    //                           Logger.recordOutput("SimpleShoot/AtSpeed", atSpeed);
-    //                           Logger.recordOutput(
-    //                               "SimpleShoot/FlywheelErrorRPM",
-    //                               flywheel
-    //                                   .getVelocity()
-    //                                   .minus(RPM.of(FlywheelVelocity.get()))
-    //                                   .in(RPM));
-    //                           return atSpeed;
-    //                         })
-    //                     .andThen(
-    //                         Commands.parallel(
-    //                             kicker.setVoltage(() -> Volts.of(4)),
-    //                             indexer.setRollerVoltage(() -> Volts.of(4))))));
+    // Intake Toggle (B button)
+    Command intakeCommand =
+        Commands.run(
+            () -> this.intake.setIntakeState(IntakeConstants.INTAKING_ANGLE, Volts.of(3.5)),
+            this.intake);
+    driverController.b().toggleOnTrue(intakeCommand);
+    driverController.left().onTrue(this.hood.setPosition(() -> Degrees.of(HoodAngle.get())));
+    // Manual FEEDING target override (Right DPAD)
+    driverController
+        .right()
+        .onTrue(
+            Commands.runOnce(() -> FieldConstants.toggleManualFeedingOverride())
+                .ignoringDisable(true));
 
+    // OPERATOR BUTTONS
+
+    // Turret Manual Control
+    operatorController
+        .leftBumper()
+        .whileTrue(this.turret.setVoltage(() -> Volts.of(-turretVolts.get())));
+    operatorController
+        .rightBumper()
+        .whileTrue(this.turret.setVoltage(() -> Volts.of(turretVolts.get())));
+
+    // Hood Manual Control
+    operatorController.up().whileTrue(this.hood.setVoltage(() -> Volts.of(3)));
+    operatorController.down().whileTrue(this.hood.setVoltage(() -> Volts.of(-3)));
+
+    // Flywheel RPM Control
+    operatorController
+        .rightTrigger()
+        .whileTrue(this.flywheel.setWheelVelocity(() -> RPM.of(FlywheelVelocity.get())));
   }
 
   /**

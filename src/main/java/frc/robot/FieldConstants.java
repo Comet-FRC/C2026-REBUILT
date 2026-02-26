@@ -110,6 +110,15 @@ public final class FieldConstants {
     }
   }
 
+  public static int manualFeedingOverride = -1; // -1 for auto, 0 for target 1, 1 for target 2
+
+  public static void toggleManualFeedingOverride() {
+    manualFeedingOverride++;
+    if (manualFeedingOverride > 1) {
+      manualFeedingOverride = -1; // reset to auto
+    }
+  }
+
   /**
    * Gets the feeding target for the robot's alliance, picking whichever of the two alliance targets
    * is closer.
@@ -120,6 +129,10 @@ public final class FieldConstants {
             && DriverStation.getAlliance().get() == Alliance.Red;
 
     Translation3d[] targets = isRed ? RED_TARGETS : BLUE_TARGETS;
+
+    if (manualFeedingOverride != -1) {
+      return targets[manualFeedingOverride];
+    }
 
     // Pick the closer of the two alliance targets
     Translation2d robotPos = robotPose.getTranslation();
