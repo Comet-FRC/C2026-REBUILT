@@ -56,6 +56,11 @@ public final class TurretConstants {
   // Set to true if that encoder counts DOWN when the turret moves in its positive direction.
   // Check: rotate turret positive, watch Raw19T and Raw21T in AdvantageScope.
   // Both should move in the same direction. Invert whichever one doesn't.
-  public static final boolean ENCODER_19T_INVERTED = false;
-  public static final boolean ENCODER_21T_INVERTED = false;
+  public static final boolean IS_19T_INVERTED = false;
+  public static final boolean IS_21T_INVERTED = false;
+
+  public static final int NUM_TEETH_GEAR_1 = 19;
+  public static final int NUM_TEETH_GEAR_2 = 21;
+  public static final int NUM_TEETH_TURRET = 200;
 }
+

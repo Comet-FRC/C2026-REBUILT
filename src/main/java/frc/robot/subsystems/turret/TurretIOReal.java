@@ -58,8 +58,8 @@ public class TurretIOReal implements TurretIO {
    */
   private void seedPositionFromAbsoluteEncoder() {
     if (absoluteEncoder.isConnected()) {
-      double angleDeg = absoluteEncoder.getAbsoluteAngleDegrees();
-      resetPosition(Degrees.of(angleDeg));
+      Angle angle = absoluteEncoder.getAngle();
+      resetPosition(angle);
     } else {
       resetPosition(Degrees.of(180));
     }
@@ -131,9 +131,9 @@ public class TurretIOReal implements TurretIO {
     inputs.turretTemperature = Celsius.of(deviceTempSignal.getValueAsDouble());
 
     inputs.absEncoderConnected = absoluteEncoder.isConnected();
-    if (inputs.absEncoderConnected) {
-      absoluteEncoder.getAbsoluteAngleDegrees(); // updates cached raw values
-    }
+    // if (inputs.absEncoderConnected) {
+    //   absoluteEncoder.getAbsoluteAngleDegrees(); // updates cached raw values
+    // }
     inputs.absEncoderRaw19T = absoluteEncoder.getRaw19T();
     inputs.absEncoderRaw21T = absoluteEncoder.getRaw21T();
     inputs.absEncoderAngleDeg = absoluteEncoder.getLastAbsoluteAngleDeg();
