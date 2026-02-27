@@ -10,6 +10,7 @@ import frc.robot.shooting.ShotParameters;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.flywheel.Flywheel;
 import frc.robot.subsystems.hood.Hood;
+import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.kicker.Kicker;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretConstants;
@@ -27,10 +28,11 @@ public class AutoFireCommand extends Command {
   private final Flywheel flywheel;
   private final Hood hood;
   private final Kicker kicker;
+  private final Indexer indexer;
   private final Supplier<TargetMode> modeSupplier;
 
   private static final Voltage KICKER_FIRE_VOLTAGE = Volts.of(4.0);
-  private static final AngularVelocity FLYWHEEL_TOLERANCE = RPM.of(100.0);
+  private static final AngularVelocity FLYWHEEL_TOLERANCE = RPM.of(70.0);
 
   public AutoFireCommand(
       Drive drive,
@@ -38,15 +40,17 @@ public class AutoFireCommand extends Command {
       Flywheel flywheel,
       Hood hood,
       Kicker kicker,
+      Indexer indexer,
       Supplier<TargetMode> modeSupplier) {
     this.drive = drive;
     this.turret = turret;
     this.flywheel = flywheel;
     this.hood = hood;
     this.kicker = kicker;
+    this.indexer = indexer;
     this.modeSupplier = modeSupplier;
 
-    addRequirements(flywheel, hood, kicker);
+    addRequirements(flywheel, hood, kicker, indexer);
   }
 
   @Override
@@ -84,8 +88,10 @@ public class AutoFireCommand extends Command {
 
     if (readyToFire) {
       kicker.io.setVoltage(KICKER_FIRE_VOLTAGE);
+      indexer.io.setRollerVoltage(KICKER_FIRE_VOLTAGE);
     } else {
       kicker.io.setVoltage(Volts.of(0.0));
+      indexer.io.setRollerVoltage(Volts.of(0.0));
     }
   }
 
@@ -94,6 +100,7 @@ public class AutoFireCommand extends Command {
     flywheel.io.setWheelVelocitySetpoint(RPM.of(0));
     hood.io.stop();
     kicker.io.setVoltage(Volts.of(0.0));
+    indexer.io.setRollerVoltage(Volts.of(0.0));
   }
 
   @Override

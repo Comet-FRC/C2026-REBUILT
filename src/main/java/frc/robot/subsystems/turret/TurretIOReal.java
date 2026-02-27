@@ -49,7 +49,7 @@ public class TurretIOReal implements TurretIO {
     deviceTempSignal = turretMotor.getDeviceTemp();
 
     configureTurretMotor();
-    seedPositionFromAbsoluteEncoder();
+    // seedPositionFromAbsoluteEncoder();
   }
 
   /**
@@ -99,6 +99,7 @@ public class TurretIOReal implements TurretIO {
     config.MotionMagic.MotionMagicAcceleration = TurretConstants.TURRET_MAX_ACCELERATION;
 
     turretMotor.getConfigurator().apply(config);
+    resetPosition(Degrees.of(180));
   }
 
   @Override

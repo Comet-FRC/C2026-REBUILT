@@ -45,6 +45,7 @@ import frc.robot.subsystems.vision.VisionConstants.Camera;
 import frc.robot.util.LoggedTunableNumber;
 // import frc.robot.util.ProximitySensor;
 import frc.robot.util.controller.CometLogitechController;
+import frc.robot.util.controller.CometXboxController;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.littletonrobotics.junction.Logger;
@@ -75,7 +76,7 @@ public class RobotContainer {
   private AutoAimCommand autoAimCommand;
 
   // Controller
-  private final CometLogitechController driverController = new CometLogitechController(0);
+  private final CometXboxController driverController = new CometXboxController(0);
   private final CometLogitechController operatorController = new CometLogitechController(1);
 
   // Tunable values
@@ -207,12 +208,14 @@ public class RobotContainer {
             () -> -driverController.getLeftX(),
             () -> -driverController.getRightX()));
 
-    this.intake.setDefaultCommand(
-        Commands.run(
-            () -> {
-              this.intake.setIntakeState(Degrees.of(80.0), Volts.of(0.0));
-            },
-            this.intake));
+    // this.intake.setDefaultCommand(
+    //     Commands.run(
+    //         () -> {
+    //           this.intake.setIntakeState(Degrees.of(80.0), Volts.of(0.0));
+    //         },
+    //         this.intake));
+
+    this.intake.setDefaultCommand(this.intake.setPivotVoltage(() -> Volts.of(0.0)));
 
     this.indexer.setDefaultCommand(
         this.indexer.setRollerVoltage(() -> Volts.of(indexerRollerVolts.get())));
@@ -253,11 +256,13 @@ public class RobotContainer {
 
     // Toggle AutoAim for Turret
     driverController.leftTrigger().toggleOnTrue(this.autoAimCommand);
+    driverController.y().whileTrue(this.kicker.setVoltage(() -> Volts.of(4.0)));
 
     // AutoShoot: spin up flywheel, set hood, and fire kicker
     driverController
-        .rightTrigger()
-        .whileTrue(new AutoFireCommand(drive, turret, flywheel, hood, kicker, () -> targetMode));
+        .x()
+        .whileTrue(
+            new AutoFireCommand(drive, turret, flywheel, hood, kicker, indexer, () -> targetMode));
 
     // Simple Shoot Button (Right Bumper)
     driverController
