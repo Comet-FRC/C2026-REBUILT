@@ -63,8 +63,9 @@ public class TurretAbsoluteEncoder {
    * @return turret angle in degrees, in the range [0°, 360°)
    */
   public double getAbsoluteAngleDegrees() {
-    lastRaw19T = encoder19T.get(); // [0, 1) — fractional encoder revolution
-    lastRaw21T = encoder21T.get();
+    // Extract the strict [0, 1) fractional revolution, stripping off full accumulator rotations
+    lastRaw19T = (encoder19T.get() % 1.0 + 1.0) % 1.0;
+    lastRaw21T = (encoder21T.get() % 1.0 + 1.0) % 1.0;
 
     // Apply inversion (flip direction if encoder counts backwards relative to turret)
     double effective19T =
@@ -72,22 +73,52 @@ public class TurretAbsoluteEncoder {
     double effective21T =
         TurretConstants.ENCODER_21T_INVERTED ? (1.0 - lastRaw21T) % 1.0 : lastRaw21T;
 
-    // Apply per-encoder offsets (shift so that turret reference position reads as the correct
-    // angle)
-    double adj19T = (effective19T - TurretConstants.ENCODER_19T_OFFSET + 1.0) % 1.0;
-    double adj21T = (effective21T - TurretConstants.ENCODER_21T_OFFSET + 1.0) % 1.0;
+    // Apply per-encoder offsets
+    double adj19T = (effective19T - TurretConstants.ENCODER_19T_OFFSET) % 1.0;
+    if (adj19T < 0) adj19T += 1.0;
+
+    double adj21T = (effective21T - TurretConstants.ENCODER_21T_OFFSET) % 1.0;
+    if (adj21T < 0) adj21T += 1.0;
 
     // Convert fractional encoder rotation to turret tooth remainder
-    //   n mod 19 = round(adj19T * 19) mod 19
     int a = (int) Math.round(adj19T * TEETH_19T) % TEETH_19T;
     int b = (int) Math.round(adj21T * TEETH_21T) % TEETH_21T;
 
     // CRT: reconstruct turret tooth index n in [0, 398]
-    int n = (a * CRT_COEFF_19T + b * CRT_COEFF_21T) % CRT_PERIOD;
-    if (n < 0) n += CRT_PERIOD;
+    int nCrt = (a * CRT_COEFF_19T + b * CRT_COEFF_21T) % CRT_PERIOD;
+    if (nCrt < 0) nCrt += CRT_PERIOD;
 
-    // Convert tooth index to degrees:  n teeth / 400 teeth * 360°
-    double rawAngleDeg = (n / (double) TURRET_TEETH) * 360.0;
+    /*
+     * GEAR BACKLASH FILTER:
+     * If the encoders are slightly mismatched due to physical backlash, the `Math.round` inputs
+     * might sit on opposite sides of a rounding boundary (e.g., 2.49 rounds to 2, but 3.51 rounds to 4).
+     * This causes the CRT math to evaluate to completely incorrect sequences (a 60-degree jump).
+     *
+     * Therefore, we test the closest 3 teeth mathematically: n-1, n, and n+1. We select the tooth
+     * that is closest to what the continuous 19T Fractional Encoder claims it should be.
+     */
+    int bestN = nCrt;
+    double minError = Double.MAX_VALUE;
+
+    for (int offset = -1; offset <= 1; offset++) {
+      int testN = (nCrt + offset) % CRT_PERIOD;
+      if (testN < 0) testN += CRT_PERIOD;
+
+      // What should the 19T encoder fraction strictly read if testN were the true tooth?
+      double expected19T = (testN / (double) TEETH_19T) % 1.0;
+
+      // Compute circular distance between expected 19T fraction and actual 19T fraction
+      double dist = Math.abs(expected19T - adj19T);
+      if (dist > 0.5) dist = 1.0 - dist;
+
+      if (dist < minError) {
+        minError = dist;
+        bestN = testN;
+      }
+    }
+
+    // Convert robust tooth index to degrees: bestN teeth / 200 teeth * 360°
+    double rawAngleDeg = (bestN / (double) TURRET_TEETH) * 360.0;
 
     lastAbsoluteAngleDeg = (rawAngleDeg + 180) % 360;
     return lastAbsoluteAngleDeg;
