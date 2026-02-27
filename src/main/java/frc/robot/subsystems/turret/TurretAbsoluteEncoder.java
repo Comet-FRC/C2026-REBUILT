@@ -1,57 +1,20 @@
 package frc.robot.subsystems.turret;
 
+import static edu.wpi.first.units.Units.Degrees;
+
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 
-/**
- * Computes the turret's absolute angle using two REV Throughbore encoders on intermediate gears
- * (19T and 21T) meshed against the 400T turret ring gear.
- *
- * <p><b>Chinese Remainder Theorem (CRT) approach:</b><br>
- * As the turret rotates by {@code n} teeth, the 19T encoder completes {@code n/19} revolutions and
- * the 21T encoder completes {@code n/21} revolutions. The pair {@code (n mod 19, n mod 21)} is
- * unique for any 399 consecutive turret tooth positions (since gcd(19,21)=1 and lcm(19,21)=399).
- * The turret's actual travel range spans 360 teeth, well within this unambiguous window.
- *
- * <p><b>CRT formula:</b><br>
- * {@code n = (a * 210 + b * 190) mod 399}<br>
- * where {@code a = round(adj19T * 19) mod 19} and {@code b = round(adj21T * 21) mod 21}<br>
- * Coefficients: {@code 21 * inv(21, 19) = 21 * 10 = 210} and {@code 19 * inv(19, 21) = 19 * 10 =
- * 190}
- *
- * <p><b>Offset calibration:</b><br>
- * Set {@link TurretConstants#ENCODER_19T_OFFSET} and {@link TurretConstants#ENCODER_21T_OFFSET} by
- * manually positioning the turret at exactly 180° (center), reading the raw encoder values from
- * AdvantageScope under "Turret/AbsEncoder/Raw19T" and "Turret/AbsEncoder/Raw21T", and storing those
- * values as the offsets.
- */
 public class TurretAbsoluteEncoder {
+  private final double[] POSSIBLE_19T_VALUES = new double[TurretConstants.NUM_TEETH_GEAR_2];
+  private final double[] POSSIBLE_21T_VALUES = new double[TurretConstants.NUM_TEETH_GEAR_1];
 
-  // --- Gear constants ---
-  private static final int TEETH_19T = 19;
-  private static final int TEETH_21T = 21;
-  private static final int TURRET_TEETH = 200;
-
-  // lcm(19, 21) = 399 — the period of the combined encoder signal
-  private static final int CRT_PERIOD = TEETH_19T * TEETH_21T; // 399
-
-  // CRT coefficients (precomputed):
-  //   inv(21 mod 19 = 2, mod 19) = 10  →  coeff_19T = 21 * 10 = 210
-  //   inv(19 mod 21 =-2, mod 21) = 10  →  coeff_21T = 19 * 10 = 190
-  private static final int CRT_COEFF_19T = 210;
-  private static final int CRT_COEFF_21T = 190;
-
-  // --- Hardware ---
-  private final DutyCycleEncoder encoder19T;
-  private final DutyCycleEncoder encoder21T;
-
-  // Last computed absolute angle, cached for telemetry
-  private double lastAbsoluteAngleDeg = 0.0;
-  private double lastRaw19T = 0.0;
-  private double lastRaw21T = 0.0;
+  private final DutyCycleEncoder ENCODER_GEAR_1;
+  private final DutyCycleEncoder ENCODER_GEAR_2;
 
   public TurretAbsoluteEncoder() {
-    encoder19T = new DutyCycleEncoder(TurretConstants.ENCODER_19T_DIO_PORT);
-    encoder21T = new DutyCycleEncoder(TurretConstants.ENCODER_21T_DIO_PORT);
+    ENCODER_GEAR_1 = new DutyCycleEncoder(TurretConstants.ENCODER_19T_DIO_PORT);
+    ENCODER_GEAR_2 = new DutyCycleEncoder(TurretConstants.ENCODER_21T_DIO_PORT);
   }
 
   /**
@@ -60,61 +23,58 @@ public class TurretAbsoluteEncoder {
    * <p>This should be called once at robot enable / startup to seed the TalonFX internal encoder.
    * It can also be called periodically for telemetry.
    *
-   * @return turret angle in degrees, in the range [0°, 360°)
+   * @return turret angle in degrees, in the range [-180°, 180°)
    */
-  public double getAbsoluteAngleDegrees() {
-    lastRaw19T = encoder19T.get(); // [0, 1) — fractional encoder revolution
-    lastRaw21T = encoder21T.get();
+  public Angle getAngle() {
+    double position_19T = ENCODER_GEAR_1.get(); // [0, 1) — fractional encoder revolution
+    double position_21T = ENCODER_GEAR_2.get();
 
     // Apply inversion (flip direction if encoder counts backwards relative to turret)
-    double effective19T =
-        TurretConstants.ENCODER_19T_INVERTED ? (1.0 - lastRaw19T) % 1.0 : lastRaw19T;
-    double effective21T =
-        TurretConstants.ENCODER_21T_INVERTED ? (1.0 - lastRaw21T) % 1.0 : lastRaw21T;
+    position_19T = TurretConstants.IS_19T_INVERTED ? (1.0 - position_19T) % 1.0 : position_19T;
+    position_21T = TurretConstants.IS_21T_INVERTED ? (1.0 - position_21T) % 1.0 : position_21T;
 
     // Apply per-encoder offsets (shift so that turret reference position reads as the correct
     // angle)
-    double adj19T = (effective19T - TurretConstants.ENCODER_19T_OFFSET + 1.0) % 1.0;
-    double adj21T = (effective21T - TurretConstants.ENCODER_21T_OFFSET + 1.0) % 1.0;
+    position_19T = (position_19T - TurretConstants.ENCODER_19T_OFFSET + 1.0) % 1.0;
+    position_21T = (position_21T - TurretConstants.ENCODER_21T_OFFSET + 1.0) % 1.0;
 
-    // Convert fractional encoder rotation to turret tooth remainder
-    //   n mod 19 = round(adj19T * 19) mod 19
-    int a = (int) Math.round(adj19T * TEETH_19T) % TEETH_19T;
-    int b = (int) Math.round(adj21T * TEETH_21T) % TEETH_21T;
+    for (int n=0; n<TurretConstants.NUM_TEETH_GEAR_2; ++n) {
+      double ratio = (double) TurretConstants.NUM_TEETH_GEAR_1 / TurretConstants.NUM_TEETH_TURRET;
+      double encoderRotations = n + position_19T;
+      this.POSSIBLE_19T_VALUES[n] = ratio * encoderRotations;
+    }
+    for (int n=0; n<TurretConstants.NUM_TEETH_GEAR_1; ++n) {
+      double ratio = (double) TurretConstants.NUM_TEETH_GEAR_2 / TurretConstants.NUM_TEETH_TURRET;
+      double encoderRotations = n + position_21T;
+      this.POSSIBLE_21T_VALUES[n] = ratio * encoderRotations;
+    }
 
-    // CRT: reconstruct turret tooth index n in [0, 398]
-    int n = (a * CRT_COEFF_19T + b * CRT_COEFF_21T) % CRT_PERIOD;
-    if (n < 0) n += CRT_PERIOD;
+    // now we select the correct rotation value
+    double minDiff = Double.MAX_VALUE;
+    int min19TIndex = 0;
+    int min21TIndex = 0;
+    for (int i=0; i<POSSIBLE_19T_VALUES.length; ++i) {
+      for (int j=0; j<POSSIBLE_21T_VALUES.length; ++j) {
+        double diff = Math.abs(POSSIBLE_19T_VALUES[i] - POSSIBLE_21T_VALUES[j]);
+        if (diff < minDiff) {
+          minDiff = diff;
+          min19TIndex = i;
+          min21TIndex = j;
+        }
+      }
+    }
 
-    // Convert tooth index to degrees:  n teeth / 400 teeth * 360°
-    double rawAngleDeg = (n / (double) TURRET_TEETH) * 360.0;
+    double guess_sum = POSSIBLE_19T_VALUES[min19TIndex] + POSSIBLE_21T_VALUES[min21TIndex];
+    double best_rotation_guess = guess_sum / 2.0;
 
-    lastAbsoluteAngleDeg = (rawAngleDeg + 180) % 360;
-    return lastAbsoluteAngleDeg;
+    return Degrees.of(360*best_rotation_guess - 180);
   }
+
+  public double raw
 
   /** Returns true if both encoders are physically connected and outputting valid signals. */
   public boolean isConnected() {
-    return encoder19T.isConnected() && encoder21T.isConnected();
+    return ENCODER_GEAR_1.isConnected() && ENCODER_GEAR_2.isConnected();
   }
 
-  // --- Telemetry getters (populate TurretIOInputs each loop) ---
-
-  /** Raw fractional position of the 19T encoder [0, 1). */
-  public double getRaw19T() {
-    return lastRaw19T;
-  }
-
-  /** Raw fractional position of the 21T encoder [0, 1). */
-  public double getRaw21T() {
-    return lastRaw21T;
-  }
-
-  /**
-   * Last computed absolute angle in degrees (cached from most recent {@link
-   * #getAbsoluteAngleDegrees()} call).
-   */
-  public double getLastAbsoluteAngleDeg() {
-    return lastAbsoluteAngleDeg;
-  }
 }
