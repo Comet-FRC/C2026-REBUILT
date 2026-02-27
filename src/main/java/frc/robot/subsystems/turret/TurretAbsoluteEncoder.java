@@ -29,7 +29,7 @@ public class TurretAbsoluteEncoder {
   // --- Gear constants ---
   private static final int TEETH_19T = 19;
   private static final int TEETH_21T = 21;
-  private static final int TURRET_TEETH = 400;
+  private static final int TURRET_TEETH = 200;
 
   // lcm(19, 21) = 399 — the period of the combined encoder signal
   private static final int CRT_PERIOD = TEETH_19T * TEETH_21T; // 399
@@ -87,7 +87,9 @@ public class TurretAbsoluteEncoder {
     if (n < 0) n += CRT_PERIOD;
 
     // Convert tooth index to degrees:  n teeth / 400 teeth * 360°
-    lastAbsoluteAngleDeg = (n / (double) TURRET_TEETH) * 360.0;
+    double rawAngleDeg = (n / (double) TURRET_TEETH) * 360.0;
+
+    lastAbsoluteAngleDeg = (rawAngleDeg +180) % 360;
     return lastAbsoluteAngleDeg;
   }
 

@@ -11,8 +11,8 @@ public final class TurretConstants {
   public static final double TURRET_CONVERSION_FACTOR = 2 * Math.PI / GEAR_RATIO;
 
   // soft limits
-  public static final Angle MIN_ANGLE = Degrees.of(-90.0);
-  public static final Angle MAX_ANGLE = Degrees.of(270.0);
+  public static final Angle MIN_ANGLE = Degrees.of(0.0);
+  public static final Angle MAX_ANGLE = Degrees.of(360.0);
 
   public static final Angle TURRET_TOLERANCE = Degrees.of(7.0);
 
@@ -40,8 +40,8 @@ public final class TurretConstants {
   // ── Absolute Encoders (REV Throughbore via DIO) ─────────────────────────────
   // 19T and 21T encoder gears meshed against the 400T turret ring.
   // DIO port assignments
-  public static final int ENCODER_19T_DIO_PORT = 2;
-  public static final int ENCODER_21T_DIO_PORT = 3;
+  public static final int ENCODER_19T_DIO_PORT = 3;
+  public static final int ENCODER_21T_DIO_PORT = 2;
 
   // Per-encoder zero offsets (fractional rotations, [0, 1)).
   // ── HOW TO CALIBRATE ────────────────────────────────────────────────────────
@@ -50,12 +50,12 @@ public final class TurretConstants {
   //  3. Open AdvantageScope → Turret/AbsEncoder/Raw19T and Raw21T.
   //  4. Record the displayed raw values and paste them below.
   //  5. Redeploy — the CRT solver will now return 180° at that position.
-  public static final double ENCODER_19T_OFFSET = 0.0; // TODO: calibrate
-  public static final double ENCODER_21T_OFFSET = 0.0; // TODO: calibrate
+  public static final double ENCODER_19T_OFFSET = 0.731;
+  public static final double ENCODER_21T_OFFSET = 0.818;
 
   // Set to true if that encoder counts DOWN when the turret moves in its positive direction.
   // Check: rotate turret positive, watch Raw19T and Raw21T in AdvantageScope.
   // Both should move in the same direction. Invert whichever one doesn't.
-  public static final boolean ENCODER_19T_INVERTED = false; // TODO: verify
-  public static final boolean ENCODER_21T_INVERTED = false; // TODO: verify
+  public static final boolean ENCODER_19T_INVERTED = false; 
+  public static final boolean ENCODER_21T_INVERTED = false; 
 }
