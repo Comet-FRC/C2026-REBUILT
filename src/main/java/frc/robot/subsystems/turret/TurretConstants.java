@@ -50,12 +50,12 @@ public final class TurretConstants {
   //  3. Open AdvantageScope → Turret/AbsEncoder/Raw19T and Raw21T.
   //  4. Record the displayed raw values and paste them below.
   //  5. Redeploy — the CRT solver will now return 180° at that position.
-  public static final double ENCODER_19T_OFFSET = 0.731;
-  public static final double ENCODER_21T_OFFSET = 0.818;
+  public static final double ENCODER_19T_OFFSET = 0.775;
+  public static final double ENCODER_21T_OFFSET = 0.694;
 
   // Set to true if that encoder counts DOWN when the turret moves in its positive direction.
   // Check: rotate turret positive, watch Raw19T and Raw21T in AdvantageScope.
   // Both should move in the same direction. Invert whichever one doesn't.
-  public static final boolean ENCODER_19T_INVERTED = false; 
-  public static final boolean ENCODER_21T_INVERTED = false; 
+  public static final boolean ENCODER_19T_INVERTED = false;
+  public static final boolean ENCODER_21T_INVERTED = false;
 }

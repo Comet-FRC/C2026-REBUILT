@@ -32,11 +32,11 @@ public class VisionConstants {
   public static Transform3d robotToCamera0 = // left camera
       new Transform3d(
           new Translation3d(Inches.of(-9.944988), Inches.of(9.848857), Inches.of(7.862498)),
-          new Rotation3d(Degrees.of(0), Degrees.of(-25), Degrees.of(100)));
+          new Rotation3d(Degrees.of(0), Degrees.of(25), Degrees.of(100)));
   public static Transform3d robotToCamera1 = // right camera
       new Transform3d(
           new Translation3d(Inches.of(-9.944988), Inches.of(-9.848857), Inches.of(7.862498)),
-          new Rotation3d(Degrees.of(0), Degrees.of(-25), Degrees.of(200)));
+          new Rotation3d(Degrees.of(0), Degrees.of(25), Degrees.of(200)));
   public static Transform3d robotTolimelightCamera = // limelight Transform3d created
       new Transform3d(
           new Translation3d(

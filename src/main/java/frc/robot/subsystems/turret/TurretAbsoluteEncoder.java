@@ -89,7 +89,7 @@ public class TurretAbsoluteEncoder {
     // Convert tooth index to degrees:  n teeth / 400 teeth * 360°
     double rawAngleDeg = (n / (double) TURRET_TEETH) * 360.0;
 
-    lastAbsoluteAngleDeg = (rawAngleDeg +180) % 360;
+    lastAbsoluteAngleDeg = (rawAngleDeg + 180) % 360;
     return lastAbsoluteAngleDeg;
   }
 

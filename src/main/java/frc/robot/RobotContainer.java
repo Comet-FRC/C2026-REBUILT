@@ -287,7 +287,7 @@ public class RobotContainer {
     // Intake Toggle (B button)
     Command intakeCommand =
         Commands.run(
-            () -> this.intake.setIntakeState(IntakeConstants.INTAKING_ANGLE, Volts.of(3.5)),
+            () -> this.intake.setIntakeState(IntakeConstants.INTAKING_ANGLE, Volts.of(0.0)),
             this.intake);
     driverController.b().toggleOnTrue(intakeCommand);
     driverController.left().onTrue(this.hood.setPosition(() -> Degrees.of(HoodAngle.get())));
@@ -312,6 +312,7 @@ public class RobotContainer {
     operatorController.up().whileTrue(this.hood.setVoltage(() -> Volts.of(3)));
     operatorController.down().whileTrue(this.hood.setVoltage(() -> Volts.of(-3)));
 
+    operatorController.right().whileTrue(this.kicker.setVoltage(() -> Volts.of(5)));
     // Flywheel RPM Control
     operatorController
         .rightTrigger()
