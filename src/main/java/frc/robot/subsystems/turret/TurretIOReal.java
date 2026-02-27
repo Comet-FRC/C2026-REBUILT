@@ -4,7 +4,6 @@ import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -20,6 +19,7 @@ import frc.robot.util.LoggedTunableNumber;
 
 public class TurretIOReal implements TurretIO {
   private final TalonFX turretMotor = new TalonFX(TurretConstants.TURRET_MOTOR_ID);
+  private final TurretAbsoluteEncoder absoluteEncoder = new TurretAbsoluteEncoder();
   private final VoltageOut voltageRequest = new VoltageOut(0);
   private final MotionMagicVoltage motionMagicRequest = new MotionMagicVoltage(0).withSlot(0);
 
@@ -41,7 +41,6 @@ public class TurretIOReal implements TurretIO {
   private final StatusSignal<Temperature> deviceTempSignal;
 
   public TurretIOReal() {
-    // Cache status signal references (these don't do CAN reads yet)
     positionSignal = turretMotor.getPosition();
     velocitySignal = turretMotor.getVelocity();
     closedLoopRefSignal = turretMotor.getClosedLoopReference();
@@ -50,13 +49,26 @@ public class TurretIOReal implements TurretIO {
     deviceTempSignal = turretMotor.getDeviceTemp();
 
     configureTurretMotor();
-    resetPosition(Degrees.of(180));
+    seedPositionFromAbsoluteEncoder();
+  }
+
+  /**
+   * Seeds the TalonFX internal position from the CRT-computed absolute encoder angle. Falls back to
+   * 180° (turret center) if encoders are disconnected.
+   */
+  private void seedPositionFromAbsoluteEncoder() {
+    if (absoluteEncoder.isConnected()) {
+      double angleDeg = absoluteEncoder.getAbsoluteAngleDegrees();
+      resetPosition(Degrees.of(angleDeg));
+    } else {
+      resetPosition(Degrees.of(180));
+    }
   }
 
   private void configureTurretMotor() {
     TalonFXConfiguration config = new TalonFXConfiguration();
 
-    config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive; // Was counterClockwise_Positive
+    config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
 
     config.CurrentLimits.SupplyCurrentLimit = 20;
@@ -68,7 +80,7 @@ public class TurretIOReal implements TurretIO {
 
     // Software limits (hard stops)
     config.SoftwareLimitSwitch.ForwardSoftLimitThreshold =
-        TurretConstants.MAX_ANGLE.in(Radians) / (2 * Math.PI); // Rotations
+        TurretConstants.MAX_ANGLE.in(Radians) / (2 * Math.PI);
     config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
 
     config.SoftwareLimitSwitch.ReverseSoftLimitThreshold =
@@ -91,14 +103,6 @@ public class TurretIOReal implements TurretIO {
 
   @Override
   public void updateInputs(TurretIOInputs inputs) {
-    // Update PID gains if they have changed
-    if (turretkP.hasChanged(hashCode()) || turretkD.hasChanged(hashCode())) {
-      Slot0Configs slot0 = new Slot0Configs();
-      turretMotor.getConfigurator().refresh(slot0);
-      slot0.kP = turretkP.get();
-      slot0.kD = turretkD.get();
-      turretMotor.getConfigurator().apply(slot0);
-    }
     // Loop control
     if (voltageMode) {
       turretMotor.setControl(voltageRequest.withOutput(desiredVoltage.in(Volts)));
@@ -107,7 +111,6 @@ public class TurretIOReal implements TurretIO {
           motionMagicRequest.withPosition(targetPosition.in(Radians) / (2 * Math.PI)));
     }
 
-    // Batch-refresh all status signals in one CAN operation
     BaseStatusSignal.refreshAll(
         positionSignal,
         velocitySignal,
@@ -125,6 +128,14 @@ public class TurretIOReal implements TurretIO {
     inputs.turretAppliedVolts = Volts.of(motorVoltageSignal.getValueAsDouble());
     inputs.turretSupplyCurrent = Amps.of(supplyCurrentSignal.getValueAsDouble());
     inputs.turretTemperature = Celsius.of(deviceTempSignal.getValueAsDouble());
+
+    inputs.absEncoderConnected = absoluteEncoder.isConnected();
+    if (inputs.absEncoderConnected) {
+      absoluteEncoder.getAbsoluteAngleDegrees(); // updates cached raw values
+    }
+    inputs.absEncoderRaw19T = absoluteEncoder.getRaw19T();
+    inputs.absEncoderRaw21T = absoluteEncoder.getRaw21T();
+    inputs.absEncoderAngleDeg = absoluteEncoder.getLastAbsoluteAngleDeg();
   }
 
   @Override
