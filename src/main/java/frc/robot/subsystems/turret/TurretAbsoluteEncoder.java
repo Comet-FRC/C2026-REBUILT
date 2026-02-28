@@ -40,12 +40,12 @@ public class TurretAbsoluteEncoder {
     position_19T = (position_19T - TurretConstants.ENCODER_19T_OFFSET + 1.0) % 1.0;
     position_21T = (position_21T - TurretConstants.ENCODER_21T_OFFSET + 1.0) % 1.0;
 
-    for (int n=0; n<TurretConstants.NUM_TEETH_GEAR_2; ++n) {
+    for (int n = 0; n < TurretConstants.NUM_TEETH_GEAR_2; ++n) {
       double ratio = (double) TurretConstants.NUM_TEETH_GEAR_1 / TurretConstants.NUM_TEETH_TURRET;
       double encoderRotations = n + position_19T;
       this.POSSIBLE_19T_VALUES[n] = ratio * encoderRotations;
     }
-    for (int n=0; n<TurretConstants.NUM_TEETH_GEAR_1; ++n) {
+    for (int n = 0; n < TurretConstants.NUM_TEETH_GEAR_1; ++n) {
       double ratio = (double) TurretConstants.NUM_TEETH_GEAR_2 / TurretConstants.NUM_TEETH_TURRET;
       double encoderRotations = n + position_21T;
       this.POSSIBLE_21T_VALUES[n] = ratio * encoderRotations;
@@ -55,8 +55,8 @@ public class TurretAbsoluteEncoder {
     double minDiff = Double.MAX_VALUE;
     int min19TIndex = 0;
     int min21TIndex = 0;
-    for (int i=0; i<POSSIBLE_19T_VALUES.length; ++i) {
-      for (int j=0; j<POSSIBLE_21T_VALUES.length; ++j) {
+    for (int i = 0; i < POSSIBLE_19T_VALUES.length; ++i) {
+      for (int j = 0; j < POSSIBLE_21T_VALUES.length; ++j) {
         double diff = Math.abs(POSSIBLE_19T_VALUES[i] - POSSIBLE_21T_VALUES[j]);
         if (diff < minDiff) {
           minDiff = diff;
@@ -69,7 +69,7 @@ public class TurretAbsoluteEncoder {
     double guess_sum = POSSIBLE_19T_VALUES[min19TIndex] + POSSIBLE_21T_VALUES[min21TIndex];
     double best_rotation_guess = guess_sum / 2.0;
 
-    Angle turretAngle = Degrees.of(360.0*best_rotation_guess - 180.0);
+    Angle turretAngle = Degrees.of(360.0 * best_rotation_guess - 180.0);
     this.lastAbsoluteAngle = turretAngle;
     return turretAngle;
   }
@@ -90,5 +90,4 @@ public class TurretAbsoluteEncoder {
   public boolean isConnected() {
     return ENCODER_GEAR_1.isConnected() && ENCODER_GEAR_2.isConnected();
   }
-
 }

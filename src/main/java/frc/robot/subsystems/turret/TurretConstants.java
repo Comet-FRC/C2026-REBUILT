@@ -63,4 +63,3 @@ public final class TurretConstants {
   public static final int NUM_TEETH_GEAR_2 = 21;
   public static final int NUM_TEETH_TURRET = 200;
 }
-

@@ -236,13 +236,13 @@ public class RobotContainer {
   private void configureButtonBindings() {
     // DRIVER BUTTONS
 
-    // RESET GYRO
+    // A = RESET GYRO
     driverController
         .a()
         .onTrue(
             Commands.runOnce(() -> drive.resetHeadingWithAlliance(), drive).ignoringDisable(true));
 
-    // Toggle target mode: FEEDING ↔ HUB
+    // LB = Toggle target mode: FEEDING ↔ HUB
     driverController
         .leftBumper()
         .onTrue(
@@ -254,47 +254,28 @@ public class RobotContainer {
                     })
                 .ignoringDisable(true));
 
-    // Toggle AutoAim for Turret
-    driverController.leftTrigger().toggleOnTrue(this.autoAimCommand);
-    driverController.y().whileTrue(this.kicker.setVoltage(() -> Volts.of(4.0)));
-
-    // AutoShoot: spin up flywheel, set hood, and fire kicker
+    // LT = Intake while true move to intaking angle and run volts
     driverController
-        .x()
+        .leftTrigger()
+        .whileTrue(
+            Commands.run(
+                () ->
+                    this.intake.setIntakeState(
+                        IntakeConstants.INTAKING_ANGLE, Volts.of(intakeWheelVolts.get())),
+                this.intake));
+
+    // Y = Toggle AutoAim
+    driverController.y().toggleOnTrue(this.autoAimCommand);
+
+    // RT = AutoFire: spin up flywheel, set hood, and fire kicker
+    driverController
+        .rightTrigger()
         .whileTrue(
             new AutoFireCommand(drive, turret, flywheel, hood, kicker, indexer, () -> targetMode));
 
-    // Simple Shoot Button (Right Bumper)
-    driverController
-        .rightBumper()
-        .whileTrue(
-            flywheel
-                .setWheelVelocity(() -> RPM.of(FlywheelVelocity.get()))
-                .alongWith(
-                    Commands.waitUntil(
-                            () -> {
-                              boolean atSpeed =
-                                  flywheel.atSpeed(RPM.of(FlywheelVelocity.get()), RPM.of(100));
-                              Logger.recordOutput("SimpleShoot/AtSpeed", atSpeed);
-                              Logger.recordOutput(
-                                  "SimpleShoot/FlywheelErrorRPM",
-                                  flywheel
-                                      .getVelocity()
-                                      .minus(RPM.of(FlywheelVelocity.get()))
-                                      .in(RPM));
-                              return atSpeed;
-                            })
-                        .andThen(
-                            Commands.parallel(
-                                kicker.setVoltage(() -> Volts.of(4)),
-                                indexer.setRollerVoltage(() -> Volts.of(4))))));
+    // RB = Manual Kicker volts of 4
+    driverController.rightBumper().whileTrue(this.kicker.setVoltage(() -> Volts.of(4.0)));
 
-    // Intake Toggle (B button)
-    Command intakeCommand =
-        Commands.run(
-            () -> this.intake.setIntakeState(IntakeConstants.INTAKING_ANGLE, Volts.of(0.0)),
-            this.intake);
-    driverController.b().toggleOnTrue(intakeCommand);
     driverController.left().onTrue(this.hood.setPosition(() -> Degrees.of(HoodAngle.get())));
     // Manual FEEDING target override (Right DPAD)
     driverController
