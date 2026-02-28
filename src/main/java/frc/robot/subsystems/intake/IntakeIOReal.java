@@ -17,7 +17,6 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
-import frc.robot.util.LoggedTunableNumber;
 
 public class IntakeIOReal implements IntakeIO {
   // Wheel motors (SparkMax + NEO)
@@ -52,9 +51,13 @@ public class IntakeIOReal implements IntakeIO {
     SparkMaxConfig followerConfig = new SparkMaxConfig();
     followerConfig
         .idleMode(IdleMode.kCoast)
+        .inverted(false)
         .smartCurrentLimit(20)
-        .voltageCompensation(11.5)
-        .follow(wheelLeader);
+        .voltageCompensation(11.5);
+    followerConfig
+        .encoder
+        .positionConversionFactor(IntakeConstants.WHEEL_CONVERSION_FACTOR)
+        .velocityConversionFactor(IntakeConstants.WHEEL_CONVERSION_FACTOR / 60.0);
     wheelFollower.configure(
         followerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
@@ -96,12 +99,6 @@ public class IntakeIOReal implements IntakeIO {
           IntakeConstants.PIVOT_kD,
           new TrapezoidProfile.Constraints(Math.PI, Math.PI / 2)); // rad/s, rad/s^2
 
-  // Tunable PID gains for on-the-fly tuning
-  private static final LoggedTunableNumber pivotKp =
-      new LoggedTunableNumber("Intake/Pivot/kP", IntakeConstants.PIVOT_kP);
-  private static final LoggedTunableNumber pivotKd =
-      new LoggedTunableNumber("Intake/Pivot/kD", IntakeConstants.PIVOT_kD);
-
   private final ArmFeedforward pivotRightArmFF =
       new ArmFeedforward(
           IntakeConstants.PIVOT_kS,
@@ -131,19 +128,13 @@ public class IntakeIOReal implements IntakeIO {
 
   /** Get pivot position in radians from Through Bore Encoder */
   private double getThroughBorePositionRad() {
-    double rawRadians = (throughBoreEncoder.get() * 2.0 * Math.PI) + 0.174533;
+    double rawRadians = ((throughBoreEncoder.get() + 0.070) * 2.0 * Math.PI);
     return rawRadians;
   }
 
   @Override
   public void updateInputs(IntakeIOInputs inputs) {
     double currentPivotPositionRad = getThroughBorePositionRad();
-
-    // Update PID gains if tunable values changed
-    if (pivotKp.hasChanged(hashCode()) || pivotKd.hasChanged(hashCode())) {
-      pivotPID.setP(pivotKp.get());
-      pivotPID.setD(pivotKd.get());
-    }
 
     // Pivot control
     if (pivotVoltageMode) {
@@ -167,6 +158,7 @@ public class IntakeIOReal implements IntakeIO {
     // Wheel control
     if (wheelVoltageMode) {
       wheelLeader.setVoltage(wheelDesiredVoltage.copy());
+      wheelFollower.setVoltage(wheelDesiredVoltage.copy());
       wheelPID.reset(wheelLeader.getEncoder().getVelocity());
     } else {
       double pid = wheelPID.calculate(wheelLeader.getEncoder().getVelocity());
@@ -175,14 +167,23 @@ public class IntakeIOReal implements IntakeIO {
     }
 
     // Wheel inputs
-    inputs.wheelPosition = Radians.of(wheelLeader.getEncoder().getPosition());
-    inputs.wheelVelocity = RadiansPerSecond.of(wheelLeader.getEncoder().getVelocity());
-    inputs.wheelDesiredVelocity = RadiansPerSecond.of(wheelPID.getGoal().position);
-    inputs.wheelVelocitySetpoint = RadiansPerSecond.of(wheelPID.getSetpoint().position);
-    inputs.wheelAppliedVolts =
+    inputs.LeftwheelPosition = Radians.of(wheelLeader.getEncoder().getPosition());
+    inputs.LeftwheelVelocity = RadiansPerSecond.of(wheelLeader.getEncoder().getVelocity());
+    inputs.LeftwheelDesiredVelocity = RadiansPerSecond.of(wheelPID.getGoal().position);
+    inputs.LeftwheelVelocitySetpoint = RadiansPerSecond.of(wheelPID.getSetpoint().position);
+    inputs.LeftwheelAppliedVolts =
         Volts.of(wheelLeader.getAppliedOutput() * wheelLeader.getBusVoltage());
-    inputs.wheelSupplyCurrent = Amps.of(wheelLeader.getOutputCurrent());
-    inputs.wheelMotorTemperature = Celsius.of(wheelLeader.getMotorTemperature());
+    inputs.LeftwheelSupplyCurrent = Amps.of(wheelLeader.getOutputCurrent());
+    inputs.LeftwheelMotorTemperature = Celsius.of(wheelLeader.getMotorTemperature());
+
+    inputs.RightwheelPosition = Radians.of(wheelLeader.getEncoder().getPosition());
+    inputs.RightwheelVelocity = RadiansPerSecond.of(wheelLeader.getEncoder().getVelocity());
+    inputs.RightwheelDesiredVelocity = RadiansPerSecond.of(wheelPID.getGoal().position);
+    inputs.RightwheelVelocitySetpoint = RadiansPerSecond.of(wheelPID.getSetpoint().position);
+    inputs.RightwheelAppliedVolts =
+        Volts.of(wheelLeader.getAppliedOutput() * wheelLeader.getBusVoltage());
+    inputs.RightwheelSupplyCurrent = Amps.of(wheelLeader.getOutputCurrent());
+    inputs.RightwheelMotorTemperature = Celsius.of(wheelLeader.getMotorTemperature());
 
     // Pivot inputs (using Through Bore Encoder for position)
     inputs.pivotPosition = Radians.of(currentPivotPositionRad);

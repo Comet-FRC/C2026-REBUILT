@@ -71,7 +71,7 @@ public class TurretIOReal implements TurretIO {
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
 
-    config.CurrentLimits.SupplyCurrentLimit = 20;
+    config.CurrentLimits.SupplyCurrentLimit = 30;
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
     config.CurrentLimits.StatorCurrentLimit = 40;
     config.CurrentLimits.StatorCurrentLimitEnable = true;
@@ -136,7 +136,7 @@ public class TurretIOReal implements TurretIO {
     // }
     inputs.absEncoderRaw19T = absoluteEncoder.getRaw19T();
     inputs.absEncoderRaw21T = absoluteEncoder.getRaw21T();
-    inputs.absEncoderAngleDeg = absoluteEncoder.getLastAbsoluteAngleDeg();
+    inputs.absEncoderAngleDeg = absoluteEncoder.getAngle().in(Degrees);
   }
 
   @Override

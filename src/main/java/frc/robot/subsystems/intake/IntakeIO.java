@@ -12,13 +12,21 @@ import org.littletonrobotics.junction.AutoLog;
 public interface IntakeIO {
   @AutoLog
   public static class IntakeIOInputs {
-    public Angle wheelPosition = Radians.of(0);
-    public AngularVelocity wheelVelocity = RadiansPerSecond.of(0);
-    public AngularVelocity wheelDesiredVelocity = RadiansPerSecond.of(0);
-    public AngularVelocity wheelVelocitySetpoint = RadiansPerSecond.of(0);
-    public Voltage wheelAppliedVolts = Volts.of(0);
-    public Current wheelSupplyCurrent = Amps.of(0);
-    public Temperature wheelMotorTemperature = Celsius.of(0);
+    public Angle LeftwheelPosition = Radians.of(0);
+    public AngularVelocity LeftwheelVelocity = RadiansPerSecond.of(0);
+    public AngularVelocity LeftwheelDesiredVelocity = RadiansPerSecond.of(0);
+    public AngularVelocity LeftwheelVelocitySetpoint = RadiansPerSecond.of(0);
+    public Voltage LeftwheelAppliedVolts = Volts.of(0);
+    public Current LeftwheelSupplyCurrent = Amps.of(0);
+    public Temperature LeftwheelMotorTemperature = Celsius.of(0);
+
+    public Angle RightwheelPosition = Radians.of(0);
+    public AngularVelocity RightwheelVelocity = RadiansPerSecond.of(0);
+    public AngularVelocity RightwheelDesiredVelocity = RadiansPerSecond.of(0);
+    public AngularVelocity RightwheelVelocitySetpoint = RadiansPerSecond.of(0);
+    public Voltage RightwheelAppliedVolts = Volts.of(0);
+    public Current RightwheelSupplyCurrent = Amps.of(0);
+    public Temperature RightwheelMotorTemperature = Celsius.of(0);
 
     public Angle pivotPosition = Radians.of(0);
     public Angle pivotDesiredPosition = Radians.of(0);

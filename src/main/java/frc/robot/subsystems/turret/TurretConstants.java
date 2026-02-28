@@ -23,8 +23,8 @@ public final class TurretConstants {
   public static final double TURRET_kV = 4.8;
   public static final double TURRET_kA = 0.0;
 
-  public static final double TURRET_MAX_VELOCITY = 13.3; // Mechanism rotations / second
-  public static final double TURRET_MAX_ACCELERATION = 30; // Mechanism rotations / second^2
+  public static final double TURRET_MAX_VELOCITY = 2.0; // Mechanism rotations / second
+  public static final double TURRET_MAX_ACCELERATION = 4; // Mechanism rotations / second^2
 
   // Simulation PID gains
   public static final double TURRET_SIM_kP = 5.0;
@@ -50,8 +50,8 @@ public final class TurretConstants {
   //  3. Open AdvantageScope → Turret/AbsEncoder/Raw19T and Raw21T.
   //  4. Record the displayed raw values and paste them below.
   //  5. Redeploy — the CRT solver will now return 180° at that position.
-  public static final double ENCODER_19T_OFFSET = 0.775;
-  public static final double ENCODER_21T_OFFSET = 0.694;
+  public static final double ENCODER_19T_OFFSET = 0.111;
+  public static final double ENCODER_21T_OFFSET = 0.538;
 
   // Set to true if that encoder counts DOWN when the turret moves in its positive direction.
   // Check: rotate turret positive, watch Raw19T and Raw21T in AdvantageScope.
@@ -63,4 +63,3 @@ public final class TurretConstants {
   public static final int NUM_TEETH_GEAR_2 = 21;
   public static final int NUM_TEETH_TURRET = 200;
 }
-

@@ -81,11 +81,11 @@ public class RobotContainer {
 
   // Tunable values
   private final LoggedTunableNumber intakeWheelVolts =
-      new LoggedTunableNumber("Intake/WheelVolts", 0.0);
+      new LoggedTunableNumber("Intake/WheelVolts", 7.0);
   private final LoggedTunableNumber FlywheelVelocity =
       new LoggedTunableNumber("Flywheel/RPM", 3000.0);
   private final LoggedTunableNumber HoodAngle = new LoggedTunableNumber("Hood/Angle", 0.0);
-  private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 180.0);
+  private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 160.0);
   private final LoggedTunableNumber indexerRollerVolts =
       new LoggedTunableNumber("Indexer/RollerVolts", 0.0);
   private final LoggedTunableNumber turretVolts = new LoggedTunableNumber("Turret/Volts", 2.0);
@@ -208,14 +208,14 @@ public class RobotContainer {
             () -> -driverController.getLeftX(),
             () -> -driverController.getRightX()));
 
-    // this.intake.setDefaultCommand(
-    //     Commands.run(
-    //         () -> {
-    //           this.intake.setIntakeState(Degrees.of(80.0), Volts.of(0.0));
-    //         },
-    //         this.intake));
+    this.intake.setDefaultCommand(
+        Commands.run(
+            () -> {
+              this.intake.setIntakeState(Degrees.of(80.0), Volts.of(0.0));
+            },
+            this.intake));
 
-    this.intake.setDefaultCommand(this.intake.setPivotVoltage(() -> Volts.of(0.0)));
+    // this.intake.setDefaultCommand(this.intake.setPivotVoltage(() -> Volts.of(0.0)));
 
     this.indexer.setDefaultCommand(
         this.indexer.setRollerVoltage(() -> Volts.of(indexerRollerVolts.get())));
@@ -292,10 +292,13 @@ public class RobotContainer {
     // Intake Toggle (B button)
     Command intakeCommand =
         Commands.run(
-            () -> this.intake.setIntakeState(IntakeConstants.INTAKING_ANGLE, Volts.of(0.0)),
+            () ->
+                this.intake.setIntakeState(
+                    Degrees.of(intakeAngle.get()), Volts.of(intakeWheelVolts.get())),
             this.intake);
     driverController.b().toggleOnTrue(intakeCommand);
     driverController.left().onTrue(this.hood.setPosition(() -> Degrees.of(HoodAngle.get())));
+    driverController.y().whileTrue(this.intake.setPivotVoltage(() -> Volts.of(-2.0)));
     // Manual FEEDING target override (Right DPAD)
     driverController
         .right()

@@ -130,13 +130,13 @@ public class Intake extends SubsystemBase {
             new SysIdRoutine.Mechanism(
                 io::setWheelVoltage,
                 log -> {
-                  Logger.recordOutput("SysId/intake-wheel/Voltage", inputs.wheelAppliedVolts);
-                  Logger.recordOutput("SysId/intake-wheel/Velocity", inputs.wheelVelocity);
-                  Logger.recordOutput("SysId/intake-wheel/Position", inputs.wheelPosition);
+                  Logger.recordOutput("SysId/intake-wheel/Voltage", inputs.RightwheelAppliedVolts);
+                  Logger.recordOutput("SysId/intake-wheel/Velocity", inputs.RightwheelVelocity);
+                  Logger.recordOutput("SysId/intake-wheel/Position", inputs.RightwheelPosition);
                   log.motor("intake-wheel")
-                      .voltage(inputs.wheelAppliedVolts)
-                      .angularPosition(inputs.wheelPosition)
-                      .angularVelocity(inputs.wheelVelocity);
+                      .voltage(inputs.RightwheelAppliedVolts)
+                      .angularPosition(inputs.RightwheelPosition)
+                      .angularVelocity(inputs.RightwheelVelocity);
                 },
                 this));
 

@@ -64,26 +64,21 @@ public class ShotCalculator {
   // TODO: Fill these in with real data from hub testing!
   private static final InterpolatingDoubleTreeMap HUB_FLYWHEEL_SPEED =
       InterpolatingDoubleTreeMap.ofEntries(
-        Map.entry(1.335, 2500.0),
-        Map.entry(1.514, 2500.0),
-        Map.entry(2.2,   2600.0),
-        Map.entry(2.7,   2700.0), // meters -> RPM  (placeholder)
-        Map.entry(3.0,   2700.0),
-        Map.entry(3.1,   2800.0),
-        Map.entry(3.3,   2800.0),
-        Map.entry(4.0,   3000.0),
-        Map.entry(4.07,  2900.0),
-        Map.entry(4.659, 3200.0),
-        Map.entry(4.897, 3100.0)
-      );
+          Map.entry(2.7, 2700.0), // meters -> RPM  (placeholder)
+          Map.entry(3.0, 2700.0),
+          Map.entry(3.3, 2800.0),
+          Map.entry(2.2, 2600.0),
+          Map.entry(4.0, 3000.0),
+          Map.entry(1.335, 2500.0),
+          Map.entry(3.1, 2800.0),
+          Map.entry(4.897, 3100.0),
+          Map.entry(1.514, 2500.0));
 
   // TODO: Fill these in with real data from hub testing!
   private static final InterpolatingDoubleTreeMap HUB_HOOD_ANGLE =
       InterpolatingDoubleTreeMap.ofEntries(
           Map.entry(2.7, 10.0), // meters -> degrees  (placeholder)
-          Map.entry(3.0, 10.0),
-          Map.entry(4.07, 14.0),
-          Map.entry(4.659, 16.0),
+          Map.entry(3.0, 15.0),
           Map.entry(3.3, 20.0),
           Map.entry(2.2, 10.0),
           Map.entry(4.0, 20.0),
@@ -95,15 +90,15 @@ public class ShotCalculator {
   // TODO: Fill these in with real data from hub testing!
   private static final InterpolatingDoubleTreeMap HUB_TIME_OF_FLIGHT =
       InterpolatingDoubleTreeMap.ofEntries(
-          Map.entry(2.7, 0.79), // meters -> seconds  (placeholder)
-          Map.entry(3.0, 0.88),
-          Map.entry(4.07, 0.61),
-          Map.entry(4.659, 0.73),
+          Map.entry(1.335, 0.93),
+          Map.entry(1.514, 0.79),
+          Map.entry(2.2, 0.36),
+          Map.entry(2.7, 0.45), // meters -> seconds  (placeholder)
+          Map.entry(3.0, 0.51),
+          Map.entry(3.1, 0.53),
           Map.entry(3.3, 0.6),
           Map.entry(4.0, 0.74),
-          Map.entry(1.335, 0.93),
-          Map.entry(4.897, 0.86),
-          Map.entry(1.514, 0.79));
+          Map.entry(4.897, 0.86));
 
   // How many times we re-calculate the lookahead to get a more accurate prediction.
   private static final int LOOKAHEAD_ITERATIONS = 5;

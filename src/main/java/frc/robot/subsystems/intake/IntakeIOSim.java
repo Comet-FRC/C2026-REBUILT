@@ -141,11 +141,11 @@ public class IntakeIOSim implements IntakeIO {
 
     runLoopControl();
 
-    inputs.wheelPosition = wheelMotor.getAngularPosition();
-    inputs.wheelVelocity = wheelMotor.getAngularVelocity();
-    inputs.wheelDesiredVelocity = RadiansPerSecond.of(wheelPID.getSetpoint());
-    inputs.wheelAppliedVolts = Volts.of(wheelMotor.getInputVoltage());
-    inputs.wheelSupplyCurrent = Amps.of(wheelMotor.getCurrentDrawAmps());
+    inputs.LeftwheelPosition = wheelMotor.getAngularPosition();
+    inputs.LeftwheelVelocity = wheelMotor.getAngularVelocity();
+    inputs.LeftwheelDesiredVelocity = RadiansPerSecond.of(wheelPID.getSetpoint());
+    inputs.LeftwheelAppliedVolts = Volts.of(wheelMotor.getInputVoltage());
+    inputs.LeftwheelSupplyCurrent = Amps.of(wheelMotor.getCurrentDrawAmps());
 
     inputs.pivotPosition = Radians.of(pivotMotor.getAngleRads());
     inputs.pivotDesiredPosition = Radians.of(pivotPID.getSetpoint());
