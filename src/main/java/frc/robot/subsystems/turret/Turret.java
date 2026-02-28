@@ -56,7 +56,7 @@ public class Turret extends SubsystemBase {
   }
 
   /** Get current turret position */
-  public Angle getPosition() {
+  public Angle getAngle() {
     return inputs.turretPosition;
   }
 

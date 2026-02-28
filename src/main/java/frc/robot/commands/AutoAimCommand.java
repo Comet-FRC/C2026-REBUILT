@@ -3,6 +3,8 @@ package frc.robot.commands;
 import static edu.wpi.first.units.Units.*;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -40,13 +42,13 @@ public class AutoAimCommand extends Command {
 
   @Override
   public void execute() {
-    Pose2d robotPose = drive.getPose();
+    Pose2d turretPose = drive.getPose().transformBy(new Transform2d(Inches.of(-3.75), Inches.zero(), Rotation2d.kZero));
     ChassisSpeeds fieldVelocity = drive.getFieldVelocity();
     TargetMode mode = modeSupplier.get();
 
     // Run the shot calculator
     latestParameters =
-        ShotCalculator.calculate(robotPose, fieldVelocity, turret.getPosition(), mode);
+        ShotCalculator.calculate(turretPose, fieldVelocity, turret.getAngle(), mode);
 
     // Tell the turret where to point
     Angle turretAngle = latestParameters.turretAngle();
@@ -59,7 +61,7 @@ public class AutoAimCommand extends Command {
     Logger.recordOutput("AutoAim/ShotValid", latestParameters.isValid());
     Logger.recordOutput(
         "AutoAim/ActiveTarget",
-        new Pose2d(FieldConstants.getTargetForMode(mode, robotPose), robotPose.getRotation()));
+        new Pose2d(FieldConstants.getTargetForMode(mode, turretPose), turretPose.getRotation()));
   }
 
   @Override

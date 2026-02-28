@@ -59,7 +59,7 @@ public class AutoFireCommand extends Command {
     // info
     ShotParameters params =
         frc.robot.shooting.ShotCalculator.calculate(
-            drive.getPose(), drive.getFieldVelocity(), turret.getPosition(), modeSupplier.get());
+            drive.getPose(), drive.getFieldVelocity(), turret.getAngle(), modeSupplier.get());
 
     boolean turretReady = turret.atSetpoint(TurretConstants.TURRET_TOLERANCE);
     boolean flywheelReady = false;
