@@ -69,7 +69,7 @@ public class TurretAbsoluteEncoder {
     double guess_sum = POSSIBLE_19T_VALUES[min19TIndex] + POSSIBLE_21T_VALUES[min21TIndex];
     double best_rotation_guess = guess_sum / 2.0;
 
-    Angle turretAngle = Degrees.of(360*best_rotation_guess - 180);
+    Angle turretAngle = Degrees.of(360.0*best_rotation_guess - 180.0);
     this.lastAbsoluteAngle = turretAngle;
     return turretAngle;
   }
