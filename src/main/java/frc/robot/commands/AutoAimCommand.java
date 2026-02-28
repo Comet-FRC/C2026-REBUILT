@@ -42,13 +42,15 @@ public class AutoAimCommand extends Command {
 
   @Override
   public void execute() {
-    Pose2d turretPose = drive.getPose().transformBy(new Transform2d(Inches.of(-3.75), Inches.zero(), Rotation2d.kZero));
+    Pose2d turretPose =
+        drive
+            .getPose()
+            .transformBy(new Transform2d(Inches.of(-3.75), Inches.zero(), Rotation2d.kZero));
     ChassisSpeeds fieldVelocity = drive.getFieldVelocity();
     TargetMode mode = modeSupplier.get();
 
     // Run the shot calculator
-    latestParameters =
-        ShotCalculator.calculate(turretPose, fieldVelocity, turret.getAngle(), mode);
+    latestParameters = ShotCalculator.calculate(turretPose, fieldVelocity, turret.getAngle(), mode);
 
     // Tell the turret where to point
     Angle turretAngle = latestParameters.turretAngle();
