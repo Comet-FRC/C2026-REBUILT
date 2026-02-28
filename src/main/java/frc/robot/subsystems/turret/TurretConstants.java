@@ -3,12 +3,15 @@ package frc.robot.subsystems.turret;
 import static edu.wpi.first.units.Units.*;
 
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Distance;
 
 public final class TurretConstants {
   public static final int TURRET_MOTOR_ID = 20;
   public static final double GEAR_RATIO = 40.0;
   public static final double TURRET_DIAMETER_INCHES = 6.875;
   public static final double TURRET_CONVERSION_FACTOR = 2 * Math.PI / GEAR_RATIO;
+
+  public static final Distance PHYSICAL_OFFSET = Inches.of(3.75);
 
   // soft limits
   public static final Angle MIN_ANGLE = Degrees.of(0.0);
