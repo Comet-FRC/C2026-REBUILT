@@ -73,8 +73,12 @@ public class Drive extends SubsystemBase {
               Math.hypot(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)));
 
   // PathPlanner config constants
-  private static final double ROBOT_MASS_KG = 74.088;
-  private static final double ROBOT_MOI = 6.883;
+  // Mass: 102 lbs = 46.27 kg
+  // MOI (moment of inertia): use formula I = (1/12) * mass * (L^2 + W^2)
+  // Assuming ~28"x28" (0.711m x 0.711m) robot footprint → I = (1/12)*46.27*(0.711^2+0.711^2) ≈ 3.89
+  // Update L and W with your actual robot dimensions from CAD for best PathPlanner accuracy.
+  private static final double ROBOT_MASS_KG = 46.27;
+  private static final double ROBOT_MOI = 3.89;
   private static final double WHEEL_COF = 1.2;
   private static final RobotConfig PP_CONFIG =
       new RobotConfig(
