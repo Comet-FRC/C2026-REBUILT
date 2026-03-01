@@ -3,6 +3,7 @@ package frc.robot.subsystems.flywheel;
 import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.Orchestra;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
@@ -18,12 +19,16 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class FlywheelIOReal implements FlywheelIO {
   private final TalonFX wheelLeader = new TalonFX(FlywheelConstants.FLYWHEEL_LEADER_ID);
   private final TalonFX wheelFollower = new TalonFX(FlywheelConstants.FLYWHEEL_FOLLOWER_ID);
   private final VelocityVoltage velocityRequest = new VelocityVoltage(0);
   private final VoltageOut voltageRequest = new VoltageOut(0);
+
+  private final Orchestra orchestra = new Orchestra();
 
   private double desiredVelocityRadPerSec = 0.0;
   private boolean wheelVoltageMode = false;
@@ -64,6 +69,7 @@ public class FlywheelIOReal implements FlywheelIO {
     TalonFXConfiguration leaderConfig = new TalonFXConfiguration();
     leaderConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     leaderConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    leaderConfig.Audio.AllowMusicDurDisable = true;
 
     // Current limits
     leaderConfig.CurrentLimits.SupplyCurrentLimit = 20;
@@ -86,6 +92,7 @@ public class FlywheelIOReal implements FlywheelIO {
     // Follower configuration
     TalonFXConfiguration followerConfig = new TalonFXConfiguration();
     followerConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    followerConfig.Audio.AllowMusicDurDisable = true;
     followerConfig.CurrentLimits.SupplyCurrentLimit = 40;
     followerConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
     followerConfig.CurrentLimits.StatorCurrentLimit = 80;
@@ -95,6 +102,22 @@ public class FlywheelIOReal implements FlywheelIO {
     // Follower opposes leader direction (counter-rotating flywheels)
     wheelFollower.setControl(
         new Follower(FlywheelConstants.FLYWHEEL_LEADER_ID, MotorAlignmentValue.Opposed));
+
+    orchestra.addInstrument(wheelLeader);
+    orchestra.addInstrument(wheelFollower);
+    orchestra.loadMusic("chrp/rocky.chrp");
+    orchestra.play();
+
+    // Stop music after 2 seconds to free up TalonFX control
+    new Timer()
+        .schedule(
+            new TimerTask() {
+              @Override
+              public void run() {
+                orchestra.stop();
+              }
+            },
+            2000);
   }
 
   @Override
