@@ -17,19 +17,14 @@ import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.util.LoggedTunableNumber;
 
 public class KickerIOReal implements KickerIO {
-  private final LoggedTunableNumber FLYWHEEL_ANGULAR_ACCELERATION =
-      new LoggedTunableNumber("Kicker/Flywheel Angular Acceleration", 150);
-
   private final SparkMax leftMotor =
       new SparkMax(KickerConstants.LEFT_MOTOR_ID, MotorType.kBrushless);
   private final SparkMax rightMotor =
       new SparkMax(KickerConstants.RIGHT_MOTOR_ID, MotorType.kBrushless);
 
   private void configureMotors() {
-    // Left motor config (not inverted)
     SparkMaxConfig leftConfig = new SparkMaxConfig();
     leftConfig.inverted(false).idleMode(IdleMode.kCoast).smartCurrentLimit(20);
     leftConfig
@@ -38,7 +33,6 @@ public class KickerIOReal implements KickerIO {
         .velocityConversionFactor(KickerConstants.WHEEL_CONVERSION_FACTOR / 60.0);
     leftMotor.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-    // Right motor config (inverted)
     SparkMaxConfig rightConfig = new SparkMaxConfig();
     rightConfig.inverted(false).idleMode(IdleMode.kCoast).smartCurrentLimit(20);
     rightConfig
@@ -98,7 +92,6 @@ public class KickerIOReal implements KickerIO {
     this.voltageMode = false;
     double velocityRadiansPerSecond = velocity.in(RadiansPerSecond);
 
-    // Configure left motor
     SparkMaxConfig leftConfig = new SparkMaxConfig();
     leftConfig.inverted(false).idleMode(IdleMode.kBrake).smartCurrentLimit(20);
     leftConfig
@@ -112,11 +105,9 @@ public class KickerIOReal implements KickerIO {
         .i(SmartDashboard.getNumber("Kicker/leftI", 0))
         .d(SmartDashboard.getNumber("Kicker/leftD", 0))
         .maxMotion
-        .maxAcceleration(FLYWHEEL_ANGULAR_ACCELERATION.get());
+        .maxAcceleration(150);
     leftMotor.configure(
         leftConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
-
-    // Configure right motor
     SparkMaxConfig rightConfig = new SparkMaxConfig();
     rightConfig.inverted(true).idleMode(IdleMode.kBrake).smartCurrentLimit(20);
     rightConfig
@@ -130,7 +121,7 @@ public class KickerIOReal implements KickerIO {
         .i(SmartDashboard.getNumber("Kicker/rightI", 0))
         .d(SmartDashboard.getNumber("Kicker/rightD", 0))
         .maxMotion
-        .maxAcceleration(FLYWHEEL_ANGULAR_ACCELERATION.get());
+        .maxAcceleration(150);
     rightMotor.configure(
         rightConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 

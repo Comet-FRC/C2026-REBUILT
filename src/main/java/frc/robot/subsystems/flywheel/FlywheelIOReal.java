@@ -30,19 +30,31 @@ public class FlywheelIOReal implements FlywheelIO {
   private final MutVoltage wheelDesiredVoltage = Volts.mutable(0);
 
   // Cached status signals — refreshed in one batched CAN call
-  private final StatusSignal<Angle> positionSignal;
-  private final StatusSignal<AngularVelocity> velocitySignal;
-  private final StatusSignal<Voltage> motorVoltageSignal;
-  private final StatusSignal<Current> supplyCurrentSignal;
-  private final StatusSignal<Temperature> deviceTempSignal;
+  private final StatusSignal<Angle> leftPositionSignal;
+  private final StatusSignal<AngularVelocity> leftVelocitySignal;
+  private final StatusSignal<Voltage> leftMotorVoltageSignal;
+  private final StatusSignal<Current> leftSupplyCurrentSignal;
+  private final StatusSignal<Temperature> leftDeviceTempSignal;
+
+  private final StatusSignal<Angle> rightPositionSignal;
+  private final StatusSignal<AngularVelocity> rightVelocitySignal;
+  private final StatusSignal<Voltage> rightMotorVoltageSignal;
+  private final StatusSignal<Current> rightSupplyCurrentSignal;
+  private final StatusSignal<Temperature> rightDeviceTempSignal;
 
   public FlywheelIOReal() {
     // Cache status signal references
-    positionSignal = wheelLeader.getPosition();
-    velocitySignal = wheelLeader.getVelocity();
-    motorVoltageSignal = wheelLeader.getMotorVoltage();
-    supplyCurrentSignal = wheelLeader.getSupplyCurrent();
-    deviceTempSignal = wheelLeader.getDeviceTemp();
+    rightPositionSignal = wheelLeader.getPosition();
+    rightVelocitySignal = wheelLeader.getVelocity();
+    rightMotorVoltageSignal = wheelLeader.getMotorVoltage();
+    rightSupplyCurrentSignal = wheelLeader.getSupplyCurrent();
+    rightDeviceTempSignal = wheelLeader.getDeviceTemp();
+
+    leftPositionSignal = wheelFollower.getPosition();
+    leftVelocitySignal = wheelFollower.getVelocity();
+    leftMotorVoltageSignal = wheelFollower.getMotorVoltage();
+    leftSupplyCurrentSignal = wheelFollower.getSupplyCurrent();
+    leftDeviceTempSignal = wheelFollower.getDeviceTemp();
 
     configureMotors();
   }
@@ -97,16 +109,34 @@ public class FlywheelIOReal implements FlywheelIO {
 
     // Batch-refresh all status signals in one CAN operation
     BaseStatusSignal.refreshAll(
-        positionSignal, velocitySignal, motorVoltageSignal, supplyCurrentSignal, deviceTempSignal);
+        rightPositionSignal,
+        rightVelocitySignal,
+        rightMotorVoltageSignal,
+        rightSupplyCurrentSignal,
+        rightDeviceTempSignal,
+        leftPositionSignal,
+        leftVelocitySignal,
+        leftMotorVoltageSignal,
+        leftSupplyCurrentSignal,
+        leftDeviceTempSignal);
 
     // Read from cached signals — no additional CAN traffic
-    inputs.wheelPosition = Radians.of(positionSignal.getValueAsDouble() * 2 * Math.PI);
-    inputs.wheelVelocity = RadiansPerSecond.of(velocitySignal.getValueAsDouble() * 2 * Math.PI);
-    inputs.wheelDesiredVelocity = RadiansPerSecond.of(desiredVelocityRadPerSec);
-    inputs.wheelVelocitySetpoint = RadiansPerSecond.of(desiredVelocityRadPerSec);
-    inputs.wheelAppliedVolts = Volts.of(motorVoltageSignal.getValueAsDouble());
-    inputs.wheelSupplyCurrent = Amps.of(supplyCurrentSignal.getValueAsDouble());
-    inputs.wheelTemperature = Celsius.of(deviceTempSignal.getValueAsDouble());
+    inputs.rightPosition = Radians.of(rightPositionSignal.getValueAsDouble() * 2 * Math.PI);
+    inputs.rightVelocity =
+        RadiansPerSecond.of(rightVelocitySignal.getValueAsDouble() * 2 * Math.PI);
+    inputs.rightDesiredVelocity = RadiansPerSecond.of(desiredVelocityRadPerSec);
+    inputs.rightVelocitySetpoint = RadiansPerSecond.of(desiredVelocityRadPerSec);
+    inputs.rightAppliedVolts = Volts.of(rightMotorVoltageSignal.getValueAsDouble());
+    inputs.rightSupplyCurrent = Amps.of(rightSupplyCurrentSignal.getValueAsDouble());
+    inputs.rightTemperature = Celsius.of(rightDeviceTempSignal.getValueAsDouble());
+
+    inputs.leftPosition = Radians.of(leftPositionSignal.getValueAsDouble() * 2 * Math.PI);
+    inputs.leftVelocity = RadiansPerSecond.of(leftVelocitySignal.getValueAsDouble() * 2 * Math.PI);
+    inputs.leftDesiredVelocity = RadiansPerSecond.of(desiredVelocityRadPerSec);
+    inputs.leftVelocitySetpoint = RadiansPerSecond.of(desiredVelocityRadPerSec);
+    inputs.leftAppliedVolts = Volts.of(leftMotorVoltageSignal.getValueAsDouble());
+    inputs.leftSupplyCurrent = Amps.of(leftSupplyCurrentSignal.getValueAsDouble());
+    inputs.leftTemperature = Celsius.of(leftDeviceTempSignal.getValueAsDouble());
   }
 
   @Override

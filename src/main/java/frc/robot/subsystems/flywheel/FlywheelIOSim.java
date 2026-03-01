@@ -66,11 +66,17 @@ public class FlywheelIOSim implements FlywheelIO {
 
     runLoopControl();
 
-    inputs.wheelPosition = wheelMotor.getAngularPosition();
-    inputs.wheelVelocity = wheelMotor.getAngularVelocity();
-    inputs.wheelDesiredVelocity = RadiansPerSecond.of(wheelPID.getSetpoint());
-    inputs.wheelAppliedVolts = Volts.of(wheelMotor.getInputVoltage());
-    inputs.wheelSupplyCurrent = Amps.of(wheelMotor.getCurrentDrawAmps());
+    inputs.leftPosition = wheelMotor.getAngularPosition();
+    inputs.leftVelocity = wheelMotor.getAngularVelocity();
+    inputs.leftDesiredVelocity = RadiansPerSecond.of(wheelPID.getSetpoint());
+    inputs.leftAppliedVolts = Volts.of(wheelMotor.getInputVoltage());
+    inputs.leftSupplyCurrent = Amps.of(wheelMotor.getCurrentDrawAmps());
+
+    inputs.rightPosition = wheelMotor.getAngularPosition();
+    inputs.rightVelocity = wheelMotor.getAngularVelocity();
+    inputs.rightDesiredVelocity = RadiansPerSecond.of(wheelPID.getSetpoint());
+    inputs.rightAppliedVolts = Volts.of(wheelMotor.getInputVoltage());
+    inputs.rightSupplyCurrent = Amps.of(wheelMotor.getCurrentDrawAmps());
   }
 
   private void runLoopControl() {

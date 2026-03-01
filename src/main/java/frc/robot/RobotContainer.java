@@ -17,6 +17,7 @@ import static edu.wpi.first.units.Units.*;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -175,6 +176,53 @@ public class RobotContainer {
         break;
     }
 
+    // ── Register PathPlanner named commands ──────────────────────────────────
+    // IMPORTANT: Must be registered BEFORE AutoBuilder.buildAutoChooser()
+
+    // NOTE ON TELEOP SAFETY: WPILib automatically cancels ALL running commands
+    // when switching from auton → teleop. AutoAim will stop on its own. The
+    // driver's Y-button toggle re-enables it independently in teleop.
+    NamedCommands.registerCommand(
+        "intake",
+        Commands.run(
+            () ->
+                intake.setIntakeState(
+                    Degrees.of(intakeAngle.get()), Volts.of(intakeWheelVolts.get())),
+            intake));
+
+    NamedCommands.registerCommand(
+        "spinUp",
+        Commands.run(
+            () -> flywheel.io.setWheelVelocitySetpoint(RPM.of(FlywheelVelocity.get())), flywheel));
+
+    NamedCommands.registerCommand(
+        "shoot",
+        new AutoFireCommand(drive, turret, flywheel, hood, kicker, indexer, () -> TargetMode.HUB));
+
+    NamedCommands.registerCommand(
+        "shootTimed",
+        new AutoFireCommand(drive, turret, flywheel, hood, kicker, indexer, () -> TargetMode.HUB)
+            .withTimeout(3.0));
+
+    NamedCommands.registerCommand(
+        "shootFeed",
+        new AutoFireCommand(
+            drive, turret, flywheel, hood, kicker, indexer, () -> TargetMode.FEEDING));
+
+    NamedCommands.registerCommand(
+        "shootFeedTimed",
+        new AutoFireCommand(
+                drive, turret, flywheel, hood, kicker, indexer, () -> TargetMode.FEEDING)
+            .withTimeout(3.0));
+
+    // NOTE: autoAim/autoAimFeed never finish on their own — always put them
+    // inside a Race/Deadline Group alongside a path so the path acts as the deadline.
+    NamedCommands.registerCommand(
+        "autoAim", new AutoAimCommand(drive, turret, () -> TargetMode.HUB));
+
+    NamedCommands.registerCommand(
+        "autoAimFeed", new AutoAimCommand(drive, turret, () -> TargetMode.FEEDING));
+
     // Set up auto routines
     autoChooser =
         new LoggedDashboardChooser<Command>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -233,11 +281,10 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    // DRIVER BUTTONS
-
-    // A = RESET GYRO
+    // MENU + MENU = RESET GYRO
     driverController
-        .a()
+        .leftMenu()
+        .and(driverController.rightMenu())
         .onTrue(
             Commands.runOnce(() -> drive.resetHeadingWithAlliance(), drive).ignoringDisable(true));
 
@@ -299,10 +346,46 @@ public class RobotContainer {
     operatorController.down().whileTrue(this.hood.setVoltage(() -> Volts.of(-3)));
 
     operatorController.right().whileTrue(this.kicker.setVoltage(() -> Volts.of(5)));
-    // Flywheel RPM Control
+    // Flywheel RPM Control (spin up only, no fire)
     operatorController
         .rightTrigger()
         .whileTrue(this.flywheel.setWheelVelocity(() -> RPM.of(FlywheelVelocity.get())));
+
+    // Manual Shoot: spin flywheel + set hood, auto-fire when within 70 RPM
+    operatorController
+        .leftTrigger()
+        .whileTrue(
+            Commands.run(
+                () -> {
+                  var targetRPM = RPM.of(FlywheelVelocity.get());
+                  var targetHood = Degrees.of(HoodAngle.get());
+                  flywheel.io.setWheelVelocitySetpoint(targetRPM);
+                  hood.io.setPositionSetpoint(targetHood);
+                  boolean flywheelReady = flywheel.atSpeed(targetRPM, RPM.of(70.0));
+                  if (flywheelReady) {
+                    kicker.io.setVoltage(Volts.of(4.0));
+                    indexer.io.setRollerVoltage(Volts.of(4.0));
+                  } else {
+                    kicker.io.setVoltage(Volts.of(0.0));
+                    indexer.io.setRollerVoltage(Volts.of(0.0));
+                  }
+                },
+                flywheel,
+                hood,
+                kicker,
+                indexer))
+        .onFalse(
+            Commands.runOnce(
+                () -> {
+                  flywheel.io.setWheelVelocitySetpoint(RPM.of(0));
+                  hood.io.stop();
+                  kicker.io.setVoltage(Volts.of(0.0));
+                  indexer.io.setRollerVoltage(Volts.of(0.0));
+                },
+                flywheel,
+                hood,
+                kicker,
+                indexer));
   }
 
   /**

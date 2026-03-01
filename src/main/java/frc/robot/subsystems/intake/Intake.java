@@ -27,8 +27,6 @@ public class Intake extends SubsystemBase {
   public Intake(IntakeIO io) {
     this.io = io;
     this.inputs = new IntakeIOInputsAutoLogged();
-    // Position: X = 0.165m forward (6.5"), Y = 0 (centered), Z = 0.178m height (7")
-    // Angle offset: Adjust to align visual with code angles (angle is negated in visualizer)
     this.armVisualizer =
         new ArmVisualizer3d(getName(), new Translation3d(0.165, 0, 0.178), Degrees.of(90));
   }

@@ -29,22 +29,22 @@ public class ShotCalculator {
   private static final InterpolatingDoubleTreeMap FEEDING_FLYWHEEL_SPEED =
       InterpolatingDoubleTreeMap.ofEntries(
           Map.entry(3.5, 3000.0), // meters -> RPM
-          Map.entry(6.479, 3300.0),
-          Map.entry(8.145, 3400.0),
-          Map.entry(4.823, 2800.0),
           Map.entry(4.302, 2500.0),
-          Map.entry(5.3, 2900.0));
+          Map.entry(4.823, 2800.0),
+          Map.entry(5.3, 2900.0),
+          Map.entry(6.479, 3300.0),
+          Map.entry(8.145, 3400.0));
 
   // TODO: Fill these in with real data from testing!
   // Same idea — at each distance, find the hood angle that scores, and record it.
   private static final InterpolatingDoubleTreeMap FEEDING_HOOD_ANGLE =
       InterpolatingDoubleTreeMap.ofEntries(
           Map.entry(3.5, 20.0), // meters -> degrees
-          Map.entry(6.479, 20.0),
-          Map.entry(8.145, 20.0),
-          Map.entry(4.823, 20.0),
           Map.entry(4.302, 20.0),
-          Map.entry(5.3, 20.0));
+          Map.entry(4.823, 20.0),
+          Map.entry(5.3, 20.0),
+          Map.entry(6.479, 20.0),
+          Map.entry(8.145, 20.0));
 
   // TODO: Fill these in with real data! Use slow-mo video to measure.
   // This is how long the ball is in the air at each distance — needed for shoot on move.
@@ -52,11 +52,11 @@ public class ShotCalculator {
   private static final InterpolatingDoubleTreeMap FEEDING_TIME_OF_FLIGHT =
       InterpolatingDoubleTreeMap.ofEntries(
           Map.entry(3.5, 0.8), // meters -> seconds
-          Map.entry(6.479, 1.0),
-          Map.entry(8.145, 1.16),
           Map.entry(4.283, 0.86),
           Map.entry(4.302, 0.74),
-          Map.entry(5.3, 1.2));
+          Map.entry(5.3, 1.2),
+          Map.entry(6.479, 1.0),
+          Map.entry(8.145, 1.16));
 
   // ──────────────────────────────────────────────────────────────────────────
   //  HUB target treemaps (higher target → more RPM & steeper hood angles)
@@ -64,28 +64,28 @@ public class ShotCalculator {
   // TODO: Fill these in with real data from hub testing!
   private static final InterpolatingDoubleTreeMap HUB_FLYWHEEL_SPEED =
       InterpolatingDoubleTreeMap.ofEntries(
-          Map.entry(2.7, 2700.0), // meters -> RPM  (placeholder)
-          Map.entry(3.0, 2700.0),
-          Map.entry(3.3, 2800.0),
+          Map.entry(1.335, 2500.0), // meters -> RPM  (placeholder)
+          Map.entry(1.514, 2500.0),
           Map.entry(2.2, 2600.0),
-          Map.entry(4.0, 3000.0),
-          Map.entry(1.335, 2500.0),
+          Map.entry(2.7, 2700.0),
+          Map.entry(3.0, 2700.0),
           Map.entry(3.1, 2800.0),
-          Map.entry(4.897, 3100.0),
-          Map.entry(1.514, 2500.0));
+          Map.entry(3.3, 2800.0),
+          Map.entry(4.0, 3000.0),
+          Map.entry(4.897, 3100.0));
 
   // TODO: Fill these in with real data from hub testing!
   private static final InterpolatingDoubleTreeMap HUB_HOOD_ANGLE =
       InterpolatingDoubleTreeMap.ofEntries(
-          Map.entry(2.7, 13.0), // meters -> degrees  (placeholder)
-          Map.entry(3.0, 18.0),
-          Map.entry(3.3, 23.0),
-          Map.entry(2.2, 13.0),
-          Map.entry(4.0, 23.0),
-          Map.entry(1.335, 0.0),
-          Map.entry(3.1, 12.0),
-          Map.entry(4.897, 22.0),
-          Map.entry(1.514, 0.0));
+          Map.entry(1.335, 0.0), // meters -> degrees  (placeholder)
+          Map.entry(1.514, 0.0),
+          Map.entry(2.2, 10.0),
+          Map.entry(2.7, 10.0),
+          Map.entry(3.0, 15.0),
+          Map.entry(3.1, 10.0),
+          Map.entry(3.3, 20.0),
+          Map.entry(4.0, 20.0),
+          Map.entry(4.897, 20.0));
 
   // TODO: Fill these in with real data from hub testing!
   private static final InterpolatingDoubleTreeMap HUB_TIME_OF_FLIGHT =

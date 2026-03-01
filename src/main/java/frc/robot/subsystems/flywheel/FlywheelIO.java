@@ -13,13 +13,20 @@ public interface FlywheelIO {
 
   @AutoLog
   public static class FlywheelIOInputs {
-    public AngularVelocity wheelVelocity = RadiansPerSecond.of(0);
-    public AngularVelocity wheelDesiredVelocity = RadiansPerSecond.of(0);
-    public Angle wheelPosition = Radians.of(0);
-    public AngularVelocity wheelVelocitySetpoint = RadiansPerSecond.of(0);
-    public Voltage wheelAppliedVolts = Volts.of(0);
-    public Current wheelSupplyCurrent = Amps.of(0);
-    public Temperature wheelTemperature = Celsius.of(0);
+    public AngularVelocity leftVelocity = RadiansPerSecond.of(0);
+    public AngularVelocity rightVelocity = RadiansPerSecond.of(0);
+    public AngularVelocity leftDesiredVelocity = RadiansPerSecond.of(0);
+    public AngularVelocity rightDesiredVelocity = RadiansPerSecond.of(0);
+    public Angle leftPosition = Radians.of(0);
+    public Angle rightPosition = Radians.of(0);
+    public AngularVelocity leftVelocitySetpoint = RadiansPerSecond.of(0);
+    public AngularVelocity rightVelocitySetpoint = RadiansPerSecond.of(0);
+    public Voltage leftAppliedVolts = Volts.of(0);
+    public Voltage rightAppliedVolts = Volts.of(0);
+    public Current leftSupplyCurrent = Amps.of(0);
+    public Current rightSupplyCurrent = Amps.of(0);
+    public Temperature leftTemperature = Celsius.of(0);
+    public Temperature rightTemperature = Celsius.of(0);
   }
 
   public default void updateInputs(FlywheelIOInputs inputs) {}
