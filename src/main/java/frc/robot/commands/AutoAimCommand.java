@@ -14,6 +14,7 @@ import frc.robot.shooting.ShotCalculator;
 import frc.robot.shooting.ShotParameters;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.turret.Turret;
+import frc.robot.subsystems.turret.TurretConstants;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -45,12 +46,25 @@ public class AutoAimCommand extends Command {
     Pose2d turretPose =
         drive
             .getPose()
-            .transformBy(new Transform2d(Inches.of(-3.75), Inches.zero(), Rotation2d.kZero));
-    ChassisSpeeds fieldVelocity = drive.getFieldVelocity();
+            .transformBy(
+                new Transform2d(
+                    TurretConstants.PHYSICAL_OFFSET.unaryMinus(), Inches.zero(), Rotation2d.kZero));
+    ChassisSpeeds robotVelocity =
+        ChassisSpeeds.fromFieldRelativeSpeeds(drive.getFieldVelocity(), drive.getRotation());
+
+    ChassisSpeeds turretRobotVelocity =
+        new ChassisSpeeds(
+            robotVelocity.vxMetersPerSecond,
+            robotVelocity.vyMetersPerSecond
+                - TurretConstants.PHYSICAL_OFFSET.in(Meters) * robotVelocity.omegaRadiansPerSecond,
+            robotVelocity.omegaRadiansPerSecond + turret.getVelocity().in(RadiansPerSecond));
+    ChassisSpeeds turretFieldVelocity =
+        ChassisSpeeds.fromRobotRelativeSpeeds(turretRobotVelocity, drive.getRotation());
     TargetMode mode = modeSupplier.get();
 
     // Run the shot calculator
-    latestParameters = ShotCalculator.calculate(turretPose, fieldVelocity, turret.getAngle(), mode);
+    latestParameters =
+        ShotCalculator.calculate(turretPose, turretFieldVelocity, turret.getAngle(), mode);
 
     // Tell the turret where to point
     Angle turretAngle = latestParameters.turretAngle();
