@@ -32,7 +32,6 @@ public class Turret extends SubsystemBase {
 
   /** Command to set turret voltage (open loop control) */
   public Command setVoltage(Supplier<Voltage> voltage) {
-    System.out.println("Setting turret voltage to: " + voltage.get().toString());
     return Commands.run(() -> io.setVoltage(voltage.get()), this);
   }
 

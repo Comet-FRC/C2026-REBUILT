@@ -39,13 +39,13 @@ public class Flywheel extends SubsystemBase {
 
   /** Returns the current flywheel velocity. */
   public AngularVelocity getVelocity() {
-    return inputs.wheelVelocity;
+    return inputs.rightVelocity;
   }
 
   /** Check if flywheel is within tolerance of target speed. */
   public boolean atSpeed(AngularVelocity target, AngularVelocity tolerance) {
     double error =
-        Math.abs(inputs.wheelVelocity.in(RadiansPerSecond) - target.in(RadiansPerSecond));
+        Math.abs(inputs.rightVelocity.in(RadiansPerSecond) - target.in(RadiansPerSecond));
     return error < tolerance.in(RadiansPerSecond);
   }
 
@@ -60,13 +60,17 @@ public class Flywheel extends SubsystemBase {
             new SysIdRoutine.Mechanism(
                 io::setWheelVoltage,
                 log -> {
-                  Logger.recordOutput("SysId/fly-wheel/Voltage", inputs.wheelAppliedVolts);
-                  Logger.recordOutput("SysId/fly-wheel/Velocity", inputs.wheelVelocity);
-                  Logger.recordOutput("SysId/fly-wheel/Position", inputs.wheelPosition);
-                  log.motor("fly-wheel")
-                      .voltage(inputs.wheelAppliedVolts)
-                      .angularPosition(inputs.wheelPosition)
-                      .angularVelocity(inputs.wheelVelocity);
+                  Logger.recordOutput("SysId/fly-wheel/Voltage", inputs.rightAppliedVolts);
+                  Logger.recordOutput("SysId/fly-wheel/Velocity", inputs.rightVelocity);
+                  Logger.recordOutput("SysId/fly-wheel/Position", inputs.rightPosition);
+                  log.motor("fly-wheel-left")
+                      .voltage(inputs.leftAppliedVolts)
+                      .angularPosition(inputs.leftPosition)
+                      .angularVelocity(inputs.leftVelocity);
+                  log.motor("fly-wheel-right")
+                      .voltage(inputs.rightAppliedVolts)
+                      .angularPosition(inputs.rightPosition)
+                      .angularVelocity(inputs.rightVelocity);
                 },
                 this));
 

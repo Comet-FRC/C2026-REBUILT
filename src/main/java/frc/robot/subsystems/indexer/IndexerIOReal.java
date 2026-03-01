@@ -17,12 +17,8 @@ import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.util.LoggedTunableNumber;
 
 public class IndexerIOReal implements IndexerIO {
-  private final LoggedTunableNumber FLYWHEEL_ANGULAR_ACCELERATION =
-      new LoggedTunableNumber("Shooter/Flywheel Angular Acceleration", 150);
-
   private final SparkMax rollerMotor =
       new SparkMax(IndexerConstants.INDEXER_MOTOR_ID, MotorType.kBrushless);
 
@@ -83,7 +79,7 @@ public class IndexerIOReal implements IndexerIO {
         .i(SmartDashboard.getNumber("Shooter/topI", 0))
         .d(SmartDashboard.getNumber("Shooter/topD", 0))
         .maxMotion
-        .maxAcceleration(FLYWHEEL_ANGULAR_ACCELERATION.get());
+        .maxAcceleration(150);
     rollerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
     rollerMotor

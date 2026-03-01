@@ -24,7 +24,7 @@ public interface TurretIO {
     public boolean absEncoderConnected = false;
     public double absEncoderRaw19T = 0.0;
     public double absEncoderRaw21T = 0.0;
-    public double absEncoderAngleDeg = 0.0; // CRT-computed turret angle in degrees
+    public double absEncoderAngleDeg = 0.0;
   }
 
   public default void updateInputs(TurretIOInputs inputs) {}

@@ -128,7 +128,10 @@ public class IntakeIOReal implements IntakeIO {
 
   /** Get pivot position in radians from Through Bore Encoder */
   private double getThroughBorePositionRad() {
-    double rawRadians = ((throughBoreEncoder.get() + 0.070) * 2.0 * Math.PI);
+    double rawRadians =
+        ((throughBoreEncoder.get() + IntakeConstants.THROUGH_BORE_ENCODER_OFFSET_RAD)
+            * 2.0
+            * Math.PI);
     return rawRadians;
   }
 

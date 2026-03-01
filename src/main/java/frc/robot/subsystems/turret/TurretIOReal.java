@@ -52,19 +52,6 @@ public class TurretIOReal implements TurretIO {
     // seedPositionFromAbsoluteEncoder();
   }
 
-  /**
-   * Seeds the TalonFX internal position from the CRT-computed absolute encoder angle. Falls back to
-   * 180° (turret center) if encoders are disconnected.
-   */
-  private void seedPositionFromAbsoluteEncoder() {
-    if (absoluteEncoder.isConnected()) {
-      Angle angle = absoluteEncoder.getAngle();
-      resetPosition(angle);
-    } else {
-      resetPosition(Degrees.of(180));
-    }
-  }
-
   private void configureTurretMotor() {
     TalonFXConfiguration config = new TalonFXConfiguration();
 
@@ -164,5 +151,18 @@ public class TurretIOReal implements TurretIO {
   @Override
   public void resetPosition(Angle position) {
     turretMotor.setPosition(position.in(Radians) / (2 * Math.PI));
+  }
+
+  /**
+   * Seeds the TalonFX internal position from the CRT-computed absolute encoder angle. Falls back to
+   * 180° (turret center) if encoders are disconnected.
+   */
+  private void seedPositionFromAbsoluteEncoder() {
+    if (absoluteEncoder.isConnected()) {
+      Angle angle = absoluteEncoder.getAngle();
+      resetPosition(angle);
+    } else {
+      resetPosition(Degrees.of(180));
+    }
   }
 }

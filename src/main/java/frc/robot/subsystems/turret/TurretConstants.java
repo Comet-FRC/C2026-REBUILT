@@ -38,18 +38,11 @@ public final class TurretConstants {
   public static final double TURRET_MOI = 0.05; // kg*m^2
 
   // ── Absolute Encoders (REV Throughbore via DIO) ─────────────────────────────
-  // 19T and 21T encoder gears meshed against the 400T turret ring.
+  // 19T and 21T encoder gears meshed against the 200T turret ring.
   // DIO port assignments
   public static final int ENCODER_19T_DIO_PORT = 3;
   public static final int ENCODER_21T_DIO_PORT = 2;
 
-  // Per-encoder zero offsets (fractional rotations, [0, 1)).
-  // ── HOW TO CALIBRATE ────────────────────────────────────────────────────────
-  //  1. Deploy code with offsets set to 0.0.
-  //  2. Manually position the turret to exactly 180° (dead center / forward).
-  //  3. Open AdvantageScope → Turret/AbsEncoder/Raw19T and Raw21T.
-  //  4. Record the displayed raw values and paste them below.
-  //  5. Redeploy — the CRT solver will now return 180° at that position.
   public static final double ENCODER_19T_OFFSET = 0.111;
   public static final double ENCODER_21T_OFFSET = 0.538;
 

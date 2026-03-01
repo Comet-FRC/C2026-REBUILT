@@ -234,11 +234,10 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    // DRIVER BUTTONS
-
-    // A = RESET GYRO
+    // MENU + MENU = RESET GYRO
     driverController
-        .a()
+        .leftMenu()
+        .and(driverController.rightMenu())
         .onTrue(
             Commands.runOnce(() -> drive.resetHeadingWithAlliance(), drive).ignoringDisable(true));
 
