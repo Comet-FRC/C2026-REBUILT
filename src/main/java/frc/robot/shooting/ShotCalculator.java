@@ -77,14 +77,14 @@ public class ShotCalculator {
   // TODO: Fill these in with real data from hub testing!
   private static final InterpolatingDoubleTreeMap HUB_HOOD_ANGLE =
       InterpolatingDoubleTreeMap.ofEntries(
-          Map.entry(2.7, 10.0), // meters -> degrees  (placeholder)
-          Map.entry(3.0, 15.0),
-          Map.entry(3.3, 20.0),
-          Map.entry(2.2, 10.0),
-          Map.entry(4.0, 20.0),
+          Map.entry(2.7, 13.0), // meters -> degrees  (placeholder)
+          Map.entry(3.0, 18.0),
+          Map.entry(3.3, 23.0),
+          Map.entry(2.2, 13.0),
+          Map.entry(4.0, 23.0),
           Map.entry(1.335, 0.0),
-          Map.entry(3.1, 10.0),
-          Map.entry(4.897, 20.0),
+          Map.entry(3.1, 12.0),
+          Map.entry(4.897, 22.0),
           Map.entry(1.514, 0.0));
 
   // TODO: Fill these in with real data from hub testing!
@@ -184,9 +184,8 @@ public class ShotCalculator {
         correctedDistance >= FieldConstants.MIN_SHOOTING_DISTANCE
             && correctedDistance <= FieldConstants.MAX_SHOOTING_DISTANCE;
 
-    if (correctedDistance < 3) {
-      flywheelSpeedRPM = flywheelSpeedRPM * 1.06;
-    }
+    flywheelSpeedRPM = flywheelSpeedRPM * 1.06;
+
     // Log shoot-on-move internals (everything else is logged in AutoAimCommand)
     Logger.recordOutput("AutoAim/RawDistance", rawDistance);
     Logger.recordOutput("AutoAim/CorrectedDistance", correctedDistance);

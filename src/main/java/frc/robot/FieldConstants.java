@@ -48,7 +48,7 @@ public final class FieldConstants {
 
   // TODO: Set these based on how far your shooter can realistically score from
   public static final double MIN_SHOOTING_DISTANCE = 1.0;
-  public static final double MAX_SHOOTING_DISTANCE = 6.0;
+  public static final double MAX_SHOOTING_DISTANCE = 10.0;
 
   // ──────────────────────────────────────────────────────────────────────────
   //  Hub — alliance-specific scoring target at a different height

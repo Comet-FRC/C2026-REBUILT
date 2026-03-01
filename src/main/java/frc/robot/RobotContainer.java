@@ -45,7 +45,6 @@ import frc.robot.subsystems.vision.VisionConstants.Camera;
 import frc.robot.util.LoggedTunableNumber;
 // import frc.robot.util.ProximitySensor;
 import frc.robot.util.controller.CometLogitechController;
-import frc.robot.util.controller.CometXboxController;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.littletonrobotics.junction.Logger;
@@ -76,7 +75,7 @@ public class RobotContainer {
   private AutoAimCommand autoAimCommand;
 
   // Controller
-  private final CometXboxController driverController = new CometXboxController(0);
+  private final CometLogitechController driverController = new CometLogitechController(0);
   private final CometLogitechController operatorController = new CometLogitechController(1);
 
   // Tunable values
