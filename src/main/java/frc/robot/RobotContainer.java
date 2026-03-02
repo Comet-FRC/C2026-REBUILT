@@ -195,24 +195,37 @@ public class RobotContainer {
         Commands.run(
             () -> flywheel.io.setWheelVelocitySetpoint(RPM.of(FlywheelVelocity.get())), flywheel));
 
+    // Each named command creates one AutoAimCommand instance that is shared between:
+    //   1. The Commands.parallel() group (so it runs and owns the turret), and
+    //   2. AutoFireCommand (so it reads latestParameters from the SAME object).
+    // Using two separate instances would cause them to fight over the turret requirement.
+    AutoAimCommand shootAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
     NamedCommands.registerCommand(
         "shoot",
-        new AutoFireCommand(drive, turret, flywheel, hood, kicker, indexer, () -> TargetMode.HUB));
+        Commands.parallel(
+            shootAim, new AutoFireCommand(shootAim, turret, flywheel, hood, kicker, indexer)));
 
+    AutoAimCommand shootTimedAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
     NamedCommands.registerCommand(
         "shootTimed",
-        new AutoFireCommand(drive, turret, flywheel, hood, kicker, indexer, () -> TargetMode.HUB)
+        Commands.parallel(
+                shootTimedAim,
+                new AutoFireCommand(shootTimedAim, turret, flywheel, hood, kicker, indexer))
             .withTimeout(3.0));
 
+    AutoAimCommand shootFeedAim = new AutoAimCommand(drive, turret, () -> TargetMode.FEEDING);
     NamedCommands.registerCommand(
         "shootFeed",
-        new AutoFireCommand(
-            drive, turret, flywheel, hood, kicker, indexer, () -> TargetMode.FEEDING));
+        Commands.parallel(
+            shootFeedAim,
+            new AutoFireCommand(shootFeedAim, turret, flywheel, hood, kicker, indexer)));
 
+    AutoAimCommand shootFeedTimedAim = new AutoAimCommand(drive, turret, () -> TargetMode.FEEDING);
     NamedCommands.registerCommand(
         "shootFeedTimed",
-        new AutoFireCommand(
-                drive, turret, flywheel, hood, kicker, indexer, () -> TargetMode.FEEDING)
+        Commands.parallel(
+                shootFeedTimedAim,
+                new AutoFireCommand(shootFeedTimedAim, turret, flywheel, hood, kicker, indexer))
             .withTimeout(3.0));
 
     // NOTE: autoAim/autoAimFeed never finish on their own — always put them
@@ -314,16 +327,16 @@ public class RobotContainer {
     driverController.y().toggleOnTrue(this.autoAimCommand);
 
     // RT = AutoFire: spin up flywheel, set hood, and fire kicker
+    // AutoAimCommand (Y-toggle) must be active concurrently — it owns the turret.
     driverController
         .rightTrigger()
-        .whileTrue(
-            new AutoFireCommand(drive, turret, flywheel, hood, kicker, indexer, () -> targetMode));
+        .whileTrue(new AutoFireCommand(autoAimCommand, turret, flywheel, hood, kicker, indexer));
 
     // RB = Manual Kicker volts of 4
     driverController.rightBumper().whileTrue(this.kicker.setVoltage(() -> Volts.of(4.0)));
 
     driverController.left().onTrue(this.hood.setPosition(() -> Degrees.of(HoodAngle.get())));
-    driverController.y().whileTrue(this.intake.setPivotVoltage(() -> Volts.of(-2.0)));
+    // Note: Y is used for AutoAim toggle (above). Do not bind additional commands to Y.
     // Manual FEEDING target override (Right DPAD)
     driverController
         .right()

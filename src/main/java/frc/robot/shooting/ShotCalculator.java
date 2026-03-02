@@ -141,32 +141,33 @@ public class ShotCalculator {
     // The idea: if we're moving, by the time the ball gets to the target, we'll have
     // drifted. So we predict where we'll BE when the ball arrives and aim from there.
     // We iterate a few times because the time of flight depends on distance, which
-    // changes as we account for our motion.
-    Translation2d correctedTarget = target;
+    // changes as we account for our motion — the TOF changes as distance changes,
+    // so we keep refining until both values are mutually consistent.
+    //
+    // futurePosition is declared outside the loop so the final value is available
+    // for the angle calculation below without re-computing it a second time.
+    Translation2d futurePosition = robotPosition; // start: no motion assumed
     double correctedDistance = rawDistance;
 
     for (int i = 0; i < LOOKAHEAD_ITERATIONS; i++) {
       double tof = tofMap.get(correctedDistance);
 
       // Where will we be after the ball's flight time?
-      double futureX = robotPosition.getX() + fieldVelocity.vxMetersPerSecond * tof;
-      double futureY = robotPosition.getY() + fieldVelocity.vyMetersPerSecond * tof;
-      Translation2d futurePosition = new Translation2d(futureX, futureY);
+      futurePosition =
+          new Translation2d(
+              robotPosition.getX() + fieldVelocity.vxMetersPerSecond * tof,
+              robotPosition.getY() + fieldVelocity.vyMetersPerSecond * tof);
 
-      correctedTarget = target;
-      correctedDistance = futurePosition.getDistance(correctedTarget);
+      // Recompute distance from that future position so the next iteration
+      // uses the correct (tighter) TOF estimate.
+      correctedDistance = futurePosition.getDistance(target);
     }
 
     // -- Figure out the turret angle --
-    // We need to aim from where we'll BE (future position) to the target
-    double futureX =
-        robotPosition.getX() + fieldVelocity.vxMetersPerSecond * tofMap.get(correctedDistance);
-    double futureY =
-        robotPosition.getY() + fieldVelocity.vyMetersPerSecond * tofMap.get(correctedDistance);
-    Translation2d futurePosition = new Translation2d(futureX, futureY);
+    // futurePosition already holds the converged prediction from the loop above.
 
     // This gives us the field angle, but the turret needs a robot-relative angle
-    Translation2d vectorToTarget = correctedTarget.minus(futurePosition);
+    Translation2d vectorToTarget = target.minus(futurePosition);
     Rotation2d fieldAngleToTarget = vectorToTarget.getAngle();
 
     // Subtract robot heading to get turret angle relative to robot front
@@ -201,9 +202,9 @@ public class ShotCalculator {
   /**
    * Helper function to handle the Turret's wrapping logic.
    *
-   * <p>Our turret can rotate from -90 to 270 degrees. <br>
-   * If we need to aim at -80 degrees, but we are currently at 200 degrees, it's faster to rotate to
-   * 280 degrees (same direction, equivalent angle) — but 280 is out of range, so we'd go to -80.
+   * <p>Our turret can rotate from 0 to 360 degrees. {@code getDegrees()} returns values in (-180,
+   * 180], so negative angles (e.g. -45°) must be shifted to their [0, 360] equivalent (315°) via
+   * the +360 candidate.
    *
    * @param targetRelativeAngle The angle we *want* to aim at (normalized -180 to 180).
    * @param currentTurretPosition Where the turret actually IS right now.
@@ -218,8 +219,10 @@ public class ShotCalculator {
     double currentDeg = currentTurretPosition.in(Units.Degrees);
 
     // Generate all possible ways to aim at this angle.
-    // Since 0 degrees is the same as 360 degrees and -360 degrees...
-    // With a [-90, 270] range (360° span), at most one candidate will be valid.
+    // getDegrees() is in (-180, 180], so for a [0, 360] range:
+    //   targetDeg itself   → valid when positive (0–180)
+    //   targetDeg + 360    → maps negative angles to [180, 360)
+    //   targetDeg - 360    → always < -180, never valid (kept for symmetry)
     double[] candidates = {targetDeg, targetDeg + 360.0, targetDeg - 360.0};
 
     double bestAngle = currentDeg; // Default to staying put (safety)
@@ -228,7 +231,7 @@ public class ShotCalculator {
 
     // Check each candidate
     for (double cand : candidates) {
-      // 1. Is this candidate physically possible? (Within -90 to 270 limits)
+      // 1. Is this candidate physically possible? (Within 0 to 360 limits)
       if (cand >= minDeg && cand <= maxDeg) {
         // 2. How far would we have to move to get there?
         double error = Math.abs(cand - currentDeg);
