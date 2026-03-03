@@ -113,7 +113,7 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVision(Camera.LeftCamera),
                 new VisionIOPhotonVision(Camera.RightCamera),
-                new VisionIOLimelight("limelight", drive::getRotation));
+                new VisionIOLimelight("limelight"));
         this.intake = new Intake(new IntakeIOReal());
         this.indexer = new Indexer(new IndexerIOReal());
         this.kicker = new Kicker(new KickerIOReal());
@@ -428,6 +428,17 @@ public class RobotContainer {
         "FieldSimulation/Coral", SimulatedArena.getInstance().getGamePiecesArrayByType("Coral"));
     Logger.recordOutput(
         "FieldSimulation/Algae", SimulatedArena.getInstance().getGamePiecesArrayByType("Algae"));
+
+    Pose3d simulatedRobotPose3d = new Pose3d(driveSimulation.getSimulatedDriveTrainPose());
+    Logger.recordOutput(
+        "FieldSimulation/Camera0Pose",
+        simulatedRobotPose3d.transformBy(VisionConstants.robotToCamera0));
+    Logger.recordOutput(
+        "FieldSimulation/Camera1Pose",
+        simulatedRobotPose3d.transformBy(VisionConstants.robotToCamera1));
+    Logger.recordOutput(
+        "FieldSimulation/LimelightPose",
+        simulatedRobotPose3d.transformBy(VisionConstants.robotTolimelightCamera));
 
     // AdvantageScope custom robot configuration
     // Set to true for calibration (zeroed poses), false for real animation
