@@ -91,14 +91,14 @@ public class ShotCalculator {
   private static final InterpolatingDoubleTreeMap HUB_TIME_OF_FLIGHT =
       InterpolatingDoubleTreeMap.ofEntries(
           Map.entry(1.335, 0.93),
-          Map.entry(1.514, 0.79),
-          Map.entry(2.2, 0.36),
-          Map.entry(2.7, 0.45), // meters -> seconds  (placeholder)
-          Map.entry(3.0, 0.51),
-          Map.entry(3.1, 0.53),
-          Map.entry(3.3, 0.6),
-          Map.entry(4.0, 0.74),
-          Map.entry(4.897, 0.86));
+          Map.entry(1.514, 0.83),
+          Map.entry(2.2, 0.4),
+          Map.entry(2.7, 0.5), // meters -> seconds  (placeholder)
+          Map.entry(3.0, 0.55),
+          Map.entry(3.1, 0.58),
+          Map.entry(3.3, 0.63),
+          Map.entry(4.0, 0.78),
+          Map.entry(4.897, 0.9));
 
   // How many times we re-calculate the lookahead to get a more accurate prediction.
   private static final int LOOKAHEAD_ITERATIONS = 5;

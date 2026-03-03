@@ -17,7 +17,6 @@ import static edu.wpi.first.units.Units.*;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -181,60 +180,62 @@ public class RobotContainer {
 
     // NOTE ON TELEOP SAFETY: WPILib automatically cancels ALL running commands
     // when switching from auton → teleop. AutoAim will stop on its own. The
-    // driver's Y-button toggle re-enables it independently in teleop.
-    NamedCommands.registerCommand(
-        "intake",
-        Commands.run(
-            () ->
-                intake.setIntakeState(
-                    Degrees.of(intakeAngle.get()), Volts.of(intakeWheelVolts.get())),
-            intake));
+    // // driver's Y-button toggle re-enables it independently in teleop.
+    // NamedCommands.registerCommand(
+    //     "intake",
+    //     Commands.run(
+    //         () ->
+    //             intake.setIntakeState(
+    //                 Degrees.of(intakeAngle.get()), Volts.of(intakeWheelVolts.get())),
+    //         intake));
 
-    NamedCommands.registerCommand(
-        "spinUp",
-        Commands.run(
-            () -> flywheel.io.setWheelVelocitySetpoint(RPM.of(FlywheelVelocity.get())), flywheel));
+    // NamedCommands.registerCommand(
+    //     "spinUp",
+    //     Commands.run(
+    //         () -> flywheel.io.setWheelVelocitySetpoint(RPM.of(FlywheelVelocity.get())),
+    // flywheel));
 
-    // Each named command creates one AutoAimCommand instance that is shared between:
-    //   1. The Commands.parallel() group (so it runs and owns the turret), and
-    //   2. AutoFireCommand (so it reads latestParameters from the SAME object).
-    // Using two separate instances would cause them to fight over the turret requirement.
-    AutoAimCommand shootAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
-    NamedCommands.registerCommand(
-        "shoot",
-        Commands.parallel(
-            shootAim, new AutoFireCommand(shootAim, turret, flywheel, hood, kicker, indexer)));
+    // // Each named command creates one AutoAimCommand instance that is shared between:
+    // //   1. The Commands.parallel() group (so it runs and owns the turret), and
+    // //   2. AutoFireCommand (so it reads latestParameters from the SAME object).
+    // // Using two separate instances would cause them to fight over the turret requirement.
+    // AutoAimCommand shootAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
+    // NamedCommands.registerCommand(
+    //     "shoot",
+    //     Commands.parallel(
+    //         shootAim, new AutoFireCommand(shootAim, turret, flywheel, hood, kicker, indexer)));
 
-    AutoAimCommand shootTimedAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
-    NamedCommands.registerCommand(
-        "shootTimed",
-        Commands.parallel(
-                shootTimedAim,
-                new AutoFireCommand(shootTimedAim, turret, flywheel, hood, kicker, indexer))
-            .withTimeout(3.0));
+    // AutoAimCommand shootTimedAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
+    // NamedCommands.registerCommand(
+    //     "shootTimed",
+    //     Commands.parallel(
+    //             shootTimedAim,
+    //             new AutoFireCommand(shootTimedAim, turret, flywheel, hood, kicker, indexer))
+    //         .withTimeout(3.0));
 
-    AutoAimCommand shootFeedAim = new AutoAimCommand(drive, turret, () -> TargetMode.FEEDING);
-    NamedCommands.registerCommand(
-        "shootFeed",
-        Commands.parallel(
-            shootFeedAim,
-            new AutoFireCommand(shootFeedAim, turret, flywheel, hood, kicker, indexer)));
+    // AutoAimCommand shootFeedAim = new AutoAimCommand(drive, turret, () -> TargetMode.FEEDING);
+    // NamedCommands.registerCommand(
+    //     "shootFeed",
+    //     Commands.parallel(
+    //         shootFeedAim,
+    //         new AutoFireCommand(shootFeedAim, turret, flywheel, hood, kicker, indexer)));
 
-    AutoAimCommand shootFeedTimedAim = new AutoAimCommand(drive, turret, () -> TargetMode.FEEDING);
-    NamedCommands.registerCommand(
-        "shootFeedTimed",
-        Commands.parallel(
-                shootFeedTimedAim,
-                new AutoFireCommand(shootFeedTimedAim, turret, flywheel, hood, kicker, indexer))
-            .withTimeout(3.0));
+    // AutoAimCommand shootFeedTimedAim = new AutoAimCommand(drive, turret, () ->
+    // TargetMode.FEEDING);
+    // NamedCommands.registerCommand(
+    //     "shootFeedTimed",
+    //     Commands.parallel(
+    //             shootFeedTimedAim,
+    //             new AutoFireCommand(shootFeedTimedAim, turret, flywheel, hood, kicker, indexer))
+    //         .withTimeout(3.0));
 
-    // NOTE: autoAim/autoAimFeed never finish on their own — always put them
-    // inside a Race/Deadline Group alongside a path so the path acts as the deadline.
-    NamedCommands.registerCommand(
-        "autoAim", new AutoAimCommand(drive, turret, () -> TargetMode.HUB));
+    // // NOTE: autoAim/autoAimFeed never finish on their own — always put them
+    // // inside a Race/Deadline Group alongside a path so the path acts as the deadline.
+    // NamedCommands.registerCommand(
+    //     "autoAim", new AutoAimCommand(drive, turret, () -> TargetMode.HUB));
 
-    NamedCommands.registerCommand(
-        "autoAimFeed", new AutoAimCommand(drive, turret, () -> TargetMode.FEEDING));
+    // NamedCommands.registerCommand(
+    //     "autoAimFeed", new AutoAimCommand(drive, turret, () -> TargetMode.FEEDING));
 
     // Set up auto routines
     autoChooser =

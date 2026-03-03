@@ -77,19 +77,19 @@ public class VisionConstants {
 
   public static enum Camera {
     LeftCamera(
-        "LEFT",
+        "RIGHT",
         0.6,
         5,
         new Transform3d(
             new Translation3d(Inches.of(-9.944988), Inches.of(9.848857), Inches.of(7.862498)),
-            new Rotation3d(Degrees.of(0), Degrees.of(-25), Degrees.of(145)))),
+            new Rotation3d(Degrees.of(0), Degrees.of(30), Degrees.of(225)))),
     RightCamera(
-        "RIGHT",
+        "LEFT",
         1,
         4,
         new Transform3d(
             new Translation3d(Inches.of(-9.944988), Inches.of(-9.848857), Inches.of(7.862498)),
-            new Rotation3d(Degrees.of(0), Degrees.of(-25), Degrees.of(245))));
+            new Rotation3d(Degrees.of(0), Degrees.of(30), Degrees.of(170))));
 
     public final String hardwareName;
     private final Transform3d intermediateToCamera;
