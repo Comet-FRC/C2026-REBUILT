@@ -31,22 +31,22 @@ public class VisionConstants {
   // (Not used by Limelight, configure in web UI instead)
   public static Transform3d robotToCamera0 = // left camera
       new Transform3d(
-          new Translation3d(Inches.of(-9.944988), Inches.of(9.848857), Inches.of(7.862498)),
-          new Rotation3d(Degrees.of(0), Degrees.of(25), Degrees.of(0)));
+        new Translation3d(Inches.of(-9.944988), Inches.of(9.848857), Inches.of(7.862498)),
+        new Rotation3d(Degrees.of(0), Degrees.of(-25), Degrees.of(110)));
   public static Transform3d robotToCamera1 = // right camera
       new Transform3d(
-          new Translation3d(Inches.of(-9.944988), Inches.of(-9.848857), Inches.of(7.862498)),
-          new Rotation3d(Degrees.of(0), Degrees.of(25), Degrees.of(0)));
+            new Translation3d(Inches.of(-9.944988), Inches.of(-9.848857), Inches.of(7.862498)),
+            new Rotation3d(Degrees.of(0), Degrees.of(-25), Degrees.of(250)));
   public static Transform3d robotTolimelightCamera = // limelight Transform3d created
       new Transform3d(
           new Translation3d(
-              Inches.of(-9.944988),
-              Inches.of(-9.848857),
-              Inches.of(7.862498)), // values need to be changed probably
+              Meters.of(-0.285246),
+              Inches.of(0),
+              Meters.of(0.369067)), // values need to be changed probably
           new Rotation3d(
               Degrees.of(0),
-              Degrees.of(-25),
-              Degrees.of(200))); // values need to be changed probably
+              Degrees.of(-15),
+              Degrees.of(180))); // values need to be changed probably
 
   public static String camera0Name = "camera_0";
   public static String camera1Name = "camera_1";
@@ -77,19 +77,19 @@ public class VisionConstants {
 
   public static enum Camera {
     LeftCamera(
-        "RIGHT",
+        "LEFT",
         0.6,
         5,
         new Transform3d(
             new Translation3d(Inches.of(-9.944988), Inches.of(9.848857), Inches.of(7.862498)),
-            new Rotation3d(Degrees.of(0), Degrees.of(30), Degrees.of(225)))),
+            new Rotation3d(Degrees.of(0), Degrees.of(-25), Degrees.of(110)))),
     RightCamera(
-        "LEFT",
+        "RIGHT",
         1,
         4,
         new Transform3d(
             new Translation3d(Inches.of(-9.944988), Inches.of(-9.848857), Inches.of(7.862498)),
-            new Rotation3d(Degrees.of(0), Degrees.of(30), Degrees.of(170))));
+            new Rotation3d(Degrees.of(0), Degrees.of(-25), Degrees.of(250))));
 
     public final String hardwareName;
     private final Transform3d intermediateToCamera;
