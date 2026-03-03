@@ -362,14 +362,9 @@ public class Drive extends SubsystemBase {
     return poseEstimator.getEstimatedPosition();
   }
 
-  /** Returns the current odometry rotation (fused with vision). */
+  /** Returns the current odometry rotation. */
   public Rotation2d getRotation() {
     return getPose().getRotation();
-  }
-
-  /** Returns the raw gyro yaw directly from the Pigeon2, not influenced by vision corrections. */
-  public Rotation2d getRawGyroRotation() {
-    return rawGyroRotation;
   }
 
   /** Resets the current odometry pose. */

@@ -113,7 +113,7 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVision(Camera.LeftCamera),
                 new VisionIOPhotonVision(Camera.RightCamera),
-                new VisionIOLimelight("limelight", drive::getRawGyroRotation));
+                new VisionIOLimelight("limelight"));
         this.intake = new Intake(new IntakeIOReal());
         this.indexer = new Indexer(new IndexerIOReal());
         this.kicker = new Kicker(new KickerIOReal());
