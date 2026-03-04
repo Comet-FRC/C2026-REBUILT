@@ -79,6 +79,7 @@ public class RobotContainer {
   private final CometLogitechController operatorController = new CometLogitechController(1);
 
   // Tunable values
+  private double driveSpeedLimit = 4.54; // default reduced speed (m/s); up dpad restores to 5.29
   private final LoggedTunableNumber intakeWheelVolts =
       new LoggedTunableNumber("Intake/WheelVolts", 4.5);
   private final LoggedTunableNumber FlywheelVelocity =
@@ -267,7 +268,8 @@ public class RobotContainer {
             drive,
             () -> -driverController.getLeftY(),
             () -> -driverController.getLeftX(),
-            () -> -driverController.getRightX()));
+            () -> -driverController.getRightX(),
+            () -> driveSpeedLimit));
 
     this.intake.setDefaultCommand(
         Commands.run(
@@ -343,6 +345,12 @@ public class RobotContainer {
         .right()
         .onTrue(
             Commands.runOnce(() -> FieldConstants.toggleManualFeedingOverride())
+                .ignoringDisable(true));
+
+    driverController
+        .up()
+        .onTrue(
+            Commands.runOnce(() -> driveSpeedLimit = drive.getMaxLinearSpeedMetersPerSec())
                 .ignoringDisable(true));
 
     // OPERATOR BUTTONS
