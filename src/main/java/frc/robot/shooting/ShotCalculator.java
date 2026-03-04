@@ -110,7 +110,7 @@ public class ShotCalculator {
    * @param mode Whether we're aiming at a FEEDING target or the HUB.
    */
   public static ShotParameters calculate(
-      Pose2d robotPose, ChassisSpeeds fieldVelocity, Angle currentTurretPosition, TargetMode mode) {
+      Pose2d turretPose, ChassisSpeeds turretVelocity, Angle currentTurretPosition, TargetMode mode) {
 
     // Select the right treemaps and target based on mode
     InterpolatingDoubleTreeMap flywheelMap;
@@ -130,11 +130,11 @@ public class ShotCalculator {
         flywheelMap = FEEDING_FLYWHEEL_SPEED;
         hoodMap = FEEDING_HOOD_ANGLE;
         tofMap = FEEDING_TIME_OF_FLIGHT;
-        target = FieldConstants.getTargetForRobot2d(robotPose);
+        target = FieldConstants.getTargetForRobot2d(turretPose);
         break;
     }
 
-    Translation2d robotPosition = robotPose.getTranslation();
+    Translation2d robotPosition = turretPose.getTranslation();
     double rawDistance = robotPosition.getDistance(target);
 
     // -- Shoot on move correction --
@@ -155,8 +155,8 @@ public class ShotCalculator {
       // Where will we be after the ball's flight time?
       futurePosition =
           new Translation2d(
-              robotPosition.getX() + fieldVelocity.vxMetersPerSecond * tof,
-              robotPosition.getY() + fieldVelocity.vyMetersPerSecond * tof);
+              robotPosition.getX() + turretVelocity.vxMetersPerSecond * tof,
+              robotPosition.getY() + turretVelocity.vyMetersPerSecond * tof);
 
       // Recompute distance from that future position so the next iteration
       // uses the correct (tighter) TOF estimate.
@@ -171,7 +171,7 @@ public class ShotCalculator {
     Rotation2d fieldAngleToTarget = vectorToTarget.getAngle();
 
     // Subtract robot heading to get turret angle relative to robot front
-    Rotation2d idealTurretRelativeAngle = fieldAngleToTarget.minus(robotPose.getRotation());
+    Rotation2d idealTurretRelativeAngle = fieldAngleToTarget.minus(turretPose.getRotation());
 
     // Find the best physical angle for the turret given its limits and current position
     Angle turretAngle = findBestTurretAngle(idealTurretRelativeAngle, currentTurretPosition);
@@ -193,7 +193,7 @@ public class ShotCalculator {
     Logger.recordOutput("AutoAim/FlywheelSpeed", flywheelSpeedRPM);
     Logger.recordOutput(
         "AutoAim/FieldVelocity",
-        Math.hypot(fieldVelocity.vxMetersPerSecond, fieldVelocity.vyMetersPerSecond));
+        Math.hypot(turretVelocity.vxMetersPerSecond, turretVelocity.vyMetersPerSecond));
 
     return new ShotParameters(
         isValid, turretAngle, flywheelSpeedRPM, hoodAngleDegrees, correctedDistance);

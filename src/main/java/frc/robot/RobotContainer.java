@@ -163,16 +163,11 @@ public class RobotContainer {
 
             default:
                 drive = new Drive(
-                        new GyroIO() {
-                        },
-                        new ModuleIO() {
-                        },
-                        new ModuleIO() {
-                        },
-                        new ModuleIO() {
-                        },
-                        new ModuleIO() {
-                        },
+                        new GyroIO() {},
+                        new ModuleIO() {},
+                        new ModuleIO() {},
+                        new ModuleIO() {},
+                        new ModuleIO() {},
                         (robotPose) -> {
                         });
                 vision = new Vision(drive::addVisionMeasurement, new VisionIO() {

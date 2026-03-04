@@ -66,7 +66,7 @@ public class AutoAimCommand extends Command {
 		Pose2d turretPose = drivePose.transformBy(turretOffset);
 
 		// Calculating the turret's field-oriented velocity
-		ChassisSpeeds robotVelocity = ChassisSpeeds.fromFieldRelativeSpeeds(driveVelocitySupplier.get(), drivePose.getRotation());
+		ChassisSpeeds robotVelocity = driveVelocitySupplier.get();
 		double tangentialVelocity = TurretConstants.OFFSET.in(Meters) * robotVelocity.omegaRadiansPerSecond;
 		ChassisSpeeds turretRobotVelocity = new ChassisSpeeds(
 				robotVelocity.vxMetersPerSecond,
