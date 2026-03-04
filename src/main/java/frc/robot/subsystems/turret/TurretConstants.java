@@ -11,7 +11,7 @@ public final class TurretConstants {
   public static final double TURRET_DIAMETER_INCHES = 6.875;
   public static final double TURRET_CONVERSION_FACTOR = 2 * Math.PI / GEAR_RATIO;
 
-  public static final Distance PHYSICAL_OFFSET = Inches.of(3.75);
+  public static final Distance OFFSET = Inches.of(3.75);
 
   // soft limits
   public static final Angle MIN_ANGLE = Degrees.of(0.0);

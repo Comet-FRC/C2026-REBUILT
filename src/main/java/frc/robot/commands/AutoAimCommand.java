@@ -19,79 +19,92 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 /**
- * Runs as the turret's default command — always active during the match. Every cycle it figures out
- * where to aim (with shoot-on-move compensation), points the turret, and spins up the flywheel. The
+ * Runs as the turret's default command — always active during the match. Every
+ * cycle it figures out
+ * where to aim (with shoot-on-move compensation), points the turret, and spins
+ * up the flywheel. The
  * PID loop never stops running.
  */
 public class AutoAimCommand extends Command {
-  private final Drive drive;
-  private final Turret turret;
-  private final Supplier<TargetMode> modeSupplier;
+	private final Turret turret;
+	private final Supplier<TargetMode> targetModeSupplier;
+	private final Supplier<ChassisSpeeds> driveVelocitySupplier;
+	private final Supplier<Pose2d> drivePoseSupplier;
 
-  private ShotParameters latestParameters = null;
+	private ShotParameters latestParameters = null;
 
-  public AutoAimCommand(Drive drive, Turret turret, Supplier<TargetMode> modeSupplier) {
-    this.drive = drive;
-    this.turret = turret;
-    this.modeSupplier = modeSupplier;
+	/**
+	 * 
+	 * @param turret 
+	 * @param drivePoseSupplier Drive's field pose
+	 * @param driveVelocitySupplier Drive's robot-oriented chassis speeds
+	 * @param modeSupplier
+	 */
+	public AutoAimCommand(
+		Turret turret,
+		Supplier<Pose2d> drivePoseSupplier,
+		Supplier<ChassisSpeeds> driveVelocitySupplier,
+		Supplier<TargetMode> modeSupplier
+	) {
+		this.turret = turret;
+		this.targetModeSupplier = modeSupplier;
+		this.drivePoseSupplier = drivePoseSupplier;
+		this.driveVelocitySupplier = driveVelocitySupplier;
 
-    addRequirements(turret);
-  }
+		addRequirements(turret);
+	}
 
-  @Override
-  public void initialize() {}
+	@Override
+	public void initialize() {
+	}
 
-  @Override
-  public void execute() {
-    Pose2d turretPose =
-        drive
-            .getPose()
-            .transformBy(
-                new Transform2d(
-                    TurretConstants.PHYSICAL_OFFSET.unaryMinus(), Inches.zero(), Rotation2d.kZero));
-    ChassisSpeeds robotVelocity =
-        ChassisSpeeds.fromFieldRelativeSpeeds(drive.getFieldVelocity(), drive.getRotation());
+	@Override
+	public void execute() {
+		// Calculating the turret's pose
+		Pose2d drivePose = drivePoseSupplier.get();
+		Transform2d turretOffset = new Transform2d(TurretConstants.OFFSET.unaryMinus(), Meters.zero(), Rotation2d.kZero);
+		Pose2d turretPose = drivePose.transformBy(turretOffset);
 
-    ChassisSpeeds turretRobotVelocity =
-        new ChassisSpeeds(
-            robotVelocity.vxMetersPerSecond,
-            robotVelocity.vyMetersPerSecond
-                - TurretConstants.PHYSICAL_OFFSET.in(Meters) * robotVelocity.omegaRadiansPerSecond,
-            robotVelocity.omegaRadiansPerSecond + turret.getVelocity().in(RadiansPerSecond));
-    ChassisSpeeds turretFieldVelocity =
-        ChassisSpeeds.fromRobotRelativeSpeeds(turretRobotVelocity, drive.getRotation());
-    TargetMode mode = modeSupplier.get();
+		// Calculating the turret's field-oriented velocity
+		ChassisSpeeds robotVelocity = ChassisSpeeds.fromFieldRelativeSpeeds(driveVelocitySupplier.get(), drivePose.getRotation());
+		double tangentialVelocity = TurretConstants.OFFSET.in(Meters) * robotVelocity.omegaRadiansPerSecond;
+		ChassisSpeeds turretRobotVelocity = new ChassisSpeeds(
+				robotVelocity.vxMetersPerSecond,
+				robotVelocity.vyMetersPerSecond - tangentialVelocity,
+				robotVelocity.omegaRadiansPerSecond + turret.getVelocity().in(RadiansPerSecond));
+		ChassisSpeeds turretFieldVelocity = ChassisSpeeds.fromRobotRelativeSpeeds(turretRobotVelocity,
+				drivePose.getRotation());
 
-    // Run the shot calculator
-    latestParameters =
-        ShotCalculator.calculate(turretPose, turretFieldVelocity, turret.getAngle(), mode);
+		// Run the shot calculator
+		TargetMode mode = targetModeSupplier.get();
+		latestParameters = ShotCalculator.calculate(turretPose, turretFieldVelocity, turret.getAngle(), mode);
 
-    // Tell the turret where to point
-    Angle turretAngle = latestParameters.turretAngle();
-    turret.io.setPositionSetpoint(turretAngle);
+		// Tell the turret where to point
+		Angle turretAngle = latestParameters.turretAngle();
+		turret.io.setPositionSetpoint(turretAngle);
 
-    // Log to AdvantageScope
-    Logger.recordOutput("AutoAim/TargetMode", mode.name());
-    Logger.recordOutput("AutoAim/TurretTargetDeg", turretAngle.in(Degrees));
-    Logger.recordOutput("AutoAim/Distance", latestParameters.distanceToTarget());
-    Logger.recordOutput("AutoAim/ShotValid", latestParameters.isValid());
-    Logger.recordOutput(
-        "AutoAim/ActiveTarget",
-        new Pose2d(FieldConstants.getTargetForMode(mode, turretPose), turretPose.getRotation()));
-  }
+		// Log to AdvantageScope
+		Logger.recordOutput("AutoAim/TargetMode", mode.name());
+		Logger.recordOutput("AutoAim/TurretTargetDeg", turretAngle.in(Degrees));
+		Logger.recordOutput("AutoAim/Distance", latestParameters.distanceToTarget());
+		Logger.recordOutput("AutoAim/ShotValid", latestParameters.isValid());
+		Logger.recordOutput(
+				"AutoAim/ActiveTarget",
+				new Pose2d(FieldConstants.getTargetForMode(mode, turretPose), turretPose.getRotation()));
+	}
 
-  @Override
-  public void end(boolean interrupted) {
-    turret.io.stop();
-  }
+	@Override
+	public void end(boolean interrupted) {
+		turret.io.stop();
+	}
 
-  @Override
-  public boolean isFinished() {
-    return false;
-  }
+	@Override
+	public boolean isFinished() {
+		return false;
+	}
 
-  /** Grab the latest shot parameters. */
-  public ShotParameters getLatestParameters() {
-    return latestParameters;
-  }
+	/** Grab the latest shot parameters. */
+	public ShotParameters getLatestParameters() {
+		return latestParameters;
+	}
 }
