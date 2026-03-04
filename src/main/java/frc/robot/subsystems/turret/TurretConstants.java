@@ -14,8 +14,8 @@ public final class TurretConstants {
   public static final Distance PHYSICAL_OFFSET = Inches.of(3.75);
 
   // soft limits
-  public static final Angle MIN_ANGLE = Degrees.of(0.0);
-  public static final Angle MAX_ANGLE = Degrees.of(360.0);
+  public static final Angle MIN_ANGLE = Degrees.of(-32.0);
+  public static final Angle MAX_ANGLE = Degrees.of(330.0);
 
   public static final Angle TURRET_TOLERANCE = Degrees.of(4.0);
 

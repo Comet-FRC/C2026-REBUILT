@@ -64,7 +64,7 @@ public class ShotCalculator {
   // TODO: Fill these in with real data from hub testing!
   private static final InterpolatingDoubleTreeMap HUB_FLYWHEEL_SPEED =
       InterpolatingDoubleTreeMap.ofEntries(
-          Map.entry(0.5, 2600.0), // meters -> RPM  (placeholder)
+          Map.entry(0.5, 2500.0), // meters -> RPM  (placeholder)
           Map.entry(2.1, 2600.0),
           Map.entry(2.5, 2700.0),
           Map.entry(3.3, 2800.0),
