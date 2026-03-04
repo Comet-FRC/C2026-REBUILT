@@ -3,7 +3,7 @@
   "robotLength": 0.838,
   "holonomicMode": true,
   "pathFolders": [
-    "+y sweep depot"
+    "+x +y sweep"
   ],
   "autoFolders": [],
   "defaultMaxVel": 3.0,

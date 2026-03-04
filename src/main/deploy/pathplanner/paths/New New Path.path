@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.2155555555555557,
-        "y": 5.9699333333333335
+        "x": 6.68778888888889,
+        "y": 7.018022222222222
       },
       "prevControl": null,
       "nextControl": {
-        "x": 0.7155555555555557,
-        "y": 5.9699333333333335
+        "x": 6.68778888888889,
+        "y": 6.018022222222223
       },
       "isLocked": false,
-      "linkedName": "depot pre score"
+      "linkedName": "+y-y sweep"
     },
     {
       "anchor": {
-        "x": 0.5000333333333333,
-        "y": 5.9699333333333335
+        "x": 6.68778888888889,
+        "y": 1.727188888896162
       },
       "prevControl": {
-        "x": 1.0000333333333333,
-        "y": 5.9699333333333335
+        "x": 6.68778888888889,
+        "y": 2.727188888896162
       },
       "nextControl": null,
       "isLocked": false,
@@ -33,7 +33,7 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 0.5,
+    "maxVelocity": 1.0,
     "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": -90.0
   },
   "reversed": false,
-  "folder": "+x +y sweep",
+  "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": -90.0
   },
   "useDefaultConstraints": false
 }
