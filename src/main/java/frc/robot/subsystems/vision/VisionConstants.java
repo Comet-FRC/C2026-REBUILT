@@ -48,9 +48,9 @@ public class VisionConstants {
               Degrees.of(-15),
               Degrees.of(180))); // values need to be changed probably
 
-  public static String camera0Name = "camera_0";
-  public static String camera1Name = "camera_1";
-  public static String limelightCameraName = "back"; // limelight string name
+  public static String CAMERA_0_NAME = "camera_0";
+  public static String CAMERA_1_NAME = "camera_1";
+  public static String CAMERA_LIMELIGHT_NAME = "back"; // limelight string name
 
   // Basic filtering thresholds
   public static double maxAmbiguity = 0.2;

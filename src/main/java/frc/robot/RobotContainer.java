@@ -115,8 +115,7 @@ public class RobotContainer {
                         new ModuleIOTalonFXReal(TunerConstants.FrontRight),
                         new ModuleIOTalonFXReal(TunerConstants.BackLeft),
                         new ModuleIOTalonFXReal(TunerConstants.BackRight),
-                        (robotPose) -> {
-                        });
+                        (robotPose) -> {});
                 this.vision = new Vision(
                         drive::addVisionMeasurement,
                         new VisionIOPhotonVision(Camera.LeftCamera),
@@ -142,49 +141,40 @@ public class RobotContainer {
                         new ModuleIOTalonFXSim(TunerConstants.BackRight, driveSimulation.getModules()[3]),
                         driveSimulation::setSimulationWorldPose);
 
-                vision = new Vision(
+                this.vision = new Vision(
                         drive::addVisionMeasurement,
                         new VisionIOPhotonVisionSim(
-                                camera0Name, robotToCamera0, driveSimulation::getSimulatedDriveTrainPose),
+                                CAMERA_0_NAME, robotToCamera0, driveSimulation::getSimulatedDriveTrainPose),
                         new VisionIOPhotonVisionSim(
-                                camera1Name, robotToCamera1, driveSimulation::getSimulatedDriveTrainPose),
+                                CAMERA_1_NAME, robotToCamera1, driveSimulation::getSimulatedDriveTrainPose),
                         // limelight camera added as photonvision sim
                         new VisionIOPhotonVisionSim(
-                                limelightCameraName,
-                                robotTolimelightCamera,
-                                driveSimulation::getSimulatedDriveTrainPose));
-                intake = new Intake(new IntakeIOSim());
-                indexer = new Indexer(new IndexerIOSim());
-                kicker = new Kicker(new KickerIOSim());
-                flywheel = new Flywheel(new FlywheelIOSim());
-                turret = new Turret(new TurretIOSim());
-                hood = new Hood(new HoodIOSim());
+                                VisionConstants.CAMERA_LIMELIGHT_NAME,
+                                VisionConstants.robotTolimelightCamera,
+                                this.driveSimulation::getSimulatedDriveTrainPose));
+                this.intake = new Intake(new IntakeIOSim());
+                this.indexer = new Indexer(new IndexerIOSim());
+                this.kicker = new Kicker(new KickerIOSim());
+                this.flywheel = new Flywheel(new FlywheelIOSim());
+                this.turret = new Turret(new TurretIOSim());
+                this.hood = new Hood(new HoodIOSim());
                 break;
-
             default:
-                drive = new Drive(
-                        new GyroIO() {},
-                        new ModuleIO() {},
-                        new ModuleIO() {},
-                        new ModuleIO() {},
-                        new ModuleIO() {},
-                        (robotPose) -> {
-                        });
-                vision = new Vision(drive::addVisionMeasurement, new VisionIO() {
-                }, new VisionIO() {
-                });
-                intake = new Intake(new IntakeIO() {
-                });
-                indexer = new Indexer(new IndexerIO() {
-                });
-                kicker = new Kicker(new KickerIO() {
-                });
-                flywheel = new Flywheel(new FlywheelIO() {
-                });
-                turret = new Turret(new TurretIO() {
-                });
-                hood = new Hood(new HoodIO() {
-                });
+                this.drive = new Drive(
+                    new GyroIO() {},
+                    new ModuleIO() {},
+                    new ModuleIO() {},
+                    new ModuleIO() {},
+                    new ModuleIO() {},
+                    (robotPose) -> {}
+                );
+                this.vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+                this.intake = new Intake(new IntakeIO() {});
+                this.indexer = new Indexer(new IndexerIO() {});
+                this.kicker = new Kicker(new KickerIO() {});
+                this.flywheel = new Flywheel(new FlywheelIO() {});
+                this.turret = new Turret(new TurretIO() {});
+                this.hood = new Hood(new HoodIO() {});
                 break;
         }
 
