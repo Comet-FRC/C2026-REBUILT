@@ -87,9 +87,9 @@ public class DriveCommands {
           double linearSpeedScalar;
           linearSpeedScalar = Math.hypot(x, y);
 
+          linearSpeedScalar = Math.signum(linearSpeedScalar) * Math.pow(linearSpeedScalar, 2);
           linearSpeedScalar = MathUtil.clamp(linearSpeedScalar, -1.0, 1.0);
           linearSpeedScalar = MathUtil.applyDeadband(linearSpeedScalar, DEADBAND);
-
           linearSpeedScalar = CometMathUtil.minMaxScale(linearSpeedScalar, DEADBAND, 1);
 
           Rotation2d linearDirection = new Rotation2d(Math.atan2(y, x));
