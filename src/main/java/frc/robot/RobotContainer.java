@@ -44,7 +44,7 @@ import frc.robot.subsystems.vision.*;
 import frc.robot.subsystems.vision.VisionConstants.Camera;
 import frc.robot.util.LoggedTunableNumber;
 // import frc.robot.util.ProximitySensor;
-import frc.robot.util.controller.CometLogitechController;
+import frc.robot.util.controller.*;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.littletonrobotics.junction.Logger;
@@ -75,7 +75,7 @@ public class RobotContainer {
   private AutoAimCommand autoAimCommand;
 
   // Controller
-  private final CometLogitechController driverController = new CometLogitechController(0);
+  private final CometXboxController driverController = new CometXboxController(0);
   private final CometLogitechController operatorController = new CometLogitechController(1);
 
   // Tunable values
@@ -306,7 +306,7 @@ public class RobotContainer {
 
     // LB = Toggle target mode: FEEDING ↔ HUB
     driverController
-        .leftBumper()
+        .rightBumper()
         .onTrue(
             Commands.runOnce(
                     () -> {
@@ -319,7 +319,7 @@ public class RobotContainer {
     // LT = Intake while true move to intaking angle and run volts
     driverController
         .leftTrigger()
-        .whileTrue(
+        .toggleOnTrue(
             Commands.run(
                 () ->
                     this.intake.setIntakeState(
@@ -336,10 +336,10 @@ public class RobotContainer {
         .whileTrue(new AutoFireCommand(autoAimCommand, turret, flywheel, hood, kicker, indexer));
 
     // RB = Manual Kicker volts of 4
-    driverController.rightBumper().whileTrue(this.kicker.setVoltage(() -> Volts.of(4.0)));
+    driverController.a().whileTrue(this.kicker.setVoltage(() -> Volts.of(4.0)));
 
     driverController.left().onTrue(this.hood.setPosition(() -> Degrees.of(HoodAngle.get())));
-    // Note: Y is used for AutoAim toggle (above). Do not bind additional commands to Y.
+
     // Manual FEEDING target override (Right DPAD)
     driverController
         .right()

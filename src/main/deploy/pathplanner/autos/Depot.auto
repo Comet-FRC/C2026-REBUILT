@@ -13,24 +13,6 @@
                 "data": {
                   "pathName": "Depot"
                 }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "intake"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "autoAim"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "shoot"
-                }
               }
             ]
           }

@@ -67,6 +67,7 @@ public class ShotCalculator {
           Map.entry(0.5, 2500.0), // meters -> RPM  (placeholder)
           Map.entry(2.1, 2600.0),
           Map.entry(2.5, 2700.0),
+          Map.entry(2.9, 3000.0),
           Map.entry(3.3, 2800.0),
           Map.entry(3.6, 2900.0),
           Map.entry(3.8, 3100.0),
@@ -80,6 +81,7 @@ public class ShotCalculator {
           Map.entry(0.5, 0.0), // meters -> degrees  (placeholder)
           Map.entry(2.1, 0.0),
           Map.entry(2.5, 0.0),
+          Map.entry(2.9, 5.0),
           Map.entry(3.3, 5.0),
           Map.entry(3.6, 10.0),
           Map.entry(4.1, 10.0),
@@ -93,6 +95,7 @@ public class ShotCalculator {
           Map.entry(0.5, 0.720), // meters -> seconds  (placeholder)
           Map.entry(2.1, 0.73),
           Map.entry(2.5, 0.810),
+          Map.entry(2.9, 0.920),
           Map.entry(3.3, 0.940),
           Map.entry(3.6, 0.960),
           Map.entry(4.1, 0.985),
