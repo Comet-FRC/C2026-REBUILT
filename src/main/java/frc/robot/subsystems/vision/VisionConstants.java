@@ -67,7 +67,7 @@ public class VisionConstants {
       new double[] {
         1.0, // Camera 0
         1.0, // Camera 1
-        0.8 // Limelight
+        1.0 // Limelight
       };
 
   // Multipliers to apply for MegaTag 2 observations
