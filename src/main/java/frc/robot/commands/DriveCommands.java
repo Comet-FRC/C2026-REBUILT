@@ -71,8 +71,7 @@ public class DriveCommands {
       Drive drive,
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
-      DoubleSupplier omegaSupplier,
-      DoubleSupplier speedLimitSupplier) {
+      DoubleSupplier omegaSupplier) {
     return Commands.run(
         () -> {
           // Get linear velocity
@@ -111,7 +110,7 @@ public class DriveCommands {
           omegaSpeedScalar = Math.signum(omegaSpeedScalar) * Math.pow(omegaSpeedScalar, 2);
 
           // Convert to field relative speeds & send command
-          double linearSpeed = speedLimitSupplier.getAsDouble();
+          double linearSpeed = drive.getMaxLinearSpeedMetersPerSec();
           double angularSpeed =
               linearSpeed
                   / drive.getMaxLinearSpeedMetersPerSec()

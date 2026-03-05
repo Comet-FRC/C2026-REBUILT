@@ -102,22 +102,6 @@ public class FlywheelIOReal implements FlywheelIO {
     // Follower opposes leader direction (counter-rotating flywheels)
     wheelFollower.setControl(
         new Follower(FlywheelConstants.FLYWHEEL_LEADER_ID, MotorAlignmentValue.Opposed));
-
-    orchestra.addInstrument(wheelLeader);
-    orchestra.addInstrument(wheelFollower);
-    orchestra.loadMusic("chrp/rocky.chrp");
-    orchestra.play();
-
-    // Stop music after 2 seconds to free up TalonFX control
-    new Timer()
-        .schedule(
-            new TimerTask() {
-              @Override
-              public void run() {
-                orchestra.stop();
-              }
-            },
-            2000);
   }
 
   @Override

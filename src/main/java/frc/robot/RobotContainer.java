@@ -20,6 +20,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -78,8 +79,6 @@ public class RobotContainer {
   private final CometXboxController driverController = new CometXboxController(0);
   private final CometLogitechController operatorController = new CometLogitechController(1);
 
-  // Tunable values
-  private double driveSpeedLimit = 4.54; // default reduced speed (m/s); up dpad restores to 5.29
   private final LoggedTunableNumber intakeWheelVolts =
       new LoggedTunableNumber("Intake/WheelVolts", 4.5);
   private final LoggedTunableNumber FlywheelVelocity =
@@ -87,10 +86,8 @@ public class RobotContainer {
   private final LoggedTunableNumber HoodAngle = new LoggedTunableNumber("Hood/Angle", 0.0);
   private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 166.0);
   private final LoggedTunableNumber indexerRollerVolts =
-      new LoggedTunableNumber("Indexer/RollerVolts", 0.0);
+      new LoggedTunableNumber("Indexer/RollerVolts", 2.0);
   private final LoggedTunableNumber turretVolts = new LoggedTunableNumber("Turret/Volts", 2.0);
-  private final LoggedTunableNumber flywheelVolts = new LoggedTunableNumber("Flywheel/Volts", 5);
-  private final LoggedTunableNumber kickerVolts = new LoggedTunableNumber("Kicker/Volts", 5);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -268,8 +265,7 @@ public class RobotContainer {
             drive,
             () -> -driverController.getLeftY(),
             () -> -driverController.getLeftX(),
-            () -> -driverController.getRightX(),
-            () -> driveSpeedLimit));
+            () -> -driverController.getRightX()));
 
     this.intake.setDefaultCommand(
         Commands.run(
@@ -304,7 +300,7 @@ public class RobotContainer {
         .onTrue(
             Commands.runOnce(() -> drive.resetHeadingWithAlliance(), drive).ignoringDisable(true));
 
-    // LB = Toggle target mode: FEEDING ↔ HUB
+    // RB = Toggle target mode: FEEDING ↔ HUB
     driverController
         .rightBumper()
         .onTrue(
@@ -315,6 +311,9 @@ public class RobotContainer {
                       Logger.recordOutput("AutoAim/TargetMode", targetMode.name());
                     })
                 .ignoringDisable(true));
+
+    // LB = Manual Kicker
+    driverController.leftBumper().whileTrue(this.kicker.setVoltage(() -> Volts.of(4.0)));
 
     // LT = Intake while true move to intaking angle and run volts
     driverController
@@ -335,9 +334,6 @@ public class RobotContainer {
         .rightTrigger()
         .whileTrue(new AutoFireCommand(autoAimCommand, turret, flywheel, hood, kicker, indexer));
 
-    // RB = Manual Kicker volts of 4
-    driverController.a().whileTrue(this.kicker.setVoltage(() -> Volts.of(4.0)));
-
     driverController.left().onTrue(this.hood.setPosition(() -> Degrees.of(HoodAngle.get())));
 
     // Manual FEEDING target override (Right DPAD)
@@ -346,14 +342,6 @@ public class RobotContainer {
         .onTrue(
             Commands.runOnce(() -> FieldConstants.toggleManualFeedingOverride())
                 .ignoringDisable(true));
-
-    driverController
-        .up()
-        .onTrue(
-            Commands.runOnce(() -> driveSpeedLimit = drive.getMaxLinearSpeedMetersPerSec())
-                .ignoringDisable(true));
-
-    // OPERATOR BUTTONS
 
     // Turret Manual Control
     operatorController
@@ -417,6 +405,16 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     return autoChooser.get();
+  }
+
+  public void periodic() {
+    Logger.recordOutput("Dashboard/MatchTimeSec", DriverStation.getMatchTime());
+    Logger.recordOutput("Dashboard/TargetMode", targetMode.name());
+
+    double fieldRelativeDeg =
+        (turret.getAngle().in(Degrees) + drive.getRotation().getDegrees()) % 360.0;
+    if (fieldRelativeDeg < 0) fieldRelativeDeg += 360.0;
+    Logger.recordOutput("Dashboard/TurretFieldRelativeAngleDeg", fieldRelativeDeg);
   }
 
   public void resetSimulation() {

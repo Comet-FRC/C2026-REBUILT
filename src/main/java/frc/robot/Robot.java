@@ -79,6 +79,7 @@ public class Robot extends LoggedRobot {
     CommandScheduler.getInstance().run();
     double loopTimeMs = (Logger.getTimestamp() - loopStart) / 1000.0;
     Logger.recordOutput("LoopTime/Ms", loopTimeMs);
+    robotContainer.periodic();
   }
 
   /** This function is called once when the robot is disabled. */
