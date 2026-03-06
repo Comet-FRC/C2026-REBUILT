@@ -19,8 +19,6 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class FlywheelIOReal implements FlywheelIO {
   private final TalonFX wheelLeader = new TalonFX(FlywheelConstants.FLYWHEEL_LEADER_ID);

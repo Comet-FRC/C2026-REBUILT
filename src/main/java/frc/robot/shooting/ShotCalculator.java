@@ -67,7 +67,7 @@ public class ShotCalculator {
           Map.entry(0.5, 2500.0), // meters -> RPM  (placeholder)
           Map.entry(2.1, 2600.0),
           Map.entry(2.5, 2700.0),
-          Map.entry(2.9, 3000.0),
+          Map.entry(2.9, 2800.0),
           Map.entry(3.3, 2800.0),
           Map.entry(3.6, 2900.0),
           Map.entry(3.8, 3100.0),

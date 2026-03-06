@@ -88,7 +88,7 @@ public class VisionConstants {
         1,
         5,
         new Transform3d(
-            new Translation3d(Inches.of(-9.944988), Inches.of(9.848857), Inches.of(7.862498)),
+            new Translation3d(Inches.of(-9.944988), Inches.of(-9.848857), Inches.of(7.862498)),
             new Rotation3d(Degrees.of(0), Degrees.of(-25), Degrees.of(250))));
 
     public final String hardwareName;
