@@ -13,6 +13,7 @@
 
 package frc.robot.subsystems.vision;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import edu.wpi.first.math.Matrix;
@@ -28,6 +29,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 public class Vision extends SubsystemBase {
@@ -36,9 +38,12 @@ public class Vision extends SubsystemBase {
   private final VisionIOInputsAutoLogged[] inputs;
   private final Alert[] disconnectedAlerts;
 
-  public Vision(ApriltagVisionConsumer consumer, VisionIO... io) {
+  private final Supplier<Pose2d> drivePose;
+
+  public Vision(Supplier<Pose2d> drivePose, ApriltagVisionConsumer consumer, VisionIO... io) {
     this.consumer = consumer;
     this.io = io;
+    this.drivePose = drivePose;
 
     // Initialize inputs
     this.inputs = new VisionIOInputsAutoLogged[io.length];
@@ -115,6 +120,17 @@ public class Vision extends SubsystemBase {
                 || observation.pose().getY() < 0.0
                 || observation.pose().getY() > aprilTagLayout.getFieldWidth();
 
+        // Exit if the pitch and roll are cooked (combined >20 degrees)
+        double pitch = observation.pose().getRotation().getMeasureY().in(Degrees);
+        double roll = observation.pose().getRotation().getMeasureX().in(Degrees);
+        if (pitch + roll > 20) {
+          rejectPose = true;
+        }
+
+        // if (observation.averageTagDistance() > 3) {
+        //   rejectPose = true;
+        // }
+
         // Add pose to log
         robotPoses.add(observation.pose());
         if (rejectPose) {
@@ -135,12 +151,44 @@ public class Vision extends SubsystemBase {
         double angularStdDev = angularStdDevBaseline * stdDevFactor;
         if (observation.type() == PoseObservationType.MEGATAG_2) {
           linearStdDev *= linearStdDevMegatag2Factor;
-          angularStdDev *= angularStdDevMegatag2Factor;
+          // angularStdDev *= angularStdDevMegatag2Factor;
         }
         if (cameraIndex < cameraStdDevFactors.length) {
           linearStdDev *= cameraStdDevFactors[cameraIndex];
           angularStdDev *= cameraStdDevFactors[cameraIndex];
         }
+
+        double rotationDiff =
+            Math.abs(
+                this.drivePose
+                    .get()
+                    .getRotation()
+                    .minus(observation.pose().getRotation().toRotation2d())
+                    .getRadians());
+
+        double translationDiff =
+            Math.abs(
+                this.drivePose
+                    .get()
+                    .getTranslation()
+                    .getDistance(observation.pose().getTranslation().toTranslation2d()));
+
+        double ambiguity = observation.ambiguity();
+        // trust the pose less if it is really different from estimated pose
+        angularStdDev += rotationDiff;
+        linearStdDev += translationDiff;
+
+        if (observation.averageTagDistance() > 1) {
+          angularStdDev *= observation.averageTagDistance();
+          linearStdDev *= observation.averageTagDistance();
+        }
+
+        angularStdDev *= 1 + ambiguity;
+        linearStdDev *= 1 + ambiguity;
+
+        Logger.recordOutput("Odometry/ambiguity", ambiguity);
+        Logger.recordOutput("Odometry/linearStdDev", linearStdDev);
+        Logger.recordOutput("Odometry/angularStdDev", angularStdDev);
 
         // Send vision observation
         consumer.accept(
