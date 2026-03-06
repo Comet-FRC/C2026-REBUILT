@@ -123,13 +123,14 @@ public class Vision extends SubsystemBase {
         // Exit if the pitch and roll are cooked (combined >20 degrees)
         double pitch = observation.pose().getRotation().getMeasureY().in(Degrees);
         double roll = observation.pose().getRotation().getMeasureX().in(Degrees);
-        if (pitch + roll > 20) {
+        if (Math.abs(pitch) + Math.abs(roll) > 20) {
           rejectPose = true;
         }
 
-        // if (observation.averageTagDistance() > 3) {
-        //   rejectPose = true;
-        // }
+        // throw out any single tag measurements if we're too far
+        if (observation.tagCount() == 1 && observation.averageTagDistance() > 3) {
+          rejectPose = true;
+        }
 
         // Add pose to log
         robotPoses.add(observation.pose());
@@ -146,12 +147,12 @@ public class Vision extends SubsystemBase {
 
         // Calculate standard deviations
         double stdDevFactor =
-            Math.pow(observation.averageTagDistance(), 2.0) / observation.tagCount();
+            Math.pow(1 + observation.averageTagDistance(), 2) / observation.tagCount();
         double linearStdDev = linearStdDevBaseline * stdDevFactor;
         double angularStdDev = angularStdDevBaseline * stdDevFactor;
         if (observation.type() == PoseObservationType.MEGATAG_2) {
           linearStdDev *= linearStdDevMegatag2Factor;
-          // angularStdDev *= angularStdDevMegatag2Factor;
+          angularStdDev *= angularStdDevMegatag2Factor;
         }
         if (cameraIndex < cameraStdDevFactors.length) {
           linearStdDev *= cameraStdDevFactors[cameraIndex];
@@ -173,18 +174,13 @@ public class Vision extends SubsystemBase {
                     .getTranslation()
                     .getDistance(observation.pose().getTranslation().toTranslation2d()));
 
-        double ambiguity = observation.ambiguity();
         // trust the pose less if it is really different from estimated pose
-        angularStdDev += rotationDiff;
-        linearStdDev += translationDiff;
+        angularStdDev *= Math.pow(1 + rotationDiff, 2.0);
+        linearStdDev *= Math.pow(1 + translationDiff, 2.0);
 
-        if (observation.averageTagDistance() > 1) {
-          angularStdDev *= observation.averageTagDistance();
-          linearStdDev *= observation.averageTagDistance();
-        }
-
-        angularStdDev *= 1 + ambiguity;
-        linearStdDev *= 1 + ambiguity;
+        double ambiguity = observation.ambiguity();
+        angularStdDev *= Math.pow(1 + ambiguity, 2.0);
+        linearStdDev *= Math.pow(1 + ambiguity, 2.0);
 
         Logger.recordOutput("Odometry/ambiguity", ambiguity);
         Logger.recordOutput("Odometry/linearStdDev", linearStdDev);
