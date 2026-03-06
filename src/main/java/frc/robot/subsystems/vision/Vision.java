@@ -175,8 +175,8 @@ public class Vision extends SubsystemBase {
                     .getDistance(observation.pose().getTranslation().toTranslation2d()));
 
         // trust the pose less if it is really different from estimated pose
-        angularStdDev *= Math.pow(1 + rotationDiff, 2.0);
-        linearStdDev *= Math.pow(1 + translationDiff, 2.0);
+        angularStdDev *= 1 + rotationDiff;
+        linearStdDev *= 1 + translationDiff;
 
         double ambiguity = observation.ambiguity();
         angularStdDev *= Math.pow(1 + ambiguity, 2.0);
