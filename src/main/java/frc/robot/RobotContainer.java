@@ -87,7 +87,7 @@ public class RobotContainer {
   private final LoggedTunableNumber FlywheelVelocity =
       new LoggedTunableNumber("Flywheel/RPM", 3000.0);
   private final LoggedTunableNumber HoodAngle = new LoggedTunableNumber("Hood/Angle", 0.0);
-  private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 169.0);
+  private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 161.0);
   private final LoggedTunableNumber indexerRollerVolts =
       new LoggedTunableNumber("Indexer/RollerVolts", 4.0);
   private final LoggedTunableNumber turretVolts = new LoggedTunableNumber("Turret/Volts", 2.0);
