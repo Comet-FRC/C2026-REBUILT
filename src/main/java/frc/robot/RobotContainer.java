@@ -24,6 +24,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.FieldConstants.TargetMode;
@@ -423,6 +424,12 @@ public class RobotContainer {
         (turret.getAngle().in(Degrees) + drive.getRotation().getDegrees()) % 360.0;
     if (fieldRelativeDeg < 0) fieldRelativeDeg += 360.0;
     Logger.recordOutput("Dashboard/TurretFieldRelativeAngleDeg", fieldRelativeDeg);
+
+    // Publish to SmartDashboard for Elastic Dashboard widgets
+    SmartDashboard.putString("Targeting Mode", targetMode.name());
+    SmartDashboard.putNumber("Match Time", DriverStation.getMatchTime());
+    SmartDashboard.putNumber("Intake Angle (deg)", intake.getPivotPosition().in(Degrees));
+    SmartDashboard.putBoolean("Auto Aim Enabled", autoAimCommand.isScheduled());
   }
 
   public void resetSimulation() {
