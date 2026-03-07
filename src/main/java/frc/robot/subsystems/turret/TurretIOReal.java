@@ -18,7 +18,7 @@ import edu.wpi.first.units.measure.Voltage;
 import frc.robot.util.LoggedTunableNumber;
 
 public class TurretIOReal implements TurretIO {
-  private final TalonFX turretMotor = new TalonFX(TurretConstants.TURRET_MOTOR_ID);
+  private final TalonFX turretMotor = new TalonFX(TurretConstants.TURRET_MOTOR_ID, "rio");
   private final TurretAbsoluteEncoder absoluteEncoder = new TurretAbsoluteEncoder();
   private final VoltageOut voltageRequest = new VoltageOut(0);
   private final MotionMagicVoltage motionMagicRequest = new MotionMagicVoltage(0).withSlot(0);
