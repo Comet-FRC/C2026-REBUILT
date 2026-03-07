@@ -14,6 +14,7 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
+
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -31,6 +32,8 @@ import frc.robot.FieldConstants.TargetMode;
 import frc.robot.commands.AutoAimCommand;
 import frc.robot.commands.AutoFireCommand;
 import frc.robot.commands.DriveCommands;
+import frc.robot.shooting.ShotCalculator;
+import frc.robot.shooting.ShotParameters;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.flywheel.Flywheel;
@@ -283,7 +286,7 @@ public class RobotContainer {
     this.kicker.setDefaultCommand(this.kicker.setVoltage(() -> Volts.of(0.0)));
     this.flywheel.setDefaultCommand(this.flywheel.setWheelVoltage(() -> Volts.of(0.0)));
     this.hood.setDefaultCommand(this.hood.setPosition(() -> Degrees.of(0.0)));
-    this.turret.setDefaultCommand(this.turret.setVoltage(() -> Volts.of(0.0)));
+    this.turret.setDefaultCommand(this.turret.setPosition(() -> Degrees.of(180.0)));
 
     this.autoAimCommand = new AutoAimCommand(drive, turret, () -> targetMode);
   }
@@ -345,7 +348,6 @@ public class RobotContainer {
             Commands.runOnce(() -> FieldConstants.toggleManualFeedingOverride())
                 .ignoringDisable(true));
 
-    // Turret Manual Control
     operatorController
         .leftBumper()
         .whileTrue(this.turret.setVoltage(() -> Volts.of(-turretVolts.get())));
@@ -353,26 +355,34 @@ public class RobotContainer {
         .rightBumper()
         .whileTrue(this.turret.setVoltage(() -> Volts.of(turretVolts.get())));
 
-    // Hood Manual Control
     operatorController.up().whileTrue(this.hood.setVoltage(() -> Volts.of(3)));
     operatorController.down().whileTrue(this.hood.setVoltage(() -> Volts.of(-3)));
 
     operatorController.right().whileTrue(this.kicker.setVoltage(() -> Volts.of(5)));
-    // Flywheel RPM Control (spin up only, no fire)
+
     operatorController
         .rightTrigger()
         .whileTrue(this.flywheel.setWheelVelocity(() -> RPM.of(FlywheelVelocity.get())));
 
-    // Manual Shoot: spin flywheel + set hood, auto-fire when within 70 RPM
+    // Manual Shoot: operator aims turret manually, flywheel/hood pull from shot maps
     driverController
         .down()
         .whileTrue(
             Commands.run(
                 () -> {
-                  var targetRPM = RPM.of(FlywheelVelocity.get());
-                  var targetHood = Degrees.of(HoodAngle.get());
+                  // Calculate shot params from the map based on distance to current target
+                  ShotParameters params =
+                      ShotCalculator.calculate(
+                          drive.getPose(),
+                          drive.getFieldVelocity(),
+                          turret.getAngle(),
+                          targetMode);
+
+                  var targetRPM = RPM.of(params.flywheelSpeedRPM());
+                  var targetHood = Degrees.of(params.hoodAngleDegrees());
                   flywheel.io.setWheelVelocitySetpoint(targetRPM);
                   hood.io.setPositionSetpoint(targetHood);
+
                   boolean flywheelReady = flywheel.atSpeed(targetRPM, RPM.of(70.0));
                   if (flywheelReady) {
                     kicker.io.setVoltage(Volts.of(4.0));
