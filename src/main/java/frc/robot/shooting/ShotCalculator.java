@@ -86,8 +86,8 @@ public class ShotCalculator {
           Map.entry(3.6, 10.0),
           Map.entry(4.1, 10.0),
           Map.entry(4.4, 15.0),
-          Map.entry(4.6, 16.0),
-          Map.entry(4.8, 17.0));
+          Map.entry(4.6, 15.0),
+          Map.entry(4.8, 15.0));
 
   // TODO: Fill these in with real data from hub testing!
   private static final InterpolatingDoubleTreeMap HUB_TIME_OF_FLIGHT =
