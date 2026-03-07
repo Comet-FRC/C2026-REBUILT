@@ -14,7 +14,6 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
-
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -32,9 +31,9 @@ import frc.robot.FieldConstants.TargetMode;
 import frc.robot.commands.AutoAimCommand;
 import frc.robot.commands.AutoFireCommand;
 import frc.robot.commands.DriveCommands;
+import frc.robot.generated.TunerConstants;
 import frc.robot.shooting.ShotCalculator;
 import frc.robot.shooting.ShotParameters;
-import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.flywheel.Flywheel;
 import frc.robot.subsystems.flywheel.FlywheelIO;
@@ -88,7 +87,7 @@ public class RobotContainer {
   private final LoggedTunableNumber FlywheelVelocity =
       new LoggedTunableNumber("Flywheel/RPM", 3000.0);
   private final LoggedTunableNumber HoodAngle = new LoggedTunableNumber("Hood/Angle", 0.0);
-  private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 166.0);
+  private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 169.0);
   private final LoggedTunableNumber indexerRollerVolts =
       new LoggedTunableNumber("Indexer/RollerVolts", 4.0);
   private final LoggedTunableNumber turretVolts = new LoggedTunableNumber("Turret/Volts", 2.0);
@@ -373,10 +372,7 @@ public class RobotContainer {
                   // Calculate shot params from the map based on distance to current target
                   ShotParameters params =
                       ShotCalculator.calculate(
-                          drive.getPose(),
-                          drive.getFieldVelocity(),
-                          turret.getAngle(),
-                          targetMode);
+                          drive.getPose(), drive.getFieldVelocity(), turret.getAngle(), targetMode);
 
                   var targetRPM = RPM.of(params.flywheelSpeedRPM());
                   var targetHood = Degrees.of(params.hoodAngleDegrees());
