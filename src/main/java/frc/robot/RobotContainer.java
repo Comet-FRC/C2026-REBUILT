@@ -108,6 +108,7 @@ public class RobotContainer {
                 (robotPose) -> {});
         this.vision =
             new Vision(
+                drive::getPose,
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVision(Camera.LeftCamera),
                 new VisionIOPhotonVision(Camera.RightCamera),
@@ -136,6 +137,7 @@ public class RobotContainer {
 
         vision =
             new Vision(
+                driveSimulation::getSimulatedDriveTrainPose,
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVisionSim(
                     camera0Name, robotToCamera0, driveSimulation::getSimulatedDriveTrainPose),
@@ -163,7 +165,13 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 (robotPose) -> {});
-        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        vision =
+            new Vision(
+                drive::getPose,
+                drive::addVisionMeasurement,
+                new VisionIO() {},
+                new VisionIO() {},
+                new VisionIO() {});
         intake = new Intake(new IntakeIO() {});
         indexer = new Indexer(new IndexerIO() {});
         kicker = new Kicker(new KickerIO() {});
