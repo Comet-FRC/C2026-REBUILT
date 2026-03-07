@@ -306,7 +306,7 @@ public class RobotContainer {
 
     // RB = Toggle target mode: FEEDING ↔ HUB
     driverController
-        .rightBumper()
+        .leftBumper()
         .onTrue(
             Commands.runOnce(
                     () -> {
@@ -317,12 +317,12 @@ public class RobotContainer {
                 .ignoringDisable(true));
 
     // LB = Manual Kicker
-    driverController.leftBumper().whileTrue(this.kicker.setVoltage(() -> Volts.of(4.0)));
+    driverController.a().whileTrue(this.kicker.setVoltage(() -> Volts.of(4.0)));
 
     // LT = Intake while true move to intaking angle and run volts
     driverController
-        .leftTrigger()
-        .toggleOnTrue(
+        .rightBumper()
+        .whileTrue(
             Commands.run(
                 () ->
                     this.intake.setIntakeState(
