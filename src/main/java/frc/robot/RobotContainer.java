@@ -17,6 +17,7 @@ import static edu.wpi.first.units.Units.*;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -25,7 +26,6 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.FieldConstants.TargetMode;
 import frc.robot.commands.AutoAimCommand;
 import frc.robot.commands.AutoFireCommand;
@@ -187,13 +187,13 @@ public class RobotContainer {
     // NOTE ON TELEOP SAFETY: WPILib automatically cancels ALL running commands
     // when switching from auton → teleop. AutoAim will stop on its own. The
     // // driver's Y-button toggle re-enables it independently in teleop.
-    // NamedCommands.registerCommand(
-    //     "intake",
-    //     Commands.run(
-    //         () ->
-    //             intake.setIntakeState(
-    //                 Degrees.of(intakeAngle.get()), Volts.of(intakeWheelVolts.get())),
-    //         intake));
+    NamedCommands.registerCommand(
+        "Deploy Intake",
+        Commands.runOnce(
+            () ->
+                intake.setIntakeState(
+                    Degrees.of(intakeAngle.get()), Volts.of(intakeWheelVolts.get())),
+            intake));
 
     // NamedCommands.registerCommand(
     //     "spinUp",
@@ -205,11 +205,11 @@ public class RobotContainer {
     // //   1. The Commands.parallel() group (so it runs and owns the turret), and
     // //   2. AutoFireCommand (so it reads latestParameters from the SAME object).
     // // Using two separate instances would cause them to fight over the turret requirement.
-    // AutoAimCommand shootAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
-    // NamedCommands.registerCommand(
-    //     "shoot",
-    //     Commands.parallel(
-    //         shootAim, new AutoFireCommand(shootAim, turret, flywheel, hood, kicker, indexer)));
+    AutoAimCommand shootAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
+    NamedCommands.registerCommand(
+        "Shoot On Move",
+        Commands.parallel(
+            shootAim, new AutoFireCommand(shootAim, turret, flywheel, hood, kicker, indexer)));
 
     // AutoAimCommand shootTimedAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
     // NamedCommands.registerCommand(
@@ -219,12 +219,12 @@ public class RobotContainer {
     //             new AutoFireCommand(shootTimedAim, turret, flywheel, hood, kicker, indexer))
     //         .withTimeout(3.0));
 
-    // AutoAimCommand shootFeedAim = new AutoAimCommand(drive, turret, () -> TargetMode.FEEDING);
-    // NamedCommands.registerCommand(
-    //     "shootFeed",
-    //     Commands.parallel(
-    //         shootFeedAim,
-    //         new AutoFireCommand(shootFeedAim, turret, flywheel, hood, kicker, indexer)));
+    AutoAimCommand shootFeedAim = new AutoAimCommand(drive, turret, () -> TargetMode.FEEDING);
+    NamedCommands.registerCommand(
+        "Feeding",
+        Commands.parallel(
+            shootFeedAim,
+            new AutoFireCommand(shootFeedAim, turret, flywheel, hood, kicker, indexer)));
 
     // AutoAimCommand shootFeedTimedAim = new AutoAimCommand(drive, turret, () ->
     // TargetMode.FEEDING);
@@ -248,20 +248,20 @@ public class RobotContainer {
         new LoggedDashboardChooser<Command>("Auto Choices", AutoBuilder.buildAutoChooser());
 
     // Set up SysId routines
-    autoChooser.addOption(
-        "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
-    autoChooser.addOption(
-        "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
-    autoChooser.addOption(
-        "Drive SysId (Quasistatic Forward)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    autoChooser.addOption(
-        "Drive SysId (Quasistatic Reverse)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-    autoChooser.addOption(
-        "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    autoChooser.addOption(
-        "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    // autoChooser.addOption(
+    //     "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
+    // autoChooser.addOption(
+    //     "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
+    // autoChooser.addOption(
+    //     "Drive SysId (Quasistatic Forward)",
+    //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    // autoChooser.addOption(
+    //     "Drive SysId (Quasistatic Reverse)",
+    //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    // autoChooser.addOption(
+    //     "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    // autoChooser.addOption(
+    //     "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
     setupDefaultCommands();
     configureButtonBindings();

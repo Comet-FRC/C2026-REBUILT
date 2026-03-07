@@ -66,7 +66,7 @@
     "rotation": 90.0
   },
   "reversed": false,
-  "folder": "+y sweep depot",
+  "folder": "+x +y sweep",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 0.0
