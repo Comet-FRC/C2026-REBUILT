@@ -59,12 +59,12 @@ public class AutoFireCommand extends Command {
     // correction that the turret is actually aiming at.
     ShotParameters params = autoAim.getLatestParameters();
 
-    // Guard: AutoAim hasn’t run yet (first cycle or not active)
-    if (params == null) {
-      kicker.io.setVoltage(Volts.of(0.0));
-      indexer.io.setRollerVoltage(Volts.of(0.0));
-      return;
-    }
+    // // Guard: AutoAim hasn’t run yet (first cycle or not active)
+    // if (params == null) {
+    //   kicker.io.setVoltage(Volts.of(0.0));
+    //   indexer.io.setRollerVoltage(Volts.of(0.0));
+    //   return;
+    // }
 
     boolean turretReady = turret.atSetpoint(TurretConstants.TURRET_TOLERANCE);
     boolean flywheelReady = false;
