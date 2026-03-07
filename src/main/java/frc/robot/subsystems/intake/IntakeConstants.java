@@ -28,7 +28,7 @@ public final class IntakeConstants {
   public static final double WHEEL_CONVERSION_FACTOR = 2 * Math.PI * (18.0 / 24.0);
   public static final double PIVOT_CONVERSION_FACTOR = 2 * Math.PI * (1.0 / GEAR_RATIO);
 
-  public static final double PIVOT_SIM_kP = 50;
+  public static final double PIVOT_SIM_kP = 10000;
   public static final double PIVOT_SIM_kI = 0;
   public static final double PIVOT_SIM_kD = 0.01;
   public static final double PIVOT_SIM_kS = 0.3;

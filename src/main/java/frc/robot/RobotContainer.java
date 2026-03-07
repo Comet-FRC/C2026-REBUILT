@@ -186,8 +186,7 @@ public class RobotContainer {
     // IMPORTANT: Must be registered BEFORE AutoBuilder.buildAutoChooser()
 
     // NOTE ON TELEOP SAFETY: WPILib automatically cancels ALL running commands
-    // when switching from auton → teleop. AutoAim will stop on its own. The
-    // // driver's Y-button toggle re-enables it independently in teleop.
+    // when switching from auton → teleop.
     NamedCommands.registerCommand(
         "Deploy Intake",
         Commands.runOnce(
@@ -202,10 +201,6 @@ public class RobotContainer {
     //         () -> flywheel.io.setWheelVelocitySetpoint(RPM.of(FlywheelVelocity.get())),
     // flywheel));
 
-    // // Each named command creates one AutoAimCommand instance that is shared between:
-    // //   1. The Commands.parallel() group (so it runs and owns the turret), and
-    // //   2. AutoFireCommand (so it reads latestParameters from the SAME object).
-    // // Using two separate instances would cause them to fight over the turret requirement.
     AutoAimCommand shootAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
     NamedCommands.registerCommand(
         "Shoot On Move",
@@ -236,8 +231,6 @@ public class RobotContainer {
     //             new AutoFireCommand(shootFeedTimedAim, turret, flywheel, hood, kicker, indexer))
     //         .withTimeout(3.0));
 
-    // // NOTE: autoAim/autoAimFeed never finish on their own — always put them
-    // // inside a Race/Deadline Group alongside a path so the path acts as the deadline.
     // NamedCommands.registerCommand(
     //     "autoAim", new AutoAimCommand(drive, turret, () -> TargetMode.HUB));
 
