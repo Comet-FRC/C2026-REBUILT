@@ -35,5 +35,5 @@ public final class Constants {
     REPLAY
   }
 
-  public static final boolean tuningMode = true;
+  public static final boolean tuningMode = false;
 }
