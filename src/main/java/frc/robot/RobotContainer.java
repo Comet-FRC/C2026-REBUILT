@@ -83,7 +83,7 @@ public class RobotContainer {
   private final CometLogitechController operatorController = new CometLogitechController(1);
 
   private final LoggedTunableNumber intakeWheelVolts =
-      new LoggedTunableNumber("Intake/WheelVolts", 11);
+      new LoggedTunableNumber("Intake/WheelVolts", 5.5);
   private final LoggedTunableNumber FlywheelVelocity =
       new LoggedTunableNumber("Flywheel/RPM", 3000.0);
   private final LoggedTunableNumber HoodAngle = new LoggedTunableNumber("Hood/Angle", 0.0);
