@@ -243,12 +243,13 @@ public class RobotContainer {
     autoChooser =
         new LoggedDashboardChooser<Command>("Auto Choices", AutoBuilder.buildAutoChooser());
 
-    // AutoAimCommand shootHubAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
-    // autoChooser.addOption(
-    //     "Shoot On Hub",
-    //     Commands.parallel(
-    //             shootAim, new AutoFireCommand(shootHubAim, turret, flywheel, hood, kicker, indexer))
-    //         .withTimeout(15.0));
+    AutoAimCommand shootHubAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
+    autoChooser.addOption(
+        "Shoot On Hub",
+        Commands.parallel(
+                shootHubAim,
+                new AutoFireCommand(shootHubAim, turret, flywheel, hood, kicker, indexer))
+            .withTimeout(15.0));
 
     // Set up SysId routines
     // autoChooser.addOption(
