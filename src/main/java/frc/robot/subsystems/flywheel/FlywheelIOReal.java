@@ -21,8 +21,8 @@ import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 
 public class FlywheelIOReal implements FlywheelIO {
-  private final TalonFX wheelLeader = new TalonFX(FlywheelConstants.FLYWHEEL_LEADER_ID);
-  private final TalonFX wheelFollower = new TalonFX(FlywheelConstants.FLYWHEEL_FOLLOWER_ID);
+  private final TalonFX wheelLeader = new TalonFX(FlywheelConstants.FLYWHEEL_LEADER_ID, "rio");
+  private final TalonFX wheelFollower = new TalonFX(FlywheelConstants.FLYWHEEL_FOLLOWER_ID, "rio");
   private final VelocityVoltage velocityRequest = new VelocityVoltage(0);
   private final VoltageOut voltageRequest = new VoltageOut(0);
 

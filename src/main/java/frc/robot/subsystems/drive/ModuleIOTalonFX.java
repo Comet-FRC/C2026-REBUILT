@@ -39,11 +39,11 @@ public abstract class ModuleIOTalonFX implements ModuleIO {
   protected final VelocityVoltage velocityVoltageRequest = new VelocityVoltage(0.0);
 
   // Torque-current control requests
-  protected final TorqueCurrentFOC torqueCurrentRequest = new TorqueCurrentFOC(0);
-  protected final PositionTorqueCurrentFOC positionTorqueCurrentRequest =
-      new PositionTorqueCurrentFOC(0.0);
-  protected final VelocityTorqueCurrentFOC velocityTorqueCurrentRequest =
-      new VelocityTorqueCurrentFOC(0.0);
+  //   protected final TorqueCurrentFOC torqueCurrentRequest = new TorqueCurrentFOC(0);
+  //   protected final PositionTorqueCurrentFOC positionTorqueCurrentRequest =
+  //       new PositionTorqueCurrentFOC(0.0);
+  //   protected final VelocityTorqueCurrentFOC velocityTorqueCurrentRequest =
+  //       new VelocityTorqueCurrentFOC(0.0);
 
   // Inputs from drive motor
   protected final StatusSignal<Angle> drivePosition;
@@ -75,8 +75,8 @@ public abstract class ModuleIOTalonFX implements ModuleIO {
     var driveConfig = constants.DriveMotorInitialConfigs;
     driveConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     driveConfig.Slot0 = constants.DriveMotorGains;
-    driveConfig.TorqueCurrent.PeakForwardTorqueCurrent = constants.SlipCurrent;
-    driveConfig.TorqueCurrent.PeakReverseTorqueCurrent = -constants.SlipCurrent;
+    // driveConfig.TorqueCurrent.PeakForwardTorqueCurrent = constants.SlipCurrent;
+    // driveConfig.TorqueCurrent.PeakReverseTorqueCurrent = -constants.SlipCurrent;
     driveConfig.CurrentLimits.StatorCurrentLimit = constants.SlipCurrent;
     driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
     driveConfig.MotorOutput.Inverted =
@@ -179,41 +179,46 @@ public abstract class ModuleIOTalonFX implements ModuleIO {
 
   @Override
   public void setDriveOpenLoop(double output) {
-    driveTalon.setControl(
-        switch (constants.DriveMotorClosedLoopOutput) {
-          case Voltage -> voltageRequest.withOutput(output);
-          case TorqueCurrentFOC -> torqueCurrentRequest.withOutput(output);
-        });
+    driveTalon.setControl(voltageRequest.withOutput(output));
+    // driveTalon.setControl(
+    //     switch (constants.DriveMotorClosedLoopOutput) {
+    //       case Voltage -> voltageRequest.withOutput(output);
+    //     //   case TorqueCurrentFOC -> torqueCurrentRequest.withOutput(output);
+    //     });
   }
 
   @Override
   public void setTurnOpenLoop(double output) {
-    turnTalon.setControl(
-        switch (constants.SteerMotorClosedLoopOutput) {
-          case Voltage -> voltageRequest.withOutput(output);
-          case TorqueCurrentFOC -> torqueCurrentRequest.withOutput(output);
-        });
+    turnTalon.setControl(voltageRequest.withOutput(output));
+    // turnTalon.setControl(
+    //     switch (constants.SteerMotorClosedLoopOutput) {
+    //       case Voltage -> voltageRequest.withOutput(output);
+    //       case TorqueCurrentFOC -> torqueCurrentRequest.withOutput(output);
+    //     });
   }
 
   @Override
   public void setDriveVelocity(double wheelVelocityRadPerSec) {
     double motorVelocityRotPerSec =
         Units.radiansToRotations(wheelVelocityRadPerSec) * constants.DriveMotorGearRatio;
-    driveTalon.setControl(
-        switch (constants.DriveMotorClosedLoopOutput) {
-          case Voltage -> velocityVoltageRequest.withVelocity(motorVelocityRotPerSec);
-          case TorqueCurrentFOC -> velocityTorqueCurrentRequest.withVelocity(
-              motorVelocityRotPerSec);
-        });
+
+    driveTalon.setControl(velocityVoltageRequest.withVelocity(motorVelocityRotPerSec));
+    // driveTalon.setControl(
+    //     switch (constants.DriveMotorClosedLoopOutput) {
+    //       case Voltage -> velocityVoltageRequest.withVelocity(motorVelocityRotPerSec);
+    //       case TorqueCurrentFOC -> velocityTorqueCurrentRequest.withVelocity(
+    //           motorVelocityRotPerSec);
+    //     });
   }
 
   @Override
   public void setTurnPosition(Rotation2d rotation) {
-    turnTalon.setControl(
-        switch (constants.SteerMotorClosedLoopOutput) {
-          case Voltage -> positionVoltageRequest.withPosition(rotation.getRotations());
-          case TorqueCurrentFOC -> positionTorqueCurrentRequest.withPosition(
-              rotation.getRotations());
-        });
+    turnTalon.setControl(positionVoltageRequest.withPosition(rotation.getRotations()));
+    // turnTalon.setControl(
+    //     switch (constants.SteerMotorClosedLoopOutput) {
+    //       case Voltage -> positionVoltageRequest.withPosition(rotation.getRotations());
+    //       case TorqueCurrentFOC -> positionTorqueCurrentRequest.withPosition(
+    //           rotation.getRotations());
+    //     });
   }
 }

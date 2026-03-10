@@ -30,7 +30,7 @@ public class IntakeIOSim implements IntakeIO {
 
   private static SingleJointedArmSim configurePivotMotor() {
     return new SingleJointedArmSim(
-        DCMotor.getKrakenX60Foc(2),
+        DCMotor.getKrakenX60(2),
         IntakeConstants.GEAR_RATIO,
         SingleJointedArmSim.estimateMOI(
             IntakeConstants.LENGTH.in(Meters), IntakeConstants.MASS.in(Kilograms)),

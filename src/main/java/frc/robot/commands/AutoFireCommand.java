@@ -32,7 +32,7 @@ public class AutoFireCommand extends Command {
   private final Kicker kicker;
   private final Indexer indexer;
 
-  private static final Voltage KICKER_FIRE_VOLTAGE = Volts.of(4.0);
+  private static final Voltage KICKER_FIRE_VOLTAGE = Volts.of(10.0);
   private static final AngularVelocity FLYWHEEL_TOLERANCE = RPM.of(70.0);
 
   public AutoFireCommand(
