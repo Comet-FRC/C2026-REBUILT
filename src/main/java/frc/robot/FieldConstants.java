@@ -50,6 +50,29 @@ public final class FieldConstants {
   public static final double MIN_SHOOTING_DISTANCE = 1.0;
   public static final double MAX_SHOOTING_DISTANCE = 10.0;
 
+  // ── Trench switching boundary ──────────────────────────────────────────────
+  // Turret field-X on the hub side of this line → HUB; otherwise → FEEDING
+  public static final double BLUE_TRENCH_X =
+      aprilTagLayout.getTagPose(26).get().getX() + Hub.width / 2.0;
+  public static final double RED_TRENCH_X =
+      aprilTagLayout.getTagPose(4).get().getX() + Hub.width / 2.0;
+
+  /**
+   * Determines target mode automatically based on the turret's field-relative X position. If the
+   * turret is on the hub side of the trench line, returns HUB; otherwise FEEDING.
+   */
+  public static TargetMode getAutoTargetMode(double turretFieldX) {
+    boolean isRed =
+        DriverStation.getAlliance().isPresent()
+            && DriverStation.getAlliance().get() == Alliance.Red;
+    double trenchX = isRed ? RED_TRENCH_X : BLUE_TRENCH_X;
+    if (isRed) {
+      return turretFieldX >= trenchX ? TargetMode.HUB : TargetMode.FEEDING;
+    } else {
+      return turretFieldX <= trenchX ? TargetMode.HUB : TargetMode.FEEDING;
+    }
+  }
+
   // ──────────────────────────────────────────────────────────────────────────
   //  Hub — alliance-specific scoring target at a different height
   // ──────────────────────────────────────────────────────────────────────────
