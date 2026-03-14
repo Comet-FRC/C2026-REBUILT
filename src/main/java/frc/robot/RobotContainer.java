@@ -249,7 +249,7 @@ public class RobotContainer {
         Commands.parallel(
                 shootHubAim,
                 new AutoFireCommand(shootHubAim, turret, flywheel, hood, kicker, indexer))
-            .withTimeout(15.0));
+            .withTimeout(5.0));
 
     // Set up SysId routines
     // autoChooser.addOption(
@@ -291,7 +291,7 @@ public class RobotContainer {
     this.indexer.setDefaultCommand(
         this.indexer.setRollerVoltage(() -> Volts.of(indexerRollerVolts.get())));
     this.kicker.setDefaultCommand(this.kicker.setVoltage(() -> Volts.of(0.0)));
-    this.flywheel.setDefaultCommand(this.flywheel.setWheelVoltage(() -> Volts.of(0.0)));
+    this.flywheel.setDefaultCommand(this.flywheel.setWheelVoltage(() -> Volts.of(2500)));
     this.hood.setDefaultCommand(this.hood.setPosition(() -> Degrees.of(0.0)));
     this.turret.setDefaultCommand(this.turret.setPosition(() -> Degrees.of(180.0)));
 
