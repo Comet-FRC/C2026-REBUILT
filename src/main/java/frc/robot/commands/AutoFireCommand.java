@@ -12,6 +12,7 @@ import frc.robot.subsystems.indexer.Indexer;
 import frc.robot.subsystems.kicker.Kicker;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretConstants;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 /**
@@ -25,7 +26,7 @@ import org.littletonrobotics.junction.Logger;
  * requirement; this command does not).
  */
 public class AutoFireCommand extends Command {
-  private final AutoAimCommand autoAim;
+  private final Supplier<ShotParameters> paramsSupplier;
   private final Turret turret;
   private final Flywheel flywheel;
   private final Hood hood;
@@ -36,13 +37,13 @@ public class AutoFireCommand extends Command {
   private static final AngularVelocity FLYWHEEL_TOLERANCE = RPM.of(70.0);
 
   public AutoFireCommand(
-      AutoAimCommand autoAim,
+      Supplier<ShotParameters> paramsSupplier,
       Turret turret,
       Flywheel flywheel,
       Hood hood,
       Kicker kicker,
       Indexer indexer) {
-    this.autoAim = autoAim;
+    this.paramsSupplier = paramsSupplier;
     this.turret = turret;
     this.flywheel = flywheel;
     this.hood = hood;
@@ -54,10 +55,10 @@ public class AutoFireCommand extends Command {
 
   @Override
   public void execute() {
-    // Read the parameters that AutoAimCommand already computed this cycle.
+    // Read the parameters that were already computed this cycle.
     // This guarantees we use the same turret-offset pose and shoot-on-move
     // correction that the turret is actually aiming at.
-    ShotParameters params = autoAim.getLatestParameters();
+    ShotParameters params = paramsSupplier.get();
 
     // Guard: AutoAim hasn’t run yet (first cycle or not active)
     if (params == null) {

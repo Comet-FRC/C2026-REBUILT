@@ -163,11 +163,8 @@ public class RobotContainer {
     // Named commands (must register BEFORE AutoBuilder.buildAutoChooser())
     NamedCommands.registerCommand(
         "Deploy Intake",
-        Commands.runOnce(
-            () ->
-                intake.setIntakeState(
-                    Degrees.of(intakeAngle.get()), Volts.of(intakeWheelVolts.get())),
-            intake));
+        intake.runIntakeDelayed(
+            () -> Degrees.of(intakeAngle.get()), () -> Volts.of(intakeWheelVolts.get())));
 
     // NamedCommands.registerCommand(
     //     "spinUp",
@@ -179,7 +176,9 @@ public class RobotContainer {
     NamedCommands.registerCommand(
         "Shoot On Move",
         Commands.parallel(
-            shootAim, new AutoFireCommand(shootAim, turret, flywheel, hood, kicker, indexer)));
+            shootAim,
+            new AutoFireCommand(
+                shootAim::getLatestParameters, turret, flywheel, hood, kicker, indexer)));
 
     // AutoAimCommand shootTimedAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
     // NamedCommands.registerCommand(
@@ -194,7 +193,8 @@ public class RobotContainer {
         "Feeding",
         Commands.parallel(
             shootFeedAim,
-            new AutoFireCommand(shootFeedAim, turret, flywheel, hood, kicker, indexer)));
+            new AutoFireCommand(
+                shootFeedAim::getLatestParameters, turret, flywheel, hood, kicker, indexer)));
 
     // AutoAimCommand shootFeedTimedAim = new AutoAimCommand(drive, turret, () ->
     // TargetMode.FEEDING);
@@ -220,7 +220,8 @@ public class RobotContainer {
         "Shoot On Hub",
         Commands.parallel(
                 shootHubAim,
-                new AutoFireCommand(shootHubAim, turret, flywheel, hood, kicker, indexer))
+                new AutoFireCommand(
+                    shootHubAim::getLatestParameters, turret, flywheel, hood, kicker, indexer))
             .withTimeout(15.0));
 
     setupDefaultCommands();
@@ -274,15 +275,14 @@ public class RobotContainer {
     driverController
         .rightBumper()
         .whileTrue(
-            Commands.run(
-                () ->
-                    this.intake.setIntakeState(
-                        Degrees.of(intakeAngle.get()), Volts.of(intakeWheelVolts.get())),
-                this.intake));
+            this.intake.runIntakeDelayed(
+                () -> Degrees.of(intakeAngle.get()), () -> Volts.of(intakeWheelVolts.get())));
 
     driverController
         .rightTrigger()
-        .whileTrue(new AutoFireCommand(autoAimCommand, turret, flywheel, hood, kicker, indexer));
+        .whileTrue(
+            new AutoFireCommand(
+                autoAimCommand::getLatestParameters, turret, flywheel, hood, kicker, indexer));
 
     driverController.left().onTrue(this.hood.setPosition(() -> Degrees.of(HoodAngle.get())));
 

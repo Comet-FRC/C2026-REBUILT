@@ -49,7 +49,7 @@ public class Intake extends SubsystemBase {
   }
 
   public boolean atPosition() {
-    return inputs.pivotPosition.minus(inputs.pivotDesiredPosition).abs(Degrees) < 2;
+    return inputs.pivotPosition.minus(inputs.pivotDesiredPosition).abs(Degrees) < 4;
   }
 
   public Command setPivotPositionSetpoint(Supplier<Angle> position) {
@@ -73,6 +73,22 @@ public class Intake extends SubsystemBase {
   public void setIntakeState(Angle pivotPosition, Voltage wheelVoltage) {
     io.setPivotPositionSetpoint(pivotPosition);
     io.setWheelVoltage(wheelVoltage);
+  }
+
+  /**
+   * Deploys the intake pivot and waits until it reaches the setpoint (or 0.5 sec) before turning on
+   * the wheels.
+   */
+  public Command runIntakeDelayed(Supplier<Angle> pivotAngle, Supplier<Voltage> wheelVolts) {
+    return Commands.sequence(
+        Commands.runOnce(
+            () -> {
+              io.setPivotPositionSetpoint(pivotAngle.get());
+              io.setWheelVoltage(Volts.of(0));
+            },
+            this),
+        Commands.waitUntil(this::atPosition).withTimeout(0.5),
+        Commands.run(() -> io.setWheelVoltage(wheelVolts.get()), this));
   }
 
   public Command sysIdRoutinePivot() {

@@ -3,7 +3,6 @@ package frc.robot.subsystems.flywheel;
 import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.BaseStatusSignal;
-import com.ctre.phoenix6.Orchestra;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
@@ -25,8 +24,6 @@ public class FlywheelIOReal implements FlywheelIO {
   private final TalonFX wheelFollower = new TalonFX(FlywheelConstants.FLYWHEEL_FOLLOWER_ID, "rio");
   private final VelocityVoltage velocityRequest = new VelocityVoltage(0);
   private final VoltageOut voltageRequest = new VoltageOut(0);
-
-  private final Orchestra orchestra = new Orchestra();
 
   private double desiredVelocityRadPerSec = 0.0;
   private boolean wheelVoltageMode = false;
