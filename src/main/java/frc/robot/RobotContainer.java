@@ -1,16 +1,3 @@
-// Copyright 2021-2025 FRC 6328
-// http://github.com/Mechanical-Advantage
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// version 3 as published by the Free Software Foundation or
-// available in the root directory of this project.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
-
 package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
@@ -21,11 +8,11 @@ import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.FieldConstants.TargetMode;
 import frc.robot.commands.AutoAimCommand;
@@ -47,19 +34,12 @@ import frc.robot.subsystems.turret.*;
 import frc.robot.subsystems.vision.*;
 import frc.robot.subsystems.vision.VisionConstants.Camera;
 import frc.robot.util.LoggedTunableNumber;
-// import frc.robot.util.ProximitySensor;
 import frc.robot.util.controller.*;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
-/**
- * This class is where the bulk of the robot should be declared. Since Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
- * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
- * subsystems, commands, and button mappings) should be declared here.
- */
 public class RobotContainer {
   // Subsystems
   private final Vision vision;
@@ -72,16 +52,16 @@ public class RobotContainer {
   private final Hood hood;
   private SwerveDriveSimulation driveSimulation = null;
 
-  // Target mode — toggle between feeding and hub targets (default: FEEDING)
-  private TargetMode targetMode = TargetMode.FEEDING;
-
-  // Auto-aim command (stored as field so AutoFireCommand can access shot parameters)
+  // AutoAim state
+  private boolean autoAimEnabled = true;
+  private int manualTargetOverride = -1; // -1 = AUTO, 0 = FORCE_HUB, 1 = FORCE_FEEDING
   private AutoAimCommand autoAimCommand;
 
-  // Controller
+  // Controllers
   private final CometXboxController driverController = new CometXboxController(0);
   private final CometLogitechController operatorController = new CometLogitechController(1);
 
+  // Tunable numbers
   private final LoggedTunableNumber intakeWheelVolts =
       new LoggedTunableNumber("Intake/WheelVolts", 5.5);
   private final LoggedTunableNumber FlywheelVelocity =
@@ -92,12 +72,10 @@ public class RobotContainer {
       new LoggedTunableNumber("Indexer/RollerVolts", 10.0);
   private final LoggedTunableNumber turretVolts = new LoggedTunableNumber("Turret/Volts", 2.0);
 
-  // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    // this.sensor = new ProximitySensor();
     switch (Constants.currentMode) {
       case REAL:
         // Real robot, instantiate hardware IO implementations
@@ -125,7 +103,6 @@ public class RobotContainer {
         break;
 
       case SIM:
-        // Sim robot, instantiate physics sim IO implementations
         driveSimulation =
             new SwerveDriveSimulation(Drive.mapleSimConfig, new Pose2d(3, 3, new Rotation2d()));
         SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
@@ -146,7 +123,6 @@ public class RobotContainer {
                     camera0Name, robotToCamera0, driveSimulation::getSimulatedDriveTrainPose),
                 new VisionIOPhotonVisionSim(
                     camera1Name, robotToCamera1, driveSimulation::getSimulatedDriveTrainPose),
-                // limelight camera added as photonvision sim
                 new VisionIOPhotonVisionSim(
                     limelightCameraName,
                     robotTolimelightCamera,
@@ -184,18 +160,11 @@ public class RobotContainer {
         break;
     }
 
-    // ── Register PathPlanner named commands ──────────────────────────────────
-    // IMPORTANT: Must be registered BEFORE AutoBuilder.buildAutoChooser()
-
-    // NOTE ON TELEOP SAFETY: WPILib automatically cancels ALL running commands
-    // when switching from auton → teleop.
+    // Named commands (must register BEFORE AutoBuilder.buildAutoChooser())
     NamedCommands.registerCommand(
         "Deploy Intake",
-        Commands.runOnce(
-            () ->
-                intake.setIntakeState(
-                    Degrees.of(intakeAngle.get()), Volts.of(intakeWheelVolts.get())),
-            intake));
+        intake.runIntakeDelayed(
+            () -> Degrees.of(intakeAngle.get()), () -> Volts.of(intakeWheelVolts.get())));
 
     // NamedCommands.registerCommand(
     //     "spinUp",
@@ -207,7 +176,9 @@ public class RobotContainer {
     NamedCommands.registerCommand(
         "Shoot On Move",
         Commands.parallel(
-            shootAim, new AutoFireCommand(shootAim, turret, flywheel, hood, kicker, indexer)));
+            shootAim,
+            new AutoFireCommand(
+                shootAim::getLatestParameters, turret, flywheel, hood, kicker, indexer)));
 
     // AutoAimCommand shootTimedAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
     // NamedCommands.registerCommand(
@@ -222,7 +193,8 @@ public class RobotContainer {
         "Feeding",
         Commands.parallel(
             shootFeedAim,
-            new AutoFireCommand(shootFeedAim, turret, flywheel, hood, kicker, indexer)));
+            new AutoFireCommand(
+                shootFeedAim::getLatestParameters, turret, flywheel, hood, kicker, indexer)));
 
     // AutoAimCommand shootFeedTimedAim = new AutoAimCommand(drive, turret, () ->
     // TargetMode.FEEDING);
@@ -248,24 +220,9 @@ public class RobotContainer {
         "Shoot On Hub",
         Commands.parallel(
                 shootHubAim,
-                new AutoFireCommand(shootHubAim, turret, flywheel, hood, kicker, indexer))
+                new AutoFireCommand(
+                    shootHubAim::getLatestParameters, turret, flywheel, hood, kicker, indexer))
             .withTimeout(15.0));
-
-    // Set up SysId routines
-    // autoChooser.addOption(
-    //     "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
-    // autoChooser.addOption(
-    //     "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
-    // autoChooser.addOption(
-    //     "Drive SysId (Quasistatic Forward)",
-    //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    // autoChooser.addOption(
-    //     "Drive SysId (Quasistatic Reverse)",
-    //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-    // autoChooser.addOption(
-    //     "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    // autoChooser.addOption(
-    //     "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
     setupDefaultCommands();
     configureButtonBindings();
@@ -293,9 +250,10 @@ public class RobotContainer {
     this.kicker.setDefaultCommand(this.kicker.setVoltage(() -> Volts.of(0.0)));
     this.flywheel.setDefaultCommand(this.flywheel.setWheelVoltage(() -> Volts.of(0.0)));
     this.hood.setDefaultCommand(this.hood.setPosition(() -> Degrees.of(0.0)));
-    this.turret.setDefaultCommand(this.turret.setPosition(() -> Degrees.of(180.0)));
 
-    this.autoAimCommand = new AutoAimCommand(drive, turret, () -> targetMode);
+    // AutoAim is the turret's default command — always running
+    this.autoAimCommand = new AutoAimCommand(drive, turret, this::resolveTargetMode);
+    this.turret.setDefaultCommand(this.autoAimCommand);
   }
 
   /**
@@ -305,91 +263,54 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    // MENU + MENU = RESET GYRO
+    // ── Driver ────────────────────────────────────────────────────────────────
     driverController
         .leftMenu()
         .and(driverController.rightMenu())
         .onTrue(
             Commands.runOnce(() -> drive.resetHeadingWithAlliance(), drive).ignoringDisable(true));
 
-    // RB = Toggle target mode: FEEDING ↔ HUB
-    driverController
-        .leftBumper()
-        .onTrue(
-            Commands.runOnce(
-                    () -> {
-                      targetMode =
-                          (targetMode == TargetMode.FEEDING) ? TargetMode.HUB : TargetMode.FEEDING;
-                      Logger.recordOutput("AutoAim/TargetMode", targetMode.name());
-                    })
-                .ignoringDisable(true));
-
-    // LB = Manual Kicker
     driverController.a().whileTrue(this.kicker.setVoltage(() -> Volts.of(4.0)));
 
-    // LT = Intake while true move to intaking angle and run volts
     driverController
         .rightBumper()
         .whileTrue(
-            Commands.run(
-                () ->
-                    this.intake.setIntakeState(
-                        Degrees.of(intakeAngle.get()), Volts.of(intakeWheelVolts.get())),
-                this.intake));
+            this.intake.runIntakeDelayed(
+                () -> Degrees.of(intakeAngle.get()), () -> Volts.of(intakeWheelVolts.get())));
 
-    // Y = Toggle AutoAim
-    driverController.y().toggleOnTrue(this.autoAimCommand);
-
-    // RT = AutoFire: spin up flywheel, set hood, and fire kicker
-    // AutoAimCommand (Y-toggle) must be active concurrently — it owns the turret.
     driverController
         .rightTrigger()
-        .whileTrue(new AutoFireCommand(autoAimCommand, turret, flywheel, hood, kicker, indexer));
+        .whileTrue(
+            new AutoFireCommand(
+                autoAimCommand::getLatestParameters, turret, flywheel, hood, kicker, indexer));
 
     driverController.left().onTrue(this.hood.setPosition(() -> Degrees.of(HoodAngle.get())));
     driverController.right().onTrue(this.flywheel.setWheelVelocity(() -> RPM.of(600)));
 
-    // Manual FEEDING target override (Right DPAD)
     driverController
         .right()
         .onTrue(
             Commands.runOnce(() -> FieldConstants.toggleManualFeedingOverride())
                 .ignoringDisable(true));
 
-    operatorController
-        .leftBumper()
-        .whileTrue(this.turret.setVoltage(() -> Volts.of(-turretVolts.get())));
-    operatorController
-        .rightBumper()
-        .whileTrue(this.turret.setVoltage(() -> Volts.of(turretVolts.get())));
-
-    operatorController.up().whileTrue(this.hood.setVoltage(() -> Volts.of(3)));
-    operatorController.down().whileTrue(this.hood.setVoltage(() -> Volts.of(-3)));
-
-    operatorController.right().whileTrue(this.kicker.setVoltage(() -> Volts.of(5)));
-
-    operatorController
-        .rightTrigger()
-        .whileTrue(this.flywheel.setWheelVelocity(() -> RPM.of(FlywheelVelocity.get())));
-
-    // Manual Shoot: operator aims turret manually, flywheel/hood pull from shot maps
     driverController
         .down()
         .whileTrue(
             Commands.run(
                 () -> {
-                  // Calculate shot params from the map based on distance to current target
                   ShotParameters params =
                       ShotCalculator.calculate(
-                          drive.getPose(), drive.getFieldVelocity(), turret.getAngle(), targetMode);
+                          drive.getPose(),
+                          drive.getFieldVelocity(),
+                          turret.getAngle(),
+                          resolveTargetMode());
 
                   var targetRPM = RPM.of(params.flywheelSpeedRPM());
                   var targetHood = Degrees.of(params.hoodAngleDegrees());
                   flywheel.io.setWheelVelocitySetpoint(targetRPM);
                   hood.io.setPositionSetpoint(targetHood);
 
-                  boolean flywheelReady = flywheel.atSpeed(targetRPM, RPM.of(70.0));
-                  if (flywheelReady) {
+                  if (flywheel.atSpeed(targetRPM, RPM.of(70.0))) {
                     kicker.io.setVoltage(Volts.of(4.0));
                     indexer.io.setRollerVoltage(Volts.of(4.0));
                   } else {
@@ -413,20 +334,81 @@ public class RobotContainer {
                 hood,
                 kicker,
                 indexer));
+
+    // ── Operator ──────────────────────────────────────────────────────────────
+    operatorController
+        .a()
+        .onTrue(
+            Commands.runOnce(
+                    () -> {
+                      autoAimEnabled = !autoAimEnabled;
+                      Logger.recordOutput("AutoAim/Enabled", autoAimEnabled);
+                      if (!autoAimEnabled) {
+                        CommandScheduler.getInstance()
+                            .schedule(turret.setPosition(() -> Degrees.of(180.0)));
+                      }
+                    })
+                .ignoringDisable(true));
+
+    operatorController
+        .b()
+        .onTrue(
+            Commands.runOnce(
+                    () -> {
+                      manualTargetOverride++;
+                      if (manualTargetOverride > 1) manualTargetOverride = -1;
+                      String label =
+                          switch (manualTargetOverride) {
+                            case 0 -> "FORCE_HUB";
+                            case 1 -> "FORCE_FEEDING";
+                            default -> "AUTO";
+                          };
+                      Logger.recordOutput("AutoAim/ManualOverride", label);
+                    })
+                .ignoringDisable(true));
+
+    operatorController
+        .leftBumper()
+        .whileTrue(turret.setVoltage(() -> Volts.of(-turretVolts.get())));
+    operatorController
+        .rightBumper()
+        .whileTrue(turret.setVoltage(() -> Volts.of(turretVolts.get())));
+
+    operatorController.up().whileTrue(hood.setVoltage(() -> Volts.of(3)));
+    operatorController.down().whileTrue(hood.setVoltage(() -> Volts.of(-3)));
+    operatorController.right().whileTrue(kicker.setVoltage(() -> Volts.of(5)));
+    operatorController
+        .rightTrigger()
+        .whileTrue(flywheel.setWheelVelocity(() -> RPM.of(FlywheelVelocity.get())));
   }
 
-  /**
-   * Use this to pass the autonomous command to the main {@link Robot} class.
-   *
-   * @return the command to run in autonomous
-   */
+  private TargetMode resolveTargetMode() {
+    if (manualTargetOverride == 0) return TargetMode.HUB;
+    if (manualTargetOverride == 1) return TargetMode.FEEDING;
+    // Auto: compute turret field-relative X from robot pose + turret offset
+    Pose2d turretPose =
+        drive
+            .getPose()
+            .transformBy(
+                new Transform2d(
+                    TurretConstants.PHYSICAL_OFFSET.unaryMinus(), Inches.zero(), Rotation2d.kZero));
+    return FieldConstants.getAutoTargetMode(turretPose.getX());
+  }
+
   public Command getAutonomousCommand() {
     return autoChooser.get();
   }
 
   public void periodic() {
+    TargetMode currentMode = resolveTargetMode();
     Logger.recordOutput("Dashboard/MatchTimeSec", DriverStation.getMatchTime());
-    Logger.recordOutput("Dashboard/TargetMode", targetMode.name());
+    Logger.recordOutput("Dashboard/TargetMode", currentMode.name());
+    Logger.recordOutput("Dashboard/AutoAimEnabled", autoAimEnabled);
+    Logger.recordOutput(
+        "Dashboard/ManualOverride",
+        manualTargetOverride == -1
+            ? "AUTO"
+            : (manualTargetOverride == 0 ? "FORCE_HUB" : "FORCE_FEEDING"));
 
     double fieldRelativeDeg =
         (turret.getAngle().in(Degrees) + drive.getRotation().getDegrees()) % 360.0;
@@ -434,15 +416,14 @@ public class RobotContainer {
     Logger.recordOutput("Dashboard/TurretFieldRelativeAngleDeg", fieldRelativeDeg);
 
     // Publish to SmartDashboard for Elastic Dashboard widgets
-    SmartDashboard.putString("Targeting Mode", targetMode.name());
+    SmartDashboard.putString("Targeting Mode", currentMode.name());
     SmartDashboard.putNumber("Match Time", DriverStation.getMatchTime());
     SmartDashboard.putNumber("Intake Angle (deg)", intake.getPivotPosition().in(Degrees));
-    SmartDashboard.putBoolean("Auto Aim Enabled", autoAimCommand.isScheduled());
+    SmartDashboard.putBoolean("Auto Aim Enabled", autoAimEnabled);
   }
 
   public void resetSimulation() {
     if (Constants.currentMode != Constants.Mode.SIM) return;
-
     driveSimulation.setSimulationWorldPose(new Pose2d(2, 2, new Rotation2d()));
     SimulatedArena.getInstance().resetFieldForAuto();
   }
@@ -453,10 +434,6 @@ public class RobotContainer {
     SimulatedArena.getInstance().simulationPeriodic();
     Logger.recordOutput(
         "FieldSimulation/RobotPosition", driveSimulation.getSimulatedDriveTrainPose());
-    Logger.recordOutput(
-        "FieldSimulation/Coral", SimulatedArena.getInstance().getGamePiecesArrayByType("Coral"));
-    Logger.recordOutput(
-        "FieldSimulation/Algae", SimulatedArena.getInstance().getGamePiecesArrayByType("Algae"));
 
     Pose3d simulatedRobotPose3d = new Pose3d(driveSimulation.getSimulatedDriveTrainPose());
     Logger.recordOutput(
@@ -469,27 +446,14 @@ public class RobotContainer {
         "FieldSimulation/LimelightPose",
         simulatedRobotPose3d.transformBy(VisionConstants.robotTolimelightCamera));
 
-    // AdvantageScope custom robot configuration
-    // Set to true for calibration (zeroed poses), false for real animation
     final boolean CALIBRATION_MODE = false;
-
     if (CALIBRATION_MODE) {
-      // CALIBRATION: Publish zeroed poses to align models at origin
       Logger.recordOutput("AdvantageScope/RobotPose", new Pose2d());
       Logger.recordOutput(
-          "AdvantageScope/ComponentPoses",
-          new Pose3d[] {
-            new Pose3d(), // Component 0 (Intake) - at origin
-            new Pose3d() // Component 1 (Shooter) - at origin
-          });
+          "AdvantageScope/ComponentPoses", new Pose3d[] {new Pose3d(), new Pose3d()});
     } else {
-      // NORMAL: Publish real component poses for animation
       Logger.recordOutput(
-          "AdvantageScope/ComponentPoses",
-          new Pose3d[] {
-            intake.getComponentPose(), // Component 0 (Intake) - animated
-            new Pose3d() // Component 1 (Shooter) - static
-          });
+          "AdvantageScope/ComponentPoses", new Pose3d[] {intake.getComponentPose(), new Pose3d()});
     }
   }
 }
