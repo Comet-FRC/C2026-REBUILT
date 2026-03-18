@@ -87,7 +87,7 @@ public class RobotContainer {
   private final LoggedTunableNumber FlywheelVelocity =
       new LoggedTunableNumber("Flywheel/RPM", 3000.0);
   private final LoggedTunableNumber HoodAngle = new LoggedTunableNumber("Hood/Angle", 0.0);
-  private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 162.0);
+  private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 11.0);
   private final LoggedTunableNumber indexerRollerVolts =
       new LoggedTunableNumber("Indexer/RollerVolts", 10.0);
   private final LoggedTunableNumber turretVolts = new LoggedTunableNumber("Turret/Volts", 2.0);
@@ -282,7 +282,7 @@ public class RobotContainer {
     this.intake.setDefaultCommand(
         Commands.run(
             () -> {
-              this.intake.setIntakeState(Degrees.of(80.0), Volts.of(0.0));
+              this.intake.setIntakeState(Degrees.of(85.0), Volts.of(0.0));
             },
             this.intake));
 
@@ -347,6 +347,7 @@ public class RobotContainer {
         .whileTrue(new AutoFireCommand(autoAimCommand, turret, flywheel, hood, kicker, indexer));
 
     driverController.left().onTrue(this.hood.setPosition(() -> Degrees.of(HoodAngle.get())));
+    driverController.right().onTrue(this.flywheel.setWheelVelocity(() -> RPM.of(600)));
 
     // Manual FEEDING target override (Right DPAD)
     driverController

@@ -20,9 +20,9 @@ public final class IntakeConstants {
   // Adjust this so that when the intake is at 90°, the encoder reads 90°
   // Formula: OFFSET = (desired angle in radians) - (raw encoder reading in radians)
   // Formula OFFSET = 1.5708 - throughBoreEncoderPositionRad
-  public static final double THROUGH_BORE_ENCODER_OFFSET_RAD = 0.070;
+  public static final double THROUGH_BORE_ENCODER_OFFSET_RAD = -0.25;
 
-  public static final Angle STOW_ANGLE = Degrees.of(66.0);
+  public static final Angle STOW_ANGLE = Degrees.of(107.0);
   public static final double GEAR_RATIO = 4 * 4 * (38 / 14);
 
   public static final double WHEEL_CONVERSION_FACTOR = 2 * Math.PI * (18.0 / 24.0);

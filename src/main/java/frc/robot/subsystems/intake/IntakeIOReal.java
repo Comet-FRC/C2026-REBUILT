@@ -65,7 +65,7 @@ public class IntakeIOReal implements IntakeIO {
   private void configurePivotMotors() {
     SparkMaxConfig rightConfig = new SparkMaxConfig();
     rightConfig
-        .inverted(true)
+        .inverted(false)
         .idleMode(IdleMode.kBrake)
         .smartCurrentLimit(30) // Lower for battery efficiency
         .voltageCompensation(11.5);
@@ -81,7 +81,7 @@ public class IntakeIOReal implements IntakeIO {
         .idleMode(IdleMode.kBrake)
         .smartCurrentLimit(30)
         .voltageCompensation(11.5)
-        .inverted(false);
+        .inverted(true);
     pivotLeft.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
@@ -118,7 +118,7 @@ public class IntakeIOReal implements IntakeIO {
   private double pivotDesiredPositionRad = IntakeConstants.STOW_ANGLE.in(Radians);
 
   public IntakeIOReal() {
-    throughBoreEncoder.setInverted(true);
+    throughBoreEncoder.setInverted(false);
     configureWheelMotors();
     configurePivotMotors();
     wheelPID.reset(0);
