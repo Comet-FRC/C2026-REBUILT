@@ -70,11 +70,11 @@ public class ShotCalculator {
           Map.entry(2.9, 2800.0),
           Map.entry(3.3, 2800.0),
           Map.entry(3.6, 2900.0),
-          Map.entry(3.8, 3100.0),
-          Map.entry(4.1, 3200.0),
-          Map.entry(4.4, 3300.0),
-          Map.entry(4.6, 3350.0),
-          Map.entry(4.8, 3350.0));
+          Map.entry(3.8, 3050.0),
+          Map.entry(4.1, 3150.0),
+          Map.entry(4.4, 3250.0),
+          Map.entry(4.6, 3300.0),
+          Map.entry(4.8, 3300.0));
   // TODO: Fill these in with real data from hub testing!
   private static final InterpolatingDoubleTreeMap HUB_HOOD_ANGLE =
       InterpolatingDoubleTreeMap.ofEntries(

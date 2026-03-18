@@ -65,11 +65,11 @@ public class RobotContainer {
   private final LoggedTunableNumber intakeWheelVolts =
       new LoggedTunableNumber("Intake/WheelVolts", 5.5);
   private final LoggedTunableNumber FlywheelVelocity =
-      new LoggedTunableNumber("Flywheel/RPM", 3000.0);
+      new LoggedTunableNumber("Flywheel/RPM", 600.0);
   private final LoggedTunableNumber HoodAngle = new LoggedTunableNumber("Hood/Angle", 0.0);
   private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 11.0);
   private final LoggedTunableNumber indexerRollerVolts =
-      new LoggedTunableNumber("Indexer/RollerVolts", 10.0);
+      new LoggedTunableNumber("Indexer/RollerVolts", 5.0);
   private final LoggedTunableNumber turretVolts = new LoggedTunableNumber("Turret/Volts", 2.0);
 
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -285,13 +285,15 @@ public class RobotContainer {
                 autoAimCommand::getLatestParameters, turret, flywheel, hood, kicker, indexer));
 
     driverController.left().onTrue(this.hood.setPosition(() -> Degrees.of(HoodAngle.get())));
-    driverController.right().onTrue(this.flywheel.setWheelVelocity(() -> RPM.of(600)));
-
     driverController
         .right()
-        .onTrue(
-            Commands.runOnce(() -> FieldConstants.toggleManualFeedingOverride())
-                .ignoringDisable(true));
+        .onTrue(this.flywheel.setWheelVelocity(() -> RPM.of(FlywheelVelocity.get())));
+
+    // driverController
+    //     .right()
+    //     .onTrue(
+    //         Commands.runOnce(() -> FieldConstants.toggleManualFeedingOverride())
+    //             .ignoringDisable(true));
 
     driverController
         .down()
