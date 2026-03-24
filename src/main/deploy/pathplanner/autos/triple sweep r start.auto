@@ -5,6 +5,18 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "shootHubTimed"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 2.0
+          }
+        },
+        {
           "type": "deadline",
           "data": {
             "commands": [
@@ -15,37 +27,57 @@
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "+x r"
+                        "pathName": "RStart Forward"
                       }
                     },
                     {
-                      "type": "path",
+                      "type": "deadline",
                       "data": {
-                        "pathName": "Sweep +Y"
-                      }
-                    },
-                    {
-                      "type": "path",
-                      "data": {
-                        "pathName": "+y-y sweep"
-                      }
-                    },
-                    {
-                      "type": "path",
-                      "data": {
-                        "pathName": "-y sweep"
-                      }
-                    },
-                    {
-                      "type": "path",
-                      "data": {
-                        "pathName": "-y+y sweep"
-                      }
-                    },
-                    {
-                      "type": "path",
-                      "data": {
-                        "pathName": "+y sweep pass 3"
+                        "commands": [
+                          {
+                            "type": "sequential",
+                            "data": {
+                              "commands": [
+                                {
+                                  "type": "path",
+                                  "data": {
+                                    "pathName": "RSweep1"
+                                  }
+                                },
+                                {
+                                  "type": "path",
+                                  "data": {
+                                    "pathName": "RS1+RS2"
+                                  }
+                                },
+                                {
+                                  "type": "path",
+                                  "data": {
+                                    "pathName": "RSweep2"
+                                  }
+                                },
+                                {
+                                  "type": "path",
+                                  "data": {
+                                    "pathName": "RS2+RS3"
+                                  }
+                                },
+                                {
+                                  "type": "path",
+                                  "data": {
+                                    "pathName": "RSweep3"
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "type": "named",
+                            "data": {
+                              "name": "Feeding"
+                            }
+                          }
+                        ]
                       }
                     }
                   ]
@@ -55,25 +87,6 @@
                 "type": "named",
                 "data": {
                   "name": "Deploy Intake"
-                }
-              },
-              {
-                "type": "sequential",
-                "data": {
-                  "commands": [
-                    {
-                      "type": "wait",
-                      "data": {
-                        "waitTime": 2.0
-                      }
-                    },
-                    {
-                      "type": "named",
-                      "data": {
-                        "name": "Feeding"
-                      }
-                    }
-                  ]
                 }
               }
             ]

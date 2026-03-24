@@ -11,12 +11,6 @@
           }
         },
         {
-          "type": "wait",
-          "data": {
-            "waitTime": 2.0
-          }
-        },
-        {
           "type": "deadline",
           "data": {
             "commands": [
@@ -27,7 +21,7 @@
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "LStart Forward"
+                        "pathName": "DepotLStart"
                       }
                     },
                     {
@@ -37,13 +31,13 @@
                           {
                             "type": "path",
                             "data": {
-                              "pathName": "LSweep1"
+                              "pathName": "DepotScore"
                             }
                           },
                           {
                             "type": "named",
                             "data": {
-                              "name": "Feeding"
+                              "name": "HubShooting"
                             }
                           }
                         ]

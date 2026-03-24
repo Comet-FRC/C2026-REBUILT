@@ -4,28 +4,28 @@
     {
       "anchor": {
         "x": 7.75,
-        "y": 6.292422222222223
+        "y": 1.125
       },
       "prevControl": null,
       "nextControl": {
         "x": 7.75,
-        "y": 7.020061107781383
+        "y": 2.255000000000001
       },
       "isLocked": false,
-      "linkedName": "+y sweep end"
+      "linkedName": "+y sweep start"
     },
     {
       "anchor": {
-        "x": 6.68778888888889,
-        "y": 7.018022222222222
+        "x": 7.75,
+        "y": 6.292422222222223
       },
       "prevControl": {
-        "x": 6.68778888888889,
-        "y": 7.805702261684886
+        "x": 7.75,
+        "y": 5.292422222222223
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "+y-y sweep"
+      "linkedName": "+y sweep end"
     }
   ],
   "rotationTargets": [],
@@ -33,7 +33,7 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
+    "maxVelocity": 1.0,
     "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 1.0,
-    "rotation": -90.0
+    "rotation": 90.0
   },
   "reversed": false,
-  "folder": null,
+  "folder": "sweeps",
   "idealStartingState": {
     "velocity": 1.0,
     "rotation": 90.0
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }

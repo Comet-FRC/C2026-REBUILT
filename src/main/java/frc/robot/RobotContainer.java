@@ -178,19 +178,19 @@ public class RobotContainer {
 
     AutoAimCommand shootAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
     NamedCommands.registerCommand(
-        "Shoot On Move",
+        "HubShooting",
         Commands.parallel(
             shootAim,
             new AutoFireCommand(
                 shootAim::getLatestParameters, turret, flywheel, hood, kicker, indexer)));
 
-    // AutoAimCommand shootTimedAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
-    // NamedCommands.registerCommand(
-    //     "shootTimed",
-    //     Commands.parallel(
-    //             shootTimedAim,
-    //             new AutoFireCommand(shootTimedAim, turret, flywheel, hood, kicker, indexer))
-    //         .withTimeout(3.0));
+    AutoAimCommand shootTimedAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
+    NamedCommands.registerCommand(
+        "shootHubTimed",
+        Commands.parallel(
+                shootTimedAim,
+                new AutoFireCommand(shootTimedAim::getLatestParameters, turret, flywheel, hood, kicker, indexer))
+            .withTimeout(3.0));
 
     AutoAimCommand shootFeedAim = new AutoAimCommand(drive, turret, () -> TargetMode.FEEDING);
     NamedCommands.registerCommand(
