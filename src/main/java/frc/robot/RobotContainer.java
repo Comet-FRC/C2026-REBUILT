@@ -63,13 +63,13 @@ public class RobotContainer {
 
   // Tunable numbers
   private final LoggedTunableNumber intakeWheelVolts =
-      new LoggedTunableNumber("Intake/WheelVolts", 8);
+      new LoggedTunableNumber("Intake/WheelVolts", 11.0);
   private final LoggedTunableNumber FlywheelVelocity =
       new LoggedTunableNumber("Flywheel/RPM", 600.0);
   private final LoggedTunableNumber HoodAngle = new LoggedTunableNumber("Hood/Angle", 0.0);
-  private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 11.0);
+  private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 15.0);
   private final LoggedTunableNumber indexerRollerVolts =
-      new LoggedTunableNumber("Indexer/RollerVolts", 5.0);
+      new LoggedTunableNumber("Indexer/RollerVolts", 8.0);
   private final LoggedTunableNumber turretVolts = new LoggedTunableNumber("Turret/Volts", 2.0);
 
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -180,13 +180,14 @@ public class RobotContainer {
             new AutoFireCommand(
                 shootAim::getLatestParameters, turret, flywheel, hood, kicker, indexer)));
 
-    // AutoAimCommand shootTimedAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
-    // NamedCommands.registerCommand(
-    //     "shootTimed",
-    //     Commands.parallel(
-    //             shootTimedAim,
-    //             new AutoFireCommand(shootTimedAim, turret, flywheel, hood, kicker, indexer))
-    //         .withTimeout(3.0));
+    AutoAimCommand shootTimedAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
+    NamedCommands.registerCommand(
+        "shootTimed",
+        Commands.parallel(
+                shootTimedAim,
+                new AutoFireCommand(
+                    shootTimedAim::getLatestParameters, turret, flywheel, hood, kicker, indexer))
+            .withTimeout(3.0));
 
     AutoAimCommand shootFeedAim = new AutoAimCommand(drive, turret, () -> TargetMode.FEEDING);
     NamedCommands.registerCommand(
@@ -217,7 +218,7 @@ public class RobotContainer {
 
     AutoAimCommand shootHubAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
     autoChooser.addOption(
-        "Shoot On Hub",
+        "Static",
         Commands.parallel(
                 shootHubAim,
                 new AutoFireCommand(
