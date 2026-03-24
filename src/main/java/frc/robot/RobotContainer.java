@@ -67,7 +67,11 @@ public class RobotContainer {
   private final LoggedTunableNumber FlywheelVelocity =
       new LoggedTunableNumber("Flywheel/RPM", 600.0);
   private final LoggedTunableNumber HoodAngle = new LoggedTunableNumber("Hood/Angle", 0.0);
-  private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 11.0);
+  private final LoggedTunableNumber intakeAngle = new LoggedTunableNumber("Intake/Angle", 15.0);
+  private final LoggedTunableNumber intakeShakeAmplitude =
+      new LoggedTunableNumber("Intake/ShakeAmplitudeDeg", 5.0);
+  private final LoggedTunableNumber intakeShakeFrequency =
+      new LoggedTunableNumber("Intake/ShakeHz", 1.0);
   private final LoggedTunableNumber indexerRollerVolts =
       new LoggedTunableNumber("Indexer/RollerVolts", 5.0);
   private final LoggedTunableNumber turretVolts = new LoggedTunableNumber("Turret/Volts", 2.0);
@@ -277,6 +281,15 @@ public class RobotContainer {
         .whileTrue(
             this.intake.runIntakeDelayed(
                 () -> Degrees.of(intakeAngle.get()), () -> Volts.of(intakeWheelVolts.get())));
+
+    driverController
+        .leftBumper()
+        .whileTrue(
+            this.intake.shakeIntake(
+                () -> Degrees.of(intakeAngle.get()),
+                () -> Volts.of(intakeWheelVolts.get()),
+                intakeShakeAmplitude::get,
+                intakeShakeFrequency::get));
 
     driverController
         .rightTrigger()

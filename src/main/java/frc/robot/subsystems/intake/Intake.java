@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -89,6 +90,31 @@ public class Intake extends SubsystemBase {
             this),
         Commands.waitUntil(this::atPosition).withTimeout(0.5),
         Commands.run(() -> io.setWheelVoltage(wheelVolts.get()), this));
+  }
+
+  /**
+   * Shakes the intake up and down using a sine wave to unjam fuel, while keeping the wheels
+   * spinning.
+   *
+   * @param baseAngle The base angle around which to oscillate.
+   * @param wheelVolts The voltage to apply to the intake wheels.
+   * @param amplitudeDeg The maximum degrees to pitch above and below the base angle.
+   * @param frequencyHz The speed of the oscillation.
+   */
+  public Command shakeIntake(
+      Supplier<Angle> baseAngle,
+      Supplier<Voltage> wheelVolts,
+      Supplier<Double> amplitudeDeg,
+      Supplier<Double> frequencyHz) {
+    Timer timer = new Timer();
+    return Commands.run(
+        () -> {
+          double time = timer.get();
+          double offset = Math.sin(time * 2 * Math.PI * frequencyHz.get()) * amplitudeDeg.get();
+          io.setPivotPositionSetpoint(Degrees.of(baseAngle.get().in(Degrees) + offset));
+          io.setWheelVoltage(wheelVolts.get());
+        },
+        this).beforeStarting(timer::restart);
   }
 
   public Command sysIdRoutinePivot() {
