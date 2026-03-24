@@ -108,7 +108,7 @@ public class IntakeIOReal implements IntakeIO {
 
   private final ArmFeedforward pivotLeftArmFF =
       new ArmFeedforward(
-          IntakeConstants.PIVOT_kS, 0.5, IntakeConstants.PIVOT_kV, IntakeConstants.PIVOT_kA);
+          IntakeConstants.PIVOT_kS, 0.55, IntakeConstants.PIVOT_kV, IntakeConstants.PIVOT_kA);
 
   private final MutVoltage wheelDesiredVoltage = Volts.mutable(0);
   private boolean wheelVoltageMode = false;

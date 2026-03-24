@@ -43,7 +43,7 @@ public final class IntakeConstants {
   // SET kS to 0
   //
 
-  public static final double PIVOT_kP = 5.8;
+  public static final double PIVOT_kP = 6.1;
   public static final double PIVOT_kI = 0;
   public static final double PIVOT_kD = 0.41;
   public static final double PIVOT_kS = 0; // Not really used with intakes
