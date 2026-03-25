@@ -108,13 +108,14 @@ public class Intake extends SubsystemBase {
       Supplier<Double> frequencyHz) {
     Timer timer = new Timer();
     return Commands.run(
-        () -> {
-          double time = timer.get();
-          double offset = Math.sin(time * 2 * Math.PI * frequencyHz.get()) * amplitudeDeg.get();
-          io.setPivotPositionSetpoint(Degrees.of(baseAngle.get().in(Degrees) + offset));
-          io.setWheelVoltage(wheelVolts.get());
-        },
-        this).beforeStarting(timer::restart);
+            () -> {
+              double time = timer.get();
+              double offset = Math.sin(time * 2 * Math.PI * frequencyHz.get()) * amplitudeDeg.get();
+              io.setPivotPositionSetpoint(Degrees.of(baseAngle.get().in(Degrees) + offset));
+              io.setWheelVoltage(wheelVolts.get());
+            },
+            this)
+        .beforeStarting(timer::restart);
   }
 
   public Command sysIdRoutinePivot() {

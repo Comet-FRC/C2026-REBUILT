@@ -170,12 +170,6 @@ public class RobotContainer {
         intake.runIntakeDelayed(
             () -> Degrees.of(intakeAngle.get()), () -> Volts.of(intakeWheelVolts.get())));
 
-    // NamedCommands.registerCommand(
-    //     "spinUp",
-    //     Commands.run(
-    //         () -> flywheel.io.setWheelVelocitySetpoint(RPM.of(FlywheelVelocity.get())),
-    // flywheel));
-
     AutoAimCommand shootAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
     NamedCommands.registerCommand(
         "HubShooting",
@@ -189,7 +183,8 @@ public class RobotContainer {
         "shootHubTimed",
         Commands.parallel(
                 shootTimedAim,
-                new AutoFireCommand(shootTimedAim::getLatestParameters, turret, flywheel, hood, kicker, indexer))
+                new AutoFireCommand(
+                    shootTimedAim::getLatestParameters, turret, flywheel, hood, kicker, indexer))
             .withTimeout(3.0));
 
     AutoAimCommand shootFeedAim = new AutoAimCommand(drive, turret, () -> TargetMode.FEEDING);
@@ -208,12 +203,6 @@ public class RobotContainer {
     //             shootFeedTimedAim,
     //             new AutoFireCommand(shootFeedTimedAim, turret, flywheel, hood, kicker, indexer))
     //         .withTimeout(3.0));
-
-    // NamedCommands.registerCommand(
-    //     "autoAim", new AutoAimCommand(drive, turret, () -> TargetMode.HUB));
-
-    // NamedCommands.registerCommand(
-    //     "autoAimFeed", new AutoAimCommand(drive, turret, () -> TargetMode.FEEDING));
 
     // Set up auto routines
     autoChooser =
