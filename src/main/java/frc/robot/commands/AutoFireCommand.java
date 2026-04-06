@@ -50,7 +50,7 @@ public class AutoFireCommand extends Command {
     this.kicker = kicker;
     this.indexer = indexer;
 
-    addRequirements(flywheel, hood, kicker, indexer);
+    addRequirements(flywheel, hood, kicker);
   }
 
   @Override
@@ -63,7 +63,6 @@ public class AutoFireCommand extends Command {
     // Guard: AutoAim hasn’t run yet (first cycle or not active)
     if (params == null) {
       kicker.io.setVoltage(Volts.of(0.0));
-      indexer.io.setRollerVoltage(Volts.of(0.0));
       return;
     }
 
@@ -93,10 +92,8 @@ public class AutoFireCommand extends Command {
 
     if (readyToFire) {
       kicker.io.setVoltage(KICKER_FIRE_VOLTAGE);
-      indexer.io.setRollerVoltage(KICKER_FIRE_VOLTAGE);
     } else {
       kicker.io.setVoltage(Volts.of(0.0));
-      indexer.io.setRollerVoltage(Volts.of(0.0));
     }
   }
 
@@ -105,7 +102,6 @@ public class AutoFireCommand extends Command {
     flywheel.io.setWheelVelocitySetpoint(RPM.of(0));
     hood.io.stop();
     kicker.io.setVoltage(Volts.of(0.0));
-    indexer.io.setRollerVoltage(Volts.of(0.0));
   }
 
   @Override
