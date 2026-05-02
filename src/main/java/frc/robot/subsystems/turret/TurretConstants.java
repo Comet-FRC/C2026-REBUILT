@@ -26,8 +26,8 @@ public final class TurretConstants {
   public static final double TURRET_kV = 4.8;
   public static final double TURRET_kA = 0.0;
 
-  public static final double TURRET_MAX_VELOCITY = 2.0; // Mechanism rotations / second
-  public static final double TURRET_MAX_ACCELERATION = 4; // Mechanism rotations / second^2
+  public static final double TURRET_MAX_VELOCITY = 3.0; // Mechanism rotations / second
+  public static final double TURRET_MAX_ACCELERATION = 5; // Mechanism rotations / second^2
 
   // Simulation PID gains
   public static final double TURRET_SIM_kP = 5.0;

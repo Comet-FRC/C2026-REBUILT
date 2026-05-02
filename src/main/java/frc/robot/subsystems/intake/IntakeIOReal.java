@@ -97,7 +97,7 @@ public class IntakeIOReal implements IntakeIO {
           IntakeConstants.PIVOT_kP,
           IntakeConstants.PIVOT_kI,
           IntakeConstants.PIVOT_kD,
-          new TrapezoidProfile.Constraints(4 * Math.PI, Math.PI * 2)); // rad/s, rad/s^2
+          new TrapezoidProfile.Constraints(4 * Math.PI, Math.PI * 4)); // rad/s, rad/s^2
 
   private final ArmFeedforward pivotRightArmFF =
       new ArmFeedforward(

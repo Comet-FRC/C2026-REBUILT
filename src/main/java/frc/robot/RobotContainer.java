@@ -63,7 +63,7 @@ public class RobotContainer {
 
   // Tunable numbers
   private final LoggedTunableNumber intakeWheelVolts =
-      new LoggedTunableNumber("Intake/WheelVolts", 8);
+      new LoggedTunableNumber("Intake/WheelVolts", 11);
   private final LoggedTunableNumber FlywheelVelocity =
       new LoggedTunableNumber("Flywheel/RPM", 600.0);
   private final LoggedTunableNumber HoodAngle = new LoggedTunableNumber("Hood/Angle", 0.0);
@@ -73,7 +73,7 @@ public class RobotContainer {
   private final LoggedTunableNumber intakeShakeFrequency =
       new LoggedTunableNumber("Intake/ShakeHz", 1.0);
   private final LoggedTunableNumber indexerRollerVolts =
-      new LoggedTunableNumber("Indexer/RollerVolts", 5.0);
+      new LoggedTunableNumber("Indexer/RollerVolts", 12.0);
   private final LoggedTunableNumber turretVolts = new LoggedTunableNumber("Turret/Volts", 2.0);
 
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -170,6 +170,9 @@ public class RobotContainer {
         intake.runIntakeDelayed(
             () -> Degrees.of(intakeAngle.get()), () -> Volts.of(intakeWheelVolts.get())));
 
+    NamedCommands.registerCommand(
+        "Zero Hood", hood.setPosition(() -> Degrees.of(0.0)).withTimeout(2.0));
+
     AutoAimCommand shootAim = new AutoAimCommand(drive, turret, () -> TargetMode.HUB);
     NamedCommands.registerCommand(
         "HubShooting",
@@ -215,7 +218,7 @@ public class RobotContainer {
                 shootHubAim,
                 new AutoFireCommand(
                     shootHubAim::getLatestParameters, turret, flywheel, hood, kicker, indexer))
-            .withTimeout(15.0));
+            .withTimeout(13.0));
 
     setupDefaultCommands();
     configureButtonBindings();
