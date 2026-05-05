@@ -34,7 +34,7 @@ public class AutoFireCommand extends Command {
   private final Indexer indexer;
 
   private static final Voltage KICKER_FIRE_VOLTAGE = Volts.of(10.0);
-  private static final AngularVelocity FLYWHEEL_TOLERANCE = RPM.of(100.0);
+  private static final AngularVelocity FLYWHEEL_TOLERANCE = RPM.of(150.0);
 
   public AutoFireCommand(
       Supplier<ShotParameters> paramsSupplier,
